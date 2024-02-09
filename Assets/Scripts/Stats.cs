@@ -4,6 +4,6 @@ using UnityEngine;
 
 public class Stats : MonoBehaviour
 {
-    public int Sz;
+    public int Sz = 4;
     public int TempSz = 4;
 }

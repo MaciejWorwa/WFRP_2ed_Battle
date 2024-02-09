@@ -7,6 +7,8 @@ public class Unit : MonoBehaviour
 {
     public static GameObject SelectedUnit;
     public bool IsSelected { get; private set; } = false;
+    public bool IsCharging;
+    public bool IsRunning;
     public Stats Stats;
 
     private GridManager _gridManager;

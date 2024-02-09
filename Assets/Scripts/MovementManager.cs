@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using TMPro;
+using UnityEngine.UI;
 
 public class MovementManager : MonoBehaviour
 {
@@ -29,7 +31,7 @@ public class MovementManager : MonoBehaviour
         // Znajdź najkrótszą ścieżkę do celu
         List<Vector3> path = FindPath(startCharPos, selectedTilePos, movementRange);
 
-        // Sprawdza czy wybrane pole jest w zasięgu ruchu postaci. Warunek ten nie jest konieczny w przypadku automatycznej walki, dlatego dochodzi drugi warunek.
+        // Sprawdza czy wybrane pole jest w zasięgu ruchu postaci.
         if (path.Count > 0 && path.Count <= movementRange)
         {
             // Oznacza wybrane pole jako zajęte (gdyż trochę potrwa, zanim postać tam dojdzie i gdyby nie zaznaczyć, to można na nie ruszyć inną postacią)
@@ -198,6 +200,42 @@ public class MovementManager : MonoBehaviour
     private int CalculateDistance(Vector3 a, Vector3 b)
     {
         return (int)(Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y));
+    }
+
+    public void UpdateMovementRange(int modifier)
+    {
+        if (Unit.SelectedUnit == null) return;
+
+        Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
+        Stats stats = Unit.SelectedUnit.GetComponent<Stats>();
+
+        //Jeżeli postać już jest w trybie szarży lub biegu, resetuje je
+        if (unit.IsCharging && modifier == 2 || unit.IsRunning && modifier == 3)
+        {
+            modifier = 1;
+        }
+
+        //Aktualizuje obecny tryb poruszania postaci
+        unit.IsCharging = modifier == 2; //operator trójargumentowegy. Jeśli modifier == 2 to wartość == true, jeśli nie to wartość == false
+        unit.IsRunning = modifier == 3; //operator trójargumentowegy. Jeśli modifier == 3 to wartość == true, jeśli nie to wartość == false
+
+        //Oblicza obecną szybkość
+        stats.TempSz = stats.Sz * modifier;
+
+        // Aktualizuje podświetlenie pól w zasięgu ruchu
+        _gridManager.HighlightTilesInMovementRange(stats);
+
+        ChangeButtonColor(modifier);
+    }
+
+
+    private void ChangeButtonColor(int modifier) // Tymczasowa funkcja, do testów przycisków szarży i biegu. DODAĆ, ŻEBY RESETOWALO KOLOR PRZYCISKOW PO ZMIANIE POSTACI
+    {  
+        Image chargeButton = GameObject.Find("charge_button_TEMP").GetComponent<Image>();
+        Image runButton = GameObject.Find("run_button_TEMP").GetComponent<Image>();
+
+        chargeButton.color = modifier == 1 ? Color.white : modifier == 2 ? Color.green : Color.white;
+        runButton.color = modifier == 1 ? Color.white : modifier == 3 ? Color.green : Color.white;
     }
 }
 
