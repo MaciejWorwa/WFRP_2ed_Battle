@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -11,14 +12,18 @@ public class Unit : MonoBehaviour
     public bool IsRunning;
     public Stats Stats;
 
-    private GridManager _gridManager;
+    public TMP_Text NameDisplay;
+    public TMP_Text HealthDisplay;
 
     void Start()
     {
         Stats = gameObject.AddComponent<Stats>();
-        _gridManager = GameObject.Find("GridManager").GetComponent<GridManager>();
-    }
 
+        DisplayUnitName();
+
+        Stats.TempHealth = Stats.MaxHealth;
+        DisplayUnitHealthPoints();
+    }
     private void OnMouseUp()
     {
         SelectUnit();
@@ -38,12 +43,26 @@ public class Unit : MonoBehaviour
         }
         IsSelected = !IsSelected;
         ChangeUnitColor(this.gameObject);
-        _gridManager.HighlightTilesInMovementRange(Stats);
+        GridManager.Instance.HighlightTilesInMovementRange(Stats);
     }
 
     private void ChangeUnitColor(GameObject unit)
     {
         Renderer renderer = unit.GetComponent<Renderer>();
         renderer.material.color = IsSelected ? Color.green : Color.white;
+    }
+
+    public void DisplayUnitName()
+    {
+        if (Stats.Name == null || NameDisplay == null) return;
+
+        NameDisplay.text = Stats.Name;
+    }
+
+    public void DisplayUnitHealthPoints()
+    {
+        if (Stats.Name == null || HealthDisplay == null) return;
+
+        HealthDisplay.text = Stats.TempHealth + "/" + Stats.MaxHealth;
     }
 }
