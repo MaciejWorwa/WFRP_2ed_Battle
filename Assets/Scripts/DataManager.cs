@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Reflection;
 
 public class DataManager : MonoBehaviour
 { 
@@ -63,10 +64,16 @@ public class DataManager : MonoBehaviour
         {
             if (stats.Id == statsToUpdate.Id)
             {
-                //statsToUpdate.Name = stats.Name;
-                statsToUpdate.Race = stats.Race;
-                statsToUpdate.Sz = stats.Sz;
-                statsToUpdate.MaxHealth = stats.MaxHealth;
+                // Używanie refleksji do aktualizacji wartości wszystkich pól w klasie Stats
+                FieldInfo[] fields = typeof(StatsData).GetFields(BindingFlags.Instance | BindingFlags.Public);
+                foreach (var field in fields)
+                {
+                    var targetField = typeof(Stats).GetField(field.Name, BindingFlags.Instance | BindingFlags.Public);
+                    if (targetField != null)
+                    {
+                        targetField.SetValue(statsToUpdate, field.GetValue(stats));
+                    }
+                }
 
                 Debug.Log("Wczytano statystyki dla jednostki z Id: " + statsToUpdate.Id);
 
@@ -95,6 +102,9 @@ public class StatsData
     public string Race;
     public int MaxHealth;
     public int Sz;
+    public int WW;
+    public int US;
+    public float AttackRange = 1.5f;
 }
 
 public static class JsonHelper

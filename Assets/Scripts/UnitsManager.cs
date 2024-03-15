@@ -33,11 +33,13 @@ public class UnitsManager : MonoBehaviour
     [SerializeField] private TMP_Dropdown _unitsDropdown;
     [SerializeField] private TMP_InputField _unitNameInputField;
     [SerializeField] private Button _createUnitButton;
+     [SerializeField] private Button _destroyUnitButton;
     [SerializeField] private int _unitsAmount;
     public static bool IsTileSelecting;
+    public static bool IsUnitRemoving;
     public static bool RandomPositionMode = false;
 
-
+    #region Creating units
     public void CreateUnitMode(GameObject button)
     {
         if(!RandomPositionMode)
@@ -68,6 +70,9 @@ public class UnitsManager : MonoBehaviour
     {
         RandomPositionMode = !RandomPositionMode;
 
+        //Resetuje kolor przycisku tworzenia jednostek
+        _createUnitButton.GetComponent<Image>().color = Color.white;
+
         if (RandomPositionMode)
         {
             button.GetComponent<Image>().color = Color.green;
@@ -77,7 +82,6 @@ public class UnitsManager : MonoBehaviour
             button.GetComponent<Image>().color = Color.white;
         }
     }
-
 
     public void CreateUnit(int unitId, string unitName, Vector2 position)
     {
@@ -130,6 +134,11 @@ public class UnitsManager : MonoBehaviour
       
         //Tworzy nową postać na odpowiedniej pozycji
         GameObject newUnit = Instantiate(_unitPrefab, position, Quaternion.identity);
+
+        //Umieszcza postać jako dziecko EmptyObject'u do którego są podpięte wszystkie jednostki
+        newUnit.transform.SetParent(GameObject.Find("----------Units-------------------").transform);
+
+        //Ustawia Id postaci, które będzie definiować jego rasę i statystyki
         newUnit.GetComponent<Stats>().Id = unitId;
 
         //Zmienia status wybranego pola na zajęte
@@ -151,4 +160,36 @@ public class UnitsManager : MonoBehaviour
             newUnit.name = unitName;
         }
     }
+    #endregion
+
+    #region Removing units
+    public void DestroyUnitMode()
+    {
+        IsUnitRemoving = true;
+
+        //Zmienia kolor przycisku usuwania jednostek na aktywny
+        _destroyUnitButton.GetComponent<Image>().color = Color.green;
+    }
+    public void DestroyUnit(GameObject unit = null)
+    {
+        if(unit == null)
+        {
+            unit = Unit.SelectedUnit;
+        }
+        else if (unit == Unit.SelectedUnit)
+        {
+            //Resetuje podświetlenie pól w zasięgu ruchu jeżeli usuwana postać jest obecnie aktywną
+            GridManager.Instance.ResetColorOfTilesInMovementRange();
+        }
+
+        Destroy(unit);
+        IsUnitRemoving = false;
+
+        //Resetuje kolor przycisku tworzenia jednostek
+        _destroyUnitButton.GetComponent<Image>().color = Color.white;
+
+        //Resetuje Tile, żeby nie było uznawane jako zajęte
+        GridManager.Instance.ResetTileOccupancy(unit.transform.position);
+    }
+    #endregion
 }

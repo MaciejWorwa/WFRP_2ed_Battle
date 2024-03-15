@@ -21,12 +21,20 @@ public class Unit : MonoBehaviour
 
         DisplayUnitName();
 
+        Stats.TempSz = Stats.Sz;
         Stats.TempHealth = Stats.MaxHealth;
         DisplayUnitHealthPoints();
     }
     private void OnMouseUp()
     {
-        SelectUnit();
+        if(!UnitsManager.IsUnitRemoving)
+        {
+            SelectUnit();
+        }
+        else
+        {
+            UnitsManager.Instance.DestroyUnit(this.gameObject);
+        }
     }
 
     private void OnMouseOver()
