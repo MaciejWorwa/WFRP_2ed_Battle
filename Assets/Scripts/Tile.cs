@@ -8,14 +8,9 @@ public class Tile : MonoBehaviour
     private Renderer _renderer;
     public bool IsOccupied;
 
-    [SerializeField] private MovementManager _movementManager;
-    //private GridManager _gridManager;
-
     private void Awake()
     {
         _renderer = GetComponent<Renderer>();
-        _movementManager = GameObject.Find("MovementManager").GetComponent<MovementManager>();
-        //_gridManager = GameObject.Find("GridManager").GetComponent<GridManager>();
     }
 
     public void Init(bool isOffset)
@@ -37,9 +32,14 @@ public class Tile : MonoBehaviour
 
     private void OnMouseUp()
     {
+        if(UnitsManager.IsTileSelecting == true)
+        {
+            UnitsManager.Instance.CreateUnitOnSelectedTile(this.gameObject.transform.position);
+            return;
+        }
         if(Unit.SelectedUnit != null)
         {
-            _movementManager.MoveSelectedUnit(this.gameObject, Unit.SelectedUnit);     
+            MovementManager.Instance.MoveSelectedUnit(this.gameObject, Unit.SelectedUnit);     
         }
     }
 

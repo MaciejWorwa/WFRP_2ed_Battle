@@ -4,13 +4,34 @@ using UnityEngine.UI;
 using TMPro;
 
 public class DataManager : MonoBehaviour
-{
+{ 
+    // Prywatne statyczne pole przechowujƒÖce instancjƒô
+    private static DataManager instance;
 
+    // Publiczny dostƒôp do instancji
+    public static DataManager Instance
+    {
+        get { return instance; }
+    }
+
+    void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+            //DontDestroyOnLoad(gameObject);
+        }
+        else if (instance != this)
+        {
+            // Je≈õli instancja ju≈º istnieje, a pr√≥bujemy utworzyƒá kolejnƒÖ, niszczymy nadmiarowƒÖ
+            Destroy(gameObject);
+        }
+    }
     [SerializeField] private TMP_Dropdown _unitsDropdown;
 
-    public void LoadAndUpdateStats()
+    public void LoadAndUpdateStats(GameObject unit)
     {
-        // £adowanie danych JSON
+        // ≈Åadowanie danych JSON
         TextAsset jsonFile = Resources.Load<TextAsset>("data");
         if (jsonFile == null)
         {
@@ -22,41 +43,46 @@ public class DataManager : MonoBehaviour
         StatsData[] statsArray = JsonHelper.FromJson<StatsData>(jsonFile.text);
         if (statsArray == null)
         {
-            Debug.LogError("Deserializacja JSON nie powiod≥a siÍ. Sprawdü strukturÍ JSON.");
+            Debug.LogError("Deserializacja JSON nie powiod≈Ça siƒô. Sprawd≈∫ strukturƒô JSON.");
             return;
         }
 
-        // Aktualizacja statystyk
-        Stats statsToUpdate = Unit.SelectedUnit.GetComponent<Stats>();
+        //Odniesienie do statystyk postaci
+        Stats statsToUpdate = unit.GetComponent<Stats>();
+
         if (statsToUpdate == null)
         {
-            Debug.LogError("Aby zaktualizowaÊ statystyki musisz wybraÊ postaÊ.");
+            Debug.LogError("Aby wczytaƒá statystyki musisz wybraƒá jednostkƒô.");
             return;
         }
 
-        //Czyúci listÍ dostÍpnych do wyboru jednostek
+        //Czy≈õci listƒô dostƒôpnych do wyboru jednostek
         _unitsDropdown.options.Clear();
 
         foreach (var stats in statsArray)
         {
             if (stats.Id == statsToUpdate.Id)
             {
-                statsToUpdate.Name = stats.Name;
+                //statsToUpdate.Name = stats.Name;
+                statsToUpdate.Race = stats.Race;
                 statsToUpdate.Sz = stats.Sz;
-                statsToUpdate.TempSz = stats.TempSz;
+                statsToUpdate.MaxHealth = stats.MaxHealth;
 
-                Debug.Log("Zaktualizowano statystyki dla postaci z Id: " + statsToUpdate.Id);
+                Debug.Log("Wczytano statystyki dla jednostki z Id: " + statsToUpdate.Id);
 
-                // Aktualizuje wyúwietlanπ nazwÍ postaci i jej punkty øywotnoúci
-                Unit.SelectedUnit.GetComponent<Unit>().DisplayUnitName();
-                Unit.SelectedUnit.GetComponent<Unit>().DisplayUnitHealthPoints();
+                // Aktualizuje wy≈õwietlanƒÖ nazwƒô postaci i jej punkty ≈ºywotno≈õci, je≈õli ta postaƒá jest aktualizowana, a nie tworzona po raz pierwszy
+                if(unit.GetComponent<Unit>().Stats != null)
+                {
+                    unit.GetComponent<Unit>().DisplayUnitName();
+                    unit.GetComponent<Unit>().DisplayUnitHealthPoints();
+                }
             }
 
-            //Dodaje jednostkÍ do dropdowna
-            _unitsDropdown.options.Add(new TMP_Dropdown.OptionData(stats.Name));
+            //Dodaje jednostkƒô do dropdowna
+            _unitsDropdown.options.Add(new TMP_Dropdown.OptionData(stats.Race));
         }
 
-        //Odúwieøa wyúwietlanπ wartoúÊ dropdowna
+        //Od≈õwie≈ºa wy≈õwietlanƒÖ warto≈õƒá dropdowna
         _unitsDropdown.RefreshShownValue();
     }
 }
@@ -65,9 +91,10 @@ public class DataManager : MonoBehaviour
 public class StatsData
 {
     public int Id;
-    public string Name;
+    //public string Name;
+    public string Race;
+    public int MaxHealth;
     public int Sz;
-    public int TempSz;
 }
 
 public static class JsonHelper
@@ -78,7 +105,7 @@ public static class JsonHelper
 
         if (wrapper == null || wrapper.Units == null)
         {
-            Debug.LogError("Deserializacja JSON nie powiod≥a siÍ. Sprawdü sk≥adniÍ i strukturÍ JSON.");
+            Debug.LogError("Deserializacja JSON nie powiod≈Ça siƒô. Sprawd≈∫ sk≈Çadniƒô i strukturƒô JSON.");
             Debug.Log(wrapper);
             Debug.Log(wrapper.Units);
             return null;

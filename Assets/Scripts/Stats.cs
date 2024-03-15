@@ -4,16 +4,17 @@ using UnityEngine;
 
 public class Stats: MonoBehaviour
 {
-    public int Id = 2;
+    public int Id;
     public string Name;
+    public string Race;
 
-    [SerializeField] private int _Sz = 4;
+    [SerializeField] private int _Sz;
     public int Sz
     {
         get { return _Sz; }
         set { _Sz = value; }
     }
-    [SerializeField] private int _TempSz = 4;
+    [SerializeField] private int _TempSz;
     public int TempSz
     {
         get { return _TempSz; }
@@ -25,7 +26,7 @@ public class Stats: MonoBehaviour
         get { return _TempHealth; }
         set { _TempHealth = value; }
     }
-    [SerializeField] private int _MaxHealth = 10;
+    [SerializeField] private int _MaxHealth;
     public int MaxHealth
     {
         get { return _MaxHealth; }

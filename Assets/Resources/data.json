@@ -1,23 +1,40 @@
 {
-    "Units": [
-      {
-        "Id": 1,
-        "Name": "orc",
-        "Sz": 3,
-        "TempSz": 3
-      },
-      {
-        "Id": 2,
-        "Name": "skaven",
-        "Sz": 5,
-        "TempSz": 5
-      },
-      {
-        "Id": 3,
-        "Name": "dragon",
-        "Sz": 6,
-        "TempSz": 6
-      }
-    ]
-  }
-  
+  "Units": [
+    {
+      "Id": 1,
+      "Race": "człowiek",
+      "MaxHealth": 11,
+      "Sz": 4
+    },
+    {
+      "Id": 2,
+      "Race": "elf",
+      "MaxHealth": 9,
+      "Sz": 5
+    },
+    {
+      "Id": 3,
+      "Race": "krasnolud",
+      "Sz": 3,
+      "MaxHealth": 12
+    },
+    {
+      "Id": 4,
+      "Race": "niziołek",
+      "MaxHealth": 8,
+      "Sz": 3
+    },
+    {
+      "Id": 5,
+      "Race": "skaven",
+      "MaxHealth": 13,
+      "Sz": 5
+    },
+    {
+      "Id": 6,
+      "Race": "ork",
+      "MaxHealth": 15,
+      "Sz": 6
+    }
+  ]
+}

@@ -7,8 +7,29 @@ using UnityEngine.UI;
 
 public class MovementManager : MonoBehaviour
 {
+     // Prywatne statyczne pole przechowujące instancję
+    private static MovementManager instance;
+
+    // Publiczny dostęp do instancji
+    public static MovementManager Instance
+    {
+        get { return instance; }
+    }
+
+    void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+            //DontDestroyOnLoad(gameObject);
+        }
+        else if (instance != this)
+        {
+            // Jeśli instancja już istnieje, a próbujemy utworzyć kolejną, niszczymy nadmiarową
+            Destroy(gameObject);
+        }
+    }
     private bool _isMoving;
-    [SerializeField] private GridManager _gridManager;
 
     public void MoveSelectedUnit(GameObject selectedTile, GameObject unit)
     {
@@ -23,7 +44,7 @@ public class MovementManager : MonoBehaviour
         Vector3 startCharPos = unit.transform.position;
         
         // Aktualizuje informację o zajęciu pola, które postać opuszcza
-        _gridManager.ResetTileOccupancy(startCharPos);
+        GridManager.Instance.ResetTileOccupancy(startCharPos);
 
         // Pozycja pola wybranego jako cel ruchu
         Vector3 selectedTilePos = new Vector3(selectedTile.transform.position.x, selectedTile.transform.position.y, 0);
@@ -38,7 +59,7 @@ public class MovementManager : MonoBehaviour
             selectedTile.GetComponent<Tile>().IsOccupied = true;
 
             // Resetuje kolor pól w zasięgu ruchu na czas jego wykonywania
-            _gridManager.ResetColorOfTilesInMovementRange();
+            GridManager.Instance.ResetColorOfTilesInMovementRange();
 
             // Wykonuje pojedynczy ruch tyle razy ile wynosi zasięg ruchu postaci
             StartCoroutine(MoveWithDelay(unit, path, movementRange));
@@ -77,7 +98,7 @@ public class MovementManager : MonoBehaviour
         if (unit.transform.position == path[iterations - 1])
         {
             _isMoving = false;
-            _gridManager.HighlightTilesInMovementRange(Unit.SelectedUnit.GetComponent<Stats>());
+            GridManager.Instance.HighlightTilesInMovementRange(Unit.SelectedUnit.GetComponent<Stats>());
         }
     }
 
@@ -223,7 +244,7 @@ public class MovementManager : MonoBehaviour
         stats.TempSz = stats.Sz * modifier;
 
         // Aktualizuje podświetlenie pól w zasięgu ruchu
-        _gridManager.HighlightTilesInMovementRange(stats);
+        GridManager.Instance.HighlightTilesInMovementRange(stats);
 
         ChangeButtonColor(modifier);
     }

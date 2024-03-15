@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
-using TMPro;
 
 public class Unit : MonoBehaviour
 {
@@ -18,7 +17,7 @@ public class Unit : MonoBehaviour
 
     void Start()
     {
-        Stats = gameObject.AddComponent<Stats>();
+        Stats = gameObject.GetComponent<Stats>();
 
         DisplayUnitName();
 
@@ -34,18 +33,24 @@ public class Unit : MonoBehaviour
     {
         if(Input.GetMouseButtonDown(1) && SelectedUnit != null && SelectedUnit != this.gameObject)
         {
-            _attackManager.Attack(SelectedUnit.GetComponent<Unit>(), this);
+            AttackManager.Instance.Attack(SelectedUnit.GetComponent<Unit>(), this);
         }
     }
 
     private void SelectUnit()
     {
         if (SelectedUnit == null)
+        {
             SelectedUnit = this.gameObject;
+        }
         else if (SelectedUnit == this.gameObject)
+        {
+            MovementManager.Instance.UpdateMovementRange(1); //Resetuje szarżę lub bieg, jeśli były aktywne
             SelectedUnit = null;
+        }
         else
         {
+            MovementManager.Instance.UpdateMovementRange(1); //Resetuje szarżę lub bieg, jeśli były aktywne
             SelectedUnit.GetComponent<Unit>().IsSelected = false;
             ChangeUnitColor(SelectedUnit);
             SelectedUnit = this.gameObject;
@@ -63,14 +68,21 @@ public class Unit : MonoBehaviour
 
     public void DisplayUnitName()
     {
-        if (Stats.Name == null || NameDisplay == null) return;
+        if (NameDisplay == null) return;
 
-        NameDisplay.text = Stats.Name;
+        if (Stats.Name != null && Stats.Name.Length > 1)
+        {
+            NameDisplay.text = Stats.Name;
+        }
+        else
+        {
+            NameDisplay.text = this.gameObject.name;
+        }
     }
 
     public void DisplayUnitHealthPoints()
     {
-        if (Stats.Name == null || HealthDisplay == null) return;
+        if (HealthDisplay == null) return;
 
         HealthDisplay.text = Stats.TempHealth + "/" + Stats.MaxHealth;
     }
