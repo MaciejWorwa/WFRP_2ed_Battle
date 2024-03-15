@@ -41,6 +41,20 @@ public class GridManager : MonoBehaviour
         get { return _height; }
         set { _height = value; }
     }
+    public static GridManager Instance { get; private set; }
+
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject); // Zapobiega niszczeniu przy zmianie sceny
+        }
+        else if (Instance != this)
+        {
+            Destroy(gameObject); // Zniszczenie nadmiarowej instancji
+        }
+    }
 
     void Start()
     {

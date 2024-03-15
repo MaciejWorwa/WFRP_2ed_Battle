@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using TMPro;
@@ -12,22 +13,18 @@ public class Unit : MonoBehaviour
     public bool IsRunning;
     public Stats Stats;
 
-    private TMP_Text _health_display;
-
-    private GridManager _gridManager;
-    private AttackManager _attackManager;
+    public TMP_Text NameDisplay;
+    public TMP_Text HealthDisplay;
 
     void Start()
     {
         Stats = gameObject.AddComponent<Stats>();
-        _gridManager = GridManager.Instance;
-        _attackManager = AttackManager.Instance;
 
-        //Wyświetlenie punktów żywotności
-        _health_display = transform.Find("Canvas/health_text").GetComponent<TMP_Text>();
-        _health_display.text = Stats.TempHealth + "/" + Stats.Health;
+        DisplayUnitName();
+
+        Stats.TempHealth = Stats.MaxHealth;
+        DisplayUnitHealthPoints();
     }
-
     private void OnMouseUp()
     {
         SelectUnit();
@@ -55,12 +52,26 @@ public class Unit : MonoBehaviour
         }
         IsSelected = !IsSelected;
         ChangeUnitColor(this.gameObject);
-        _gridManager.HighlightTilesInMovementRange(Stats);
+        GridManager.Instance.HighlightTilesInMovementRange(Stats);
     }
 
     private void ChangeUnitColor(GameObject unit)
     {
         Renderer renderer = unit.GetComponent<Renderer>();
         renderer.material.color = IsSelected ? Color.green : Color.white;
+    }
+
+    public void DisplayUnitName()
+    {
+        if (Stats.Name == null || NameDisplay == null) return;
+
+        NameDisplay.text = Stats.Name;
+    }
+
+    public void DisplayUnitHealthPoints()
+    {
+        if (Stats.Name == null || HealthDisplay == null) return;
+
+        HealthDisplay.text = Stats.TempHealth + "/" + Stats.MaxHealth;
     }
 }
