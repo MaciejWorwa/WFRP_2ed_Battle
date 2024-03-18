@@ -41,7 +41,7 @@ public class Unit : MonoBehaviour
     {
         if(Input.GetMouseButtonDown(1) && SelectedUnit != null && SelectedUnit != this.gameObject)
         {
-            AttackManager.Instance.Attack(SelectedUnit.GetComponent<Unit>(), this);
+            CombatManager.Instance.Attack(SelectedUnit.GetComponent<Unit>(), this);
         }
     }
 
@@ -85,6 +85,7 @@ public class Unit : MonoBehaviour
         else
         {
             NameDisplay.text = this.gameObject.name;
+            Stats.Name = this.gameObject.name;
         }
     }
 

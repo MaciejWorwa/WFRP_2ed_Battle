@@ -1,0 +1,44 @@
+{
+    "Weapons": [
+      {
+        "Id": 1,
+        "Name": "Broń jednoręczna",
+        "AttackRange": 1.5,
+        "S": 0,
+        "Impact": false
+      },
+      {
+        "Id": 2,
+        "Name": "Broń dwuręczna",
+        "AttackRange": 1.5,
+        "S": 0,
+        "Impact": true
+      },
+      {
+        "Id": 3,
+        "Name": "Łuk",
+        "AttackRange": 12,
+        "S": 3,
+        "ReloadTime": 1,
+        "ReloadLeft": 0,
+        "Impact": false
+      },
+      {
+        "Id": 4,
+        "Name": "Sztylet",
+        "AttackRange": 1.5,
+        "S": -3,
+        "Impact": false
+      },
+      {
+        "Id": 5,
+        "Name": "Kusza",
+        "AttackRange": 15,
+        "S": 4,
+        "ReloadTime": 2,
+        "ReloadLeft": 0,
+        "Impact": false
+      }
+    ]
+  }
+  

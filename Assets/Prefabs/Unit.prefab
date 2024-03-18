@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 9100103260709899381}
   - component: {fileID: -8601941481920871024}
   - component: {fileID: -2754630250583481522}
+  - component: {fileID: 6267734093322851998}
   m_Layer: 6
   m_Name: Unit
   m_TagString: Untagged
@@ -155,10 +156,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Id: 2
   Name: 
-  _Sz: 4
-  _TempSz: 4
-  _TempHealth: 0
-  _MaxHealth: 10
+  Race: 
+  MaxHealth: 0
+  TempHealth: 0
+  Sz: 0
+  TempSz: 0
+  WW: 0
+  US: 0
+--- !u!114 &6267734093322851998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2921409717819951567}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4562073975a9284b8b1e46426d4d0e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Id: 0
+  Name: 
+  AttackRange: 1.5
+  S: 0
+  ReloadTime: 0
+  Defensive: 0
+  Fast: 0
+  Impact: 0
+  Slow: 0
+  Tiring: 0
+  ArmourPiercing: 0
 --- !u!1 &3783466440267322661
 GameObject:
   m_ObjectHideFlags: 0
