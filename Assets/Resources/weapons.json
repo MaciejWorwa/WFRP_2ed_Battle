@@ -3,6 +3,7 @@
       {
         "Id": 1,
         "Name": "Broń jednoręczna",
+        "Type": "melee",
         "AttackRange": 1.5,
         "S": 0,
         "Impact": false
@@ -10,6 +11,7 @@
       {
         "Id": 2,
         "Name": "Broń dwuręczna",
+        "Type": "melee",
         "AttackRange": 1.5,
         "S": 0,
         "Impact": true
@@ -17,6 +19,7 @@
       {
         "Id": 3,
         "Name": "Łuk",
+        "Type": "ranged",
         "AttackRange": 12,
         "S": 3,
         "ReloadTime": 1,
@@ -26,6 +29,7 @@
       {
         "Id": 4,
         "Name": "Sztylet",
+        "Type": "melee",
         "AttackRange": 1.5,
         "S": -3,
         "Impact": false
@@ -33,6 +37,7 @@
       {
         "Id": 5,
         "Name": "Kusza",
+        "Type": "ranged",
         "AttackRange": 15,
         "S": 4,
         "ReloadTime": 2,

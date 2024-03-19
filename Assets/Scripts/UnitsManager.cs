@@ -31,10 +31,11 @@ public class UnitsManager : MonoBehaviour
     }
     [SerializeField] private GameObject _unitPrefab;
     [SerializeField] private TMP_Dropdown _unitsDropdown;
-        [SerializeField] private TMP_Dropdown _weaponsDropdown;
+    [SerializeField] private TMP_Dropdown _weaponsDropdown;
     [SerializeField] private TMP_InputField _unitNameInputField;
+    [SerializeField] private Toggle _unitTagToggle;
     [SerializeField] private Button _createUnitButton;
-     [SerializeField] private Button _destroyUnitButton;
+    [SerializeField] private Button _destroyUnitButton;
     [SerializeField] private int _unitsAmount;
     public static bool IsTileSelecting;
     public static bool IsUnitRemoving;
@@ -142,7 +143,22 @@ public class UnitsManager : MonoBehaviour
         //Ustawia Id postaci, które będzie definiować jego rasę i statystyki
         newUnit.GetComponent<Stats>().Id = unitId;
 
+        //Ustawia tag postaci, który definiuje, czy jest to sojusznik, czy przeciwnik, a także jej domyślny kolor.
+        if (_unitTagToggle.isOn)
+        {
+
+            newUnit.tag = "PlayerUnit";
+            newUnit.GetComponent<Unit>().DefaultColor = new Color(0f, 0.54f, 0.17f, 1.0f);
+        }
+        else
+        {
+            newUnit.tag = "EnemyUnit";
+            newUnit.GetComponent<Unit>().DefaultColor = new Color(0.72f, 0.15f, 0.17f, 1.0f);
+        }
+        newUnit.GetComponent<Unit>().ChangeUnitColor(newUnit);
+
         //Zmienia status wybranego pola na zajęte
+
         selectedTile.GetComponent<Tile>().IsOccupied = true;
 
         // Aktualizuje liczbę wszystkich postaci

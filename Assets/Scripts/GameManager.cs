@@ -30,6 +30,8 @@ public class GameManager : MonoBehaviour
 
     public bool IsAutoKillMode = false;
     [SerializeField] private Button _autoKillButton;
+    public bool IsFriendlyFire = false;
+    [SerializeField] private Button _friendlyFireButton;
 
     public void SetAutoKillMode()
     {
@@ -44,6 +46,22 @@ public class GameManager : MonoBehaviour
         {
             _autoKillButton.GetComponent<Image>().color = Color.white;
             Debug.Log("Tryb automatycznej śmierci (gdy żywotność spanie poniżej zera) został wyłączony.");
+        }
+    }
+
+    public void SetFriendlyFireMode()
+    {
+        IsFriendlyFire = !IsFriendlyFire;
+
+        if (IsFriendlyFire)
+        {
+            _friendlyFireButton.GetComponent<Image>().color = Color.green;
+            Debug.Log("Friendly fire został włączony.");
+        }
+        else
+        {
+            _friendlyFireButton.GetComponent<Image>().color = Color.white;
+            Debug.Log("Friendly fire został wyłączony.");
         }
     }
 }

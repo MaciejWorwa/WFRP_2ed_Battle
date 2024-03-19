@@ -9,6 +9,9 @@ public class Weapon : MonoBehaviour
     [Header("Nazwa")]
     public string Name;
 
+    [Header("Typ")]
+    public string Type;
+
     [Header("Siła")]
     public int S;
 

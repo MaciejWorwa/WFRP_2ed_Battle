@@ -30,7 +30,10 @@ public class MovementManager : MonoBehaviour
         }
     }
     private bool _isMoving;
+    [SerializeField] private Button _chargeButton;
+    [SerializeField] private Button _runButton;
 
+    #region Move functions
     public void MoveSelectedUnit(GameObject selectedTile, GameObject unit)
     {
         // Nie pozwala wykonać akcji ruchu, dopóki poprzedni ruch nie zostanie zakończony
@@ -60,6 +63,9 @@ public class MovementManager : MonoBehaviour
 
             // Resetuje kolor pól w zasięgu ruchu na czas jego wykonywania
             GridManager.Instance.ResetColorOfTilesInMovementRange();
+
+            //Sprwadza, czy ruch powoduje ataki okazyjne
+            CheckForOpportunityAttack(unit, selectedTilePos);
 
             // Wykonuje pojedynczy ruch tyle razy ile wynosi zasięg ruchu postaci
             StartCoroutine(MoveWithDelay(unit, path, movementRange));
@@ -102,7 +108,7 @@ public class MovementManager : MonoBehaviour
         }
     }
 
-    private List<Vector3> FindPath(Vector3 start, Vector3 goal, int movementRange)
+    public List<Vector3> FindPath(Vector3 start, Vector3 goal, int movementRange)
     {
         // Tworzy listę otwartych węzłów
         List<Node> openNodes = new List<Node>();
@@ -216,6 +222,7 @@ public class MovementManager : MonoBehaviour
         // Jeśli nie udało się znaleźć ścieżki, to zwraca pustą listę
         return new List<Vector3>();
     }
+    #endregion
 
     // Funkcja obliczająca odległość pomiędzy dwoma punktami na płaszczyźnie XY
     private int CalculateDistance(Vector3 a, Vector3 b)
@@ -223,6 +230,7 @@ public class MovementManager : MonoBehaviour
         return (int)(Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y));
     }
 
+    #region Charge and Run modes
     public void UpdateMovementRange(int modifier)
     {
         if (Unit.SelectedUnit == null) return;
@@ -252,12 +260,39 @@ public class MovementManager : MonoBehaviour
 
     private void ChangeButtonColor(int modifier) // Tymczasowa funkcja, do testów przycisków szarży i biegu. DODAĆ, ŻEBY RESETOWALO KOLOR PRZYCISKOW PO ZMIANIE POSTACI
     {  
-        Image chargeButton = GameObject.Find("charge_button_TEMP").GetComponent<Image>();
-        Image runButton = GameObject.Find("run_button_TEMP").GetComponent<Image>();
-
-        chargeButton.color = modifier == 1 ? Color.white : modifier == 2 ? Color.green : Color.white;
-        runButton.color = modifier == 1 ? Color.white : modifier == 3 ? Color.green : Color.white;
+        _chargeButton.GetComponent<Image>().color = modifier == 1 ? Color.white : modifier == 2 ? Color.green : Color.white;
+        _runButton.GetComponent<Image>().color = modifier == 1 ? Color.white : modifier == 3 ? Color.green : Color.white;
     }
+    #endregion
+
+    #region Check for opportunity attack
+    // Sprawdza czy ruch powoduje atak okazyjny
+    public void CheckForOpportunityAttack(GameObject movingUnit, Vector3 selectedTilePosition)
+    {
+
+        //Stworzenie tablicy wszystkich jednostek
+        Unit[] units = FindObjectsByType<Unit>(FindObjectsSortMode.None);
+
+        // Atak okazyjny wywolywany dla kazdego wroga bedacego w zwarciu z bohaterem gracza
+        foreach (Unit unit in units)
+        {
+            //Jeżeli jest to sojusznik lub jednostka z bronią dystansową to ją pomijamy
+            if (unit.CompareTag(movingUnit.tag) || unit.GetComponent<Weapon>().Type == "ranged") continue;
+
+            // Sprawdzenie ilu przeciwników jest w zwarciu z aktywną jednostką i czy jej ruch powoduje oddalenie się od nich (czyli atak okazyjny)
+            float distanceFromOpponent = Vector3.Distance(movingUnit.transform.position, unit.transform.position);
+            float distanceFromOpponentAfterMove = Vector3.Distance(selectedTilePosition, unit.transform.position);
+
+            if (distanceFromOpponent <= 1.8f && distanceFromOpponentAfterMove > 1.8f)
+            {
+                Debug.Log($"Ruch spowodował atak okazyjny od {unit.GetComponent<Stats>().Name}.");
+
+                // Wywołanie ataku okazyjnego
+                CombatManager.Instance.Attack(unit, movingUnit.GetComponent<Unit>());             
+            }
+        }
+    }
+    #endregion
 }
 
 public class Node

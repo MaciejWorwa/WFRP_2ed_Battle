@@ -137,6 +137,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95bb5ae21a444664c94fe19f9a3288fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  DefaultColor: {r: 0, g: 0, b: 0, a: 0}
+  HighlightColor: {r: 0, g: 0, b: 0, a: 0}
   IsCharging: 0
   IsRunning: 0
   Stats: {fileID: 0}
@@ -157,12 +159,32 @@ MonoBehaviour:
   Id: 2
   Name: 
   Race: 
-  MaxHealth: 0
-  TempHealth: 0
-  Sz: 0
-  TempSz: 0
   WW: 0
   US: 0
+  K: 0
+  Odp: 0
+  Zr: 0
+  Int: 0
+  SW: 0
+  Ogd: 0
+  A: 0
+  S: 0
+  Wt: 0
+  Sz: 0
+  TempSz: 0
+  Mag: 0
+  MaxHealth: 0
+  TempHealth: 0
+  PP: 0
+  PS: 0
+  Armor_head: 0
+  Armor_arms: 0
+  Armor_torso: 0
+  Armor_legs: 0
+  Initiative: 0
+  InstantReload: 0
+  PrecisionShot: 0
+  StrongBlow: 0
 --- !u!114 &6267734093322851998
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -177,9 +199,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Id: 0
   Name: 
-  AttackRange: 1.5
+  Type: melee
   S: 0
+  AttackRange: 1.5
   ReloadTime: 0
+  ReloadLeft: 0
   Defensive: 0
   Fast: 0
   Impact: 0
@@ -260,8 +284,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4280615167
-  m_fontColor: {r: 1, g: 0, b: 0.1434412, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -497,8 +521,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4280615167
-  m_fontColor: {r: 1, g: 0, b: 0.1434412, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:

@@ -1,6 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
+using UnityEngine.TextCore.Text;
+using UnityEngine.UI;
+using UnityEngine.UIElements;
+using static UnityEditor.PlayerSettings;
 
 public class CombatManager : MonoBehaviour
 {
@@ -30,6 +35,7 @@ public class CombatManager : MonoBehaviour
     private int _attackModifier;
     private int _defenseModifier;
     private float _attackDistance;
+    [SerializeField] private UnityEngine.UI.Button _aimButton;
 
     #region Attack function
     public void Attack(Unit attacker, Unit target) 
@@ -44,7 +50,7 @@ public class CombatManager : MonoBehaviour
         _attackDistance = CalculateDistance(attacker.gameObject, target.gameObject);
 
         //Wykonuje atak, jeśli cel jest w zasięgu
-        if (_attackDistance <= attackerWeapon.AttackRange || _attackDistance <= attackerWeapon.AttackRange * 2 && attackerWeapon.AttackRange > 1.5f )
+        if (_attackDistance <= attackerWeapon.AttackRange || _attackDistance <= attackerWeapon.AttackRange * 2 && attackerWeapon.Type == "ranged")
         {
             //Sprawdza, czy broń jest naładowana (w przypadku ataku dystansowego)
             if (_attackDistance > 1.5f && attackerWeapon.ReloadLeft != 0)
@@ -52,6 +58,9 @@ public class CombatManager : MonoBehaviour
                 Debug.Log($"Broń wymaga przeładowania.");
                 return;
             }
+
+            //Aktualizuje modyfikator ataku o celowanie
+            _attackModifier += attacker.AimingBonus;
 
             //Rzut na trafienie
             int rollResult = Random.Range(1, 101);
@@ -61,6 +70,13 @@ public class CombatManager : MonoBehaviour
 
             //Zresetowanie bonusu do trafienia
             _attackModifier = 0;
+
+            //Zresetowanie celowania, jeżeli było aktywne
+            if(attacker.AimingBonus != 0)
+            {
+                Unit.SelectedUnit.GetComponent<Unit>().AimingBonus = 0;
+                UpdateAimButtonColor();
+            }
 
             if (isSuccessful)
             {
@@ -100,6 +116,10 @@ public class CombatManager : MonoBehaviour
                 Debug.Log($"Atak {attackerStats.Name} chybił.");
             }
         }
+        else if (attacker.GetComponent<Unit>().IsCharging)
+        {
+            Charge(attacker.gameObject, target.gameObject);
+        }
         else
         {
             Debug.Log("Cel ataku stoi poza zasięgiem.");
@@ -113,8 +133,6 @@ public class CombatManager : MonoBehaviour
         if (attacker != null && target != null)
         {
             _attackDistance = Vector3.Distance(attacker.transform.position, target.transform.position);
-
-            Debug.Log("Dystans: " + _attackDistance);
 
             return _attackDistance;
         }
@@ -132,7 +150,7 @@ public class CombatManager : MonoBehaviour
         bool isSuccessful = false;
 
         //Sprawdza, czy atak jest atakiem dystansowym
-        if (_attackDistance > 1.5f)
+        if (attackerWeapon.Type == "ranged")
         {
             _attackModifier -= _attackDistance > attackerWeapon.AttackRange ? 20 : 0;
 
@@ -160,7 +178,7 @@ public class CombatManager : MonoBehaviour
         }
 
         //Sprawdza czy atak jest atakiem w zwarciu
-        if (_attackDistance <= 1.5f)
+        if (attackerWeapon.Type == "melee")
         {
             isSuccessful = rollResult <= (attackerStats.WW + _attackModifier - _defenseModifier);
 
@@ -320,6 +338,131 @@ public class CombatManager : MonoBehaviour
         {
             Debug.Log($"Ładowanie broni {Unit.SelectedUnit.GetComponent<Stats>().Name}. Pozostała/y {weapon.ReloadLeft} akcja/e do końca.");
         }      
+    }
+    #endregion
+
+    #region Aiming
+    public void SetAim()
+    {
+        if (Unit.SelectedUnit == null) return;
+
+        //Sprawdza, czy postać już celuje i chce przestać, czy chce dopiero przycelować
+        if(Unit.SelectedUnit.GetComponent<Unit>().AimingBonus != 0)
+        {
+            Unit.SelectedUnit.GetComponent<Unit>().AimingBonus = 0;
+
+            UpdateAimButtonColor();
+        }
+        else
+        {
+            Unit.SelectedUnit.GetComponent<Unit>().AimingBonus += 10; //DODAĆ W PRZYSZŁOŚCI uwzględnienie umiejętności strzał mierzony.
+
+            Debug.Log("Przycelowanie");
+
+            UpdateAimButtonColor();
+        }
+    }
+    public void UpdateAimButtonColor()
+    {
+        if(Unit.SelectedUnit.GetComponent<Unit>().AimingBonus != 0)
+        {
+            _aimButton.GetComponent<UnityEngine.UI.Image>().color = Color.green;
+        }
+        else
+        {
+            _aimButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;
+        }
+    }
+    #endregion
+
+    #region Charge
+    public void Charge(GameObject attacker, GameObject target)
+    {
+        //Sprawdza pole, w którym atakujący zatrzyma się po wykonaniu szarży
+        GameObject targetTile = GetTileAdjacentToTarget(attacker, target);
+
+        Vector3 targetTilePosition = new Vector3(targetTile.transform.position.x, targetTile.transform.position.y, 0);
+
+        if (targetTile == null)
+        {
+            Debug.Log($"Cel ataku stoi poza zasięgiem szarży.");
+            return;
+        }
+
+        //Ścieżka ruchu szarżującego
+        List<Vector3> path = MovementManager.Instance.FindPath(attacker.transform.position, targetTilePosition, attacker.GetComponent<Stats>().TempSz);
+
+        //Sprawdza, czy postać jest wystarczająco daleko do wykonania szarży
+        if (path.Count >= 3 && path.Count <= attacker.GetComponent<Stats>().TempSz)
+        {
+            _attackModifier += 10;
+
+            MovementManager.Instance.MoveSelectedUnit(targetTile, attacker);
+
+            // Wywołanie funkcji z wyczekaniem na koniec animacji ruchu postaci
+            StartCoroutine(DelayedAttack(attacker, target, path.Count * 0.2f));
+
+            IEnumerator DelayedAttack(GameObject attacker, GameObject target, float delay)
+            {
+                yield return new WaitForSeconds(delay);
+
+                Attack(attacker.GetComponent<Unit>(), target.GetComponent<Unit>());
+
+                //Zresetowanie szarży
+                MovementManager.Instance.UpdateMovementRange(1);
+            }
+        }
+        else
+        {
+            //Zresetowanie szarży
+            MovementManager.Instance.UpdateMovementRange(1);
+
+            Debug.Log("Zbyt mała odległość na wykonanie szarży");
+        }
+    }
+
+    // Szuka wolnej pozycji obok celu szarży, do której droga postaci jest najkrótsza
+    public GameObject GetTileAdjacentToTarget(GameObject attacker, GameObject target)
+    {
+        Vector3 targetPos = target.transform.position;
+
+        //Wszystkie przylegające pozycje do atakowanego
+        Vector3[] positions = { targetPos + Vector3.right,
+            targetPos + Vector3.left,
+            targetPos + Vector3.up,
+            targetPos + Vector3.down,
+            targetPos + new Vector3(1, 1, 0),
+            targetPos + new Vector3(-1, -1, 0),
+            targetPos + new Vector3(-1, 1, 0),
+            targetPos + new Vector3(1, -1, 0)
+        };
+
+        GameObject targetTile = null;
+
+        //Długość najkrótszej ścieżki do pola docelowego
+        int shortestPathLength = int.MaxValue;
+
+        //Lista przechowująca ścieżkę ruchu szarżującego
+        List<Vector3> path = new List<Vector3>();
+
+        foreach (Vector3 pos in positions)
+        {
+            GameObject tile = GameObject.Find($"Tile {pos.x - GridManager.Instance.transform.position.x} {pos.y - GridManager.Instance.transform.position.y}");
+
+            //Jeżeli pole jest zajęte to szukamy innego
+            if (tile.GetComponent<Tile>().IsOccupied) continue;
+
+            path = MovementManager.Instance.FindPath(attacker.transform.position, pos, attacker.GetComponent<Stats>().TempSz);
+
+            // Aktualizuje najkrótszą drogę
+            if (path.Count < shortestPathLength)
+            {
+                shortestPathLength = path.Count;
+                targetTile = tile;
+            }  
+        }
+
+        return targetTile;
     }
     #endregion
 }

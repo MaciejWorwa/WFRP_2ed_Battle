@@ -77,8 +77,6 @@ public class DataManager : MonoBehaviour
                     }
                 }
 
-                Debug.Log("Wczytano statystyki dla jednostki z Id: " + statsToUpdate.Id);
-
                 // Aktualizuje wyświetlaną nazwę postaci i jej punkty żywotności, jeśli ta postać jest aktualizowana, a nie tworzona po raz pierwszy
                 if(unit.GetComponent<Unit>().Stats != null)
                 {
@@ -155,12 +153,6 @@ public class DataManager : MonoBehaviour
                 if(weaponToUpdate.WeaponsInInventory.ContainsKey(weapon.Id) == false)
                 {
                     weaponToUpdate.WeaponsInInventory.Add(weapon.Id, 0);
-
-                    // TYMCZASOWO
-                    foreach(var weaponId in weaponToUpdate.WeaponsInInventory)
-                    {
-                        Debug.Log("WeaponID i czas do przeładowania: " + weaponId);
-                    }
                 }
             }
 
@@ -243,6 +235,7 @@ public class WeaponData
 {
     public int Id;
     public string Name;
+    public string Type;
     public float AttackRange;
     public int S;
     public int ReloadTime;

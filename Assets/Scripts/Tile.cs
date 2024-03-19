@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class Tile : MonoBehaviour
@@ -34,12 +35,26 @@ public class Tile : MonoBehaviour
     {
         if(UnitsManager.IsTileSelecting == true)
         {
+            //Tworzy jednostkê na klikniêtym polu 
             UnitsManager.Instance.CreateUnitOnSelectedTile(this.gameObject.transform.position);
             return;
         }
         if(Unit.SelectedUnit != null)
         {
-            MovementManager.Instance.MoveSelectedUnit(this.gameObject, Unit.SelectedUnit);     
+            if(Unit.SelectedUnit.GetComponent<Unit>().IsCharging)
+            {
+                Debug.Log("Wybierz przeciwnika, na którego chcesz zaszar¿owaæ.");
+                return;
+            }
+
+            //Resetuje przycelowanie, jeœli by³o aktywne
+            if (Unit.SelectedUnit.GetComponent<Unit>().AimingBonus != 0)
+            {
+                CombatManager.Instance.SetAim();
+            }
+
+            //Wykonuje ruch na klikniête pole
+            MovementManager.Instance.MoveSelectedUnit(this.gameObject, Unit.SelectedUnit);
         }
     }
 

@@ -2,14 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class Unit : MonoBehaviour
 {
     public static GameObject SelectedUnit;
+    public Color DefaultColor;
+    public Color HighlightColor;
     public bool IsSelected { get; private set; } = false;
     public bool IsCharging;
     public bool IsRunning;
+    public int AimingBonus;
     public Stats Stats;
 
     public TMP_Text NameDisplay;
@@ -20,6 +24,9 @@ public class Unit : MonoBehaviour
         Stats = gameObject.GetComponent<Stats>();
 
         DisplayUnitName();
+
+        //Ustawia wartość HighlightColor na jaśniejszą wersję DefaultColor. Trzeci parametr określa ilość koloru białego w całości.
+        HighlightColor = Color.Lerp(DefaultColor, Color.yellow, 0.3f);
 
         Stats.TempSz = Stats.Sz;
         Stats.TempHealth = Stats.MaxHealth;
@@ -41,6 +48,13 @@ public class Unit : MonoBehaviour
     {
         if(Input.GetMouseButtonDown(1) && SelectedUnit != null && SelectedUnit != this.gameObject)
         {
+            //Sprawdza, czy atakowanym jest nasz sojusznik i czy tryb Friendly Fire jest aktywny
+            if(GameManager.Instance.IsFriendlyFire == false && this.gameObject.CompareTag(SelectedUnit.tag))
+            {
+                Debug.Log("Nie możesz atakować swoich sojuszników. Jest to możliwe tylko w trybie Friendly Fire.");
+                return;
+            }
+
             CombatManager.Instance.Attack(SelectedUnit.GetComponent<Unit>(), this);
         }
     }
@@ -54,24 +68,32 @@ public class Unit : MonoBehaviour
         else if (SelectedUnit == this.gameObject)
         {
             MovementManager.Instance.UpdateMovementRange(1); //Resetuje szarżę lub bieg, jeśli były aktywne
+
+            //Resetuje przycisk celowania jeśli był aktywny
+            AimingBonus = 0;
+            CombatManager.Instance.UpdateAimButtonColor(); 
+
             SelectedUnit = null;
         }
         else
         {
-            MovementManager.Instance.UpdateMovementRange(1); //Resetuje szarżę lub bieg, jeśli były aktywne
+            MovementManager.Instance.UpdateMovementRange(1); //Resetuje szarżę lub bieg, jeśli były aktywne       
             SelectedUnit.GetComponent<Unit>().IsSelected = false;
+
             ChangeUnitColor(SelectedUnit);
             SelectedUnit = this.gameObject;
+            CombatManager.Instance.UpdateAimButtonColor(); //Resetuje przycisk celowania jeśli był aktywny
         }
         IsSelected = !IsSelected;
         ChangeUnitColor(this.gameObject);
         GridManager.Instance.HighlightTilesInMovementRange(Stats);
     }
 
-    private void ChangeUnitColor(GameObject unit)
+    public void ChangeUnitColor(GameObject unit)
     {
         Renderer renderer = unit.GetComponent<Renderer>();
-        renderer.material.color = IsSelected ? Color.green : Color.white;
+
+        renderer.material.color = IsSelected ? unit.GetComponent<Unit>().HighlightColor : unit.GetComponent<Unit>().DefaultColor;
     }
 
     public void DisplayUnitName()
