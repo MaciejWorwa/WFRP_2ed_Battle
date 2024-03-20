@@ -277,7 +277,7 @@ public class MovementManager : MonoBehaviour
         foreach (Unit unit in units)
         {
             //Jeżeli jest to sojusznik lub jednostka z bronią dystansową to ją pomijamy
-            if (unit.CompareTag(movingUnit.tag) || unit.GetComponent<Weapon>().Type == "ranged") continue;
+            if (unit.CompareTag(movingUnit.tag) || unit.GetComponent<Weapon>().Type.Contains("ranged")) continue;
 
             // Sprawdzenie ilu przeciwników jest w zwarciu z aktywną jednostką i czy jej ruch powoduje oddalenie się od nich (czyli atak okazyjny)
             float distanceFromOpponent = Vector3.Distance(movingUnit.transform.position, unit.transform.position);

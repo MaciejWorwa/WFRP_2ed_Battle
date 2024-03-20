@@ -40,10 +40,14 @@ public class Stats : MonoBehaviour
     public int Armor_torso;
     public int Armor_legs;
 
-    [Header("Zdolności i inicjatywa")]
+    [Header("Zdolności, umiejętności i inicjatywa")]
     public int Initiative;
     public bool InstantReload;
     public bool PrecisionShot;
     public bool StrongBlow;
+
+    [Header("Umiejętności")]
+    public int Dodge;
+
 }
 

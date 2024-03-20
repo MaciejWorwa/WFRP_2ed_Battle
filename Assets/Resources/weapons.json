@@ -1,49 +1,56 @@
 {
-    "Weapons": [
-      {
-        "Id": 1,
-        "Name": "Broń jednoręczna",
-        "Type": "melee",
-        "AttackRange": 1.5,
-        "S": 0,
-        "Impact": false
-      },
-      {
-        "Id": 2,
-        "Name": "Broń dwuręczna",
-        "Type": "melee",
-        "AttackRange": 1.5,
-        "S": 0,
-        "Impact": true
-      },
-      {
-        "Id": 3,
-        "Name": "Łuk",
-        "Type": "ranged",
-        "AttackRange": 12,
-        "S": 3,
-        "ReloadTime": 1,
-        "ReloadLeft": 0,
-        "Impact": false
-      },
-      {
-        "Id": 4,
-        "Name": "Sztylet",
-        "Type": "melee",
-        "AttackRange": 1.5,
-        "S": -3,
-        "Impact": false
-      },
-      {
-        "Id": 5,
-        "Name": "Kusza",
-        "Type": "ranged",
-        "AttackRange": 15,
-        "S": 4,
-        "ReloadTime": 2,
-        "ReloadLeft": 0,
-        "Impact": false
-      }
-    ]
-  }
-  
+  "Weapons": [
+    {
+      "Id": 1,
+      "Name": "Broń jednoręczna",
+      "Type": ["melee"],
+      "AttackRange": 1.5,
+      "S": 0
+    },
+    {
+      "Id": 2,
+      "Name": "Broń dwuręczna",
+      "Type": ["melee"],
+      "TwoHanded": true,
+      "AttackRange": 1.5,
+      "S": 0,
+      "Impact": true,
+      "Slow": true
+    },
+    {
+      "Id": 3,
+      "Name": "Łuk",
+      "Type": ["ranged"],
+      "TwoHanded": true,
+      "AttackRange": 12,
+      "S": 3,
+      "ReloadTime": 1,
+      "ReloadLeft": 0
+    },
+    {
+      "Id": 4,
+      "Name": "Sztylet",
+      "Type": ["melee"],
+      "AttackRange": 1.5,
+      "S": -3
+    },
+    {
+      "Id": 5,
+      "Name": "Kusza",
+      "Type": ["ranged"],
+      "TwoHanded": true,
+      "AttackRange": 15,
+      "S": 4,
+      "ReloadTime": 2,
+      "ReloadLeft": 0
+    },
+    {
+      "Id": 6,
+      "Name": "Tarcza",
+      "Type": ["melee", "shield"],
+      "AttackRange": 1.5,
+      "S": -2,
+      "Defensive": true
+    }
+  ]
+}

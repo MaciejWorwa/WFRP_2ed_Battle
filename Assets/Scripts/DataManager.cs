@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Reflection;
+using System.Linq;
 
 public class DataManager : MonoBehaviour
 { 
@@ -113,7 +114,7 @@ public class DataManager : MonoBehaviour
             return;
         }
 
-        //Odniesienie do statystyk postaci
+        //Odniesienie do broni postaci
         Weapon weaponToUpdate = unit.GetComponent<Weapon>();
 
         if (weaponToUpdate == null)
@@ -137,9 +138,9 @@ public class DataManager : MonoBehaviour
                     if (targetField != null)
                     {
                         //Zapobiega zresetowaniu się czasu przeładowania przy zmianach broni. Gdy postać wcześniej posiadała/używała daną broń to jej ReloadLeft zostaje zapamiętany
-                        if(weaponToUpdate.WeaponsInInventory.ContainsKey(weapon.Id) && field.Name == "ReloadLeft")
+                        if(weaponToUpdate.WeaponsWithReloadLeft.ContainsKey(weapon.Id) && field.Name == "ReloadLeft")
                         {
-                            weaponToUpdate.ReloadLeft = weaponToUpdate.WeaponsInInventory[weapon.Id];
+                            weaponToUpdate.ReloadLeft = weaponToUpdate.WeaponsWithReloadLeft[weapon.Id];
                             continue;
                         }
 
@@ -147,12 +148,13 @@ public class DataManager : MonoBehaviour
                     }
                 }
 
-                Debug.Log("Zmieniono broń na: " + weaponToUpdate.Name);
+                //Dodaje przedmiot do ekwipunku postaci
+                InventoryManager.Instance.AddWeaponToInventory(weapon, unit);
 
                 //Dodaje Id broni do słownika ekwipunku postaci
-                if(weaponToUpdate.WeaponsInInventory.ContainsKey(weapon.Id) == false)
+                if(weaponToUpdate.WeaponsWithReloadLeft.ContainsKey(weapon.Id) == false)
                 {
-                    weaponToUpdate.WeaponsInInventory.Add(weapon.Id, 0);
+                    weaponToUpdate.WeaponsWithReloadLeft.Add(weapon.Id, 0);
                 }
             }
 
@@ -228,6 +230,7 @@ public class StatsData
     public int Initiative;
     public bool PrecisionShot;
     public bool StrongBlow;
+    public int Dodge;
 }
 
 [System.Serializable]
@@ -235,7 +238,8 @@ public class WeaponData
 {
     public int Id;
     public string Name;
-    public string Type;
+    public string[] Type;
+    public bool TwoHanded;
     public float AttackRange;
     public int S;
     public int ReloadTime;

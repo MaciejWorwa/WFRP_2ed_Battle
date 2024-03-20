@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: -8601941481920871024}
   - component: {fileID: -2754630250583481522}
   - component: {fileID: 6267734093322851998}
+  - component: {fileID: 8447459666408192081}
   m_Layer: 6
   m_Name: Unit
   m_TagString: Untagged
@@ -141,6 +142,10 @@ MonoBehaviour:
   HighlightColor: {r: 0, g: 0, b: 0, a: 0}
   IsCharging: 0
   IsRunning: 0
+  AimingBonus: 0
+  DefensiveBonus: 0
+  CanParry: 1
+  CanDodge: 0
   Stats: {fileID: 0}
   NameDisplay: {fileID: 5344260523014033116}
   HealthDisplay: {fileID: 1306580773643467112}
@@ -185,6 +190,7 @@ MonoBehaviour:
   InstantReload: 0
   PrecisionShot: 0
   StrongBlow: 0
+  Dodge: 0
 --- !u!114 &6267734093322851998
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -198,9 +204,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Id: 0
-  Name: 
-  Type: melee
-  S: 0
+  Name: brak broni
+  Type: []
+  TwoHanded: 0
+  S: -4
   AttackRange: 1.5
   ReloadTime: 0
   ReloadLeft: 0
@@ -210,6 +217,22 @@ MonoBehaviour:
   Slow: 0
   Tiring: 0
   ArmourPiercing: 0
+--- !u!114 &8447459666408192081
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2921409717819951567}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64b00dd6635355a42b01278c9c612552, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  allWeapons: []
+  heldWeapons:
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!1 &3783466440267322661
 GameObject:
   m_ObjectHideFlags: 0

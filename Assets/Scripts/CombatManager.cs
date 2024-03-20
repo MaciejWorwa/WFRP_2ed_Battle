@@ -6,6 +6,7 @@ using UnityEngine.TextCore.Text;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 using static UnityEditor.PlayerSettings;
+using System.Linq;
 
 public class CombatManager : MonoBehaviour
 {
@@ -33,9 +34,9 @@ public class CombatManager : MonoBehaviour
     }
 
     private int _attackModifier;
-    private int _defenseModifier;
     private float _attackDistance;
     [SerializeField] private UnityEngine.UI.Button _aimButton;
+    [SerializeField] private UnityEngine.UI.Button _defensivePositionButton;
 
     #region Attack function
     public void Attack(Unit attacker, Unit target) 
@@ -50,7 +51,7 @@ public class CombatManager : MonoBehaviour
         _attackDistance = CalculateDistance(attacker.gameObject, target.gameObject);
 
         //Wykonuje atak, jeśli cel jest w zasięgu
-        if (_attackDistance <= attackerWeapon.AttackRange || _attackDistance <= attackerWeapon.AttackRange * 2 && attackerWeapon.Type == "ranged")
+        if (_attackDistance <= attackerWeapon.AttackRange || _attackDistance <= attackerWeapon.AttackRange * 2 && attackerWeapon.Type.Contains("ranged"))
         {
             //Sprawdza, czy broń jest naładowana (w przypadku ataku dystansowego)
             if (_attackDistance > 1.5f && attackerWeapon.ReloadLeft != 0)
@@ -66,7 +67,7 @@ public class CombatManager : MonoBehaviour
             int rollResult = Random.Range(1, 101);
 
             //Sprawdza, czy atak jest atakiem dystansowym, czy atakiem w zwarciu i ustala jego skuteczność
-            bool isSuccessful = CheckAttackEffectiveness(rollResult, attackerStats, attackerWeapon);
+            bool isSuccessful = CheckAttackEffectiveness(rollResult, attackerStats, attackerWeapon, target);
 
             //Zresetowanie bonusu do trafienia
             _attackModifier = 0;
@@ -76,6 +77,12 @@ public class CombatManager : MonoBehaviour
             {
                 Unit.SelectedUnit.GetComponent<Unit>().AimingBonus = 0;
                 UpdateAimButtonColor();
+            }
+
+            //Atakowany próbuje parować lub unikać
+            if (isSuccessful && attackerWeapon.Type.Contains("melee"))
+            {
+                isSuccessful = CheckForParryAndDodge(attackerWeapon, targetWeapon, targetStats, target);
             }
 
             if (isSuccessful)
@@ -145,20 +152,32 @@ public class CombatManager : MonoBehaviour
     #endregion
 
     #region Check attack effectiveness
-    private bool CheckAttackEffectiveness(int rollResult, Stats attackerStats, Weapon attackerWeapon)
+    private bool CheckAttackEffectiveness(int rollResult, Stats attackerStats, Weapon attackerWeapon, Unit targetUnit)
     {
         bool isSuccessful = false;
 
         //Sprawdza, czy atak jest atakiem dystansowym
-        if (attackerWeapon.Type == "ranged")
+        if (attackerWeapon.Type.Contains("ranged"))
         {
             _attackModifier -= _attackDistance > attackerWeapon.AttackRange ? 20 : 0;
 
-            isSuccessful = rollResult <= (attackerStats.US + _attackModifier - _defenseModifier);
+            //Uwzględnienie utrudnienia za tarcze
+            int shieldModifier = 0;
 
-            if (_attackModifier != 0 || _defenseModifier != 0)
+            //Sprawdza, czy atakowany ma tarczę
+            if(targetUnit.GetComponent<Inventory>().heldWeapons.Length > 0)
             {
-                Debug.Log($"{attackerStats.Name} Rzut na US: {rollResult} Modyfikator: {_attackModifier - _defenseModifier}");
+                foreach (var weapon in targetUnit.GetComponent<Inventory>().heldWeapons)
+                {
+                    if (weapon.Type.Contains("shield")) shieldModifier = 20;
+                }
+            }        
+
+            isSuccessful = rollResult <= (attackerStats.US + _attackModifier - targetUnit.DefensiveBonus - shieldModifier);
+
+            if (_attackModifier != 0 || targetUnit.DefensiveBonus != 0 || shieldModifier != 0)
+            {
+                Debug.Log($"{attackerStats.Name} Rzut na US: {rollResult} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus - shieldModifier}");
             }
             else
             {
@@ -167,8 +186,7 @@ public class CombatManager : MonoBehaviour
 
             //Sprawia, że po ataku należy przeładować broń
             attackerWeapon.ReloadLeft = attackerWeapon.ReloadTime;
-            attackerWeapon.WeaponsInInventory[attackerWeapon.Id] = attackerWeapon.ReloadLeft;
-            Debug.Log("attackerWeapon.WeaponsInInventory[attackerWeapon.Id] " + attackerWeapon.WeaponsInInventory[attackerWeapon.Id]);
+            attackerWeapon.WeaponsWithReloadLeft[attackerWeapon.Id] = attackerWeapon.ReloadLeft;
 
             //Uwzględnia zdolność Błyskawicznego Przeładowania
             if (attackerStats.InstantReload == true)
@@ -178,13 +196,13 @@ public class CombatManager : MonoBehaviour
         }
 
         //Sprawdza czy atak jest atakiem w zwarciu
-        if (attackerWeapon.Type == "melee")
+        if (attackerWeapon.Type.Contains("melee"))
         {
-            isSuccessful = rollResult <= (attackerStats.WW + _attackModifier - _defenseModifier);
+            isSuccessful = rollResult <= (attackerStats.WW + _attackModifier - targetUnit.DefensiveBonus);
 
-            if (_attackModifier > 0 || _defenseModifier > 0)
+            if (_attackModifier > 0 || targetUnit.DefensiveBonus > 0)
             {
-                Debug.Log($"{attackerStats.Name} Rzut na WW: {rollResult} Modyfikator: {_attackModifier - _defenseModifier}");
+                Debug.Log($"{attackerStats.Name} Rzut na WW: {rollResult} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus}");
             }
             else
             {
@@ -318,49 +336,26 @@ public class CombatManager : MonoBehaviour
     }
     #endregion
 
-    #region Reloading
-    public void Reload()
-    {
-        if(Unit.SelectedUnit == null) return;
-
-        Weapon weapon = Unit.SelectedUnit.GetComponent<Weapon>();
-
-        if(weapon.ReloadLeft > 0)
-        {
-            weapon.ReloadLeft --;
-        }
-        
-        if(weapon.ReloadLeft == 0)
-        {
-            Debug.Log($"Broń {Unit.SelectedUnit.GetComponent<Stats>().Name} załadowana.");
-        }
-        else
-        {
-            Debug.Log($"Ładowanie broni {Unit.SelectedUnit.GetComponent<Stats>().Name}. Pozostała/y {weapon.ReloadLeft} akcja/e do końca.");
-        }      
-    }
-    #endregion
-
     #region Aiming
     public void SetAim()
     {
         if (Unit.SelectedUnit == null) return;
 
-        //Sprawdza, czy postać już celuje i chce przestać, czy chce dopiero przycelować
-        if(Unit.SelectedUnit.GetComponent<Unit>().AimingBonus != 0)
-        {
-            Unit.SelectedUnit.GetComponent<Unit>().AimingBonus = 0;
+        Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
 
-            UpdateAimButtonColor();
+        //Sprawdza, czy postać już celuje i chce przestać, czy chce dopiero przycelować
+        if(unit.AimingBonus != 0)
+        {
+            unit.AimingBonus = 0;        
         }
         else
         {
-            Unit.SelectedUnit.GetComponent<Unit>().AimingBonus += 10; //DODAĆ W PRZYSZŁOŚCI uwzględnienie umiejętności strzał mierzony.
+            unit.AimingBonus += 10; //DODAĆ W PRZYSZŁOŚCI uwzględnienie umiejętności strzał mierzony.
 
             Debug.Log("Przycelowanie");
-
-            UpdateAimButtonColor();
         }
+
+        UpdateAimButtonColor();
     }
     public void UpdateAimButtonColor()
     {
@@ -381,9 +376,13 @@ public class CombatManager : MonoBehaviour
         //Sprawdza pole, w którym atakujący zatrzyma się po wykonaniu szarży
         GameObject targetTile = GetTileAdjacentToTarget(attacker, target);
 
-        Vector3 targetTilePosition = new Vector3(targetTile.transform.position.x, targetTile.transform.position.y, 0);
+        Vector3 targetTilePosition = Vector3.zero;
 
-        if (targetTile == null)
+        if(targetTile != null)
+        {
+            targetTilePosition = new Vector3(targetTile.transform.position.x, targetTile.transform.position.y, 0);
+        }
+        else
         {
             Debug.Log($"Cel ataku stoi poza zasięgiem szarży.");
             return;
@@ -450,7 +449,7 @@ public class CombatManager : MonoBehaviour
             GameObject tile = GameObject.Find($"Tile {pos.x - GridManager.Instance.transform.position.x} {pos.y - GridManager.Instance.transform.position.y}");
 
             //Jeżeli pole jest zajęte to szukamy innego
-            if (tile.GetComponent<Tile>().IsOccupied) continue;
+            if (tile == null || tile.GetComponent<Tile>().IsOccupied) continue;
 
             path = MovementManager.Instance.FindPath(attacker.transform.position, pos, attacker.GetComponent<Stats>().TempSz);
 
@@ -465,4 +464,155 @@ public class CombatManager : MonoBehaviour
         return targetTile;
     }
     #endregion
+
+    #region Defensive position
+    public void DefensivePosition()
+    {
+        if (Unit.SelectedUnit == null) return;
+
+        Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
+
+        if (unit.DefensiveBonus == 0)
+        {
+            Debug.Log("Pozycja obronna.");
+
+            unit.DefensiveBonus = 20;
+        }
+        else
+        {
+            unit.DefensiveBonus = 0;
+        }
+
+        UpdateDefensivePositionButtonColor();
+    }
+    public void UpdateDefensivePositionButtonColor()
+    {
+        if(Unit.SelectedUnit.GetComponent<Unit>().DefensiveBonus > 0)
+        {
+            _defensivePositionButton.GetComponent<UnityEngine.UI.Image>().color = Color.green;
+        }
+        else
+        {
+            _defensivePositionButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;
+        }
+    }
+    #endregion
+
+    #region Parry and dodge
+    private bool CheckForParryAndDodge(Weapon attackerWeapon, Weapon targetWeapon, Stats targetStats, Unit targetUnit)
+    {
+        bool targetIsDefended = false;
+
+        //Sprawdzenie, czy jest aktywny tryb automatycznej obrony
+        if(GameManager.Instance.IsAutoDefenseMode)
+        {
+            //Sprawdza, czy atakowany ma jakieś modifykatory do parowania
+            int parryModifier = 0;
+            if (targetWeapon.Defensive) parryModifier += 10;
+            if (attackerWeapon.Slow) parryModifier += 10;
+            if (attackerWeapon.Fast) parryModifier -= 10;
+
+            if (targetUnit.CanParry && targetUnit.CanDodge)
+            {
+                //Sprawdza, czy atakowana postać ma większą szansę na unik, czy na parowanie i na tej podstawie ustala kolejność tych akcji
+                if (targetStats.WW + parryModifier > (targetStats.Zr + (targetStats.Dodge * 10) - 10))
+                {
+                    targetIsDefended = Parry(attackerWeapon, targetWeapon, targetStats, parryModifier);
+                }
+                else
+                {
+                    targetIsDefended = Dodge(targetStats);
+                }
+            }
+            else if (targetUnit.CanParry)
+            {
+                targetIsDefended = Parry(attackerWeapon, targetWeapon, targetStats, parryModifier);
+            }
+            else if (targetUnit.CanDodge)
+            {
+                targetIsDefended = Dodge(targetStats);
+            }
+        }
+        else
+        {
+            //POKAZANIE POP-UPA Z ZAPYTANIEM, CZY CHCEMY WYKONAĆ UNIK LUB PAROWANIE
+        }
+
+        return !targetIsDefended; //Zwracana wartość definiuje, czy atak się powiódł. Zwracamy odwrotność, bo gdy obrona się powiodła, oznacza to, że atak nie.
+    }
+            
+    private bool Parry(Weapon attackerWeapon, Weapon targetWeapon, Stats targetStats, int parryModifier)
+    {
+        //Sprawia, że atakowany nie będzie mógł więcej parować w tej rundzie (W PRZYSZŁOŚCI UWZGLĘDNIĆ TU BŁYSKAWICZNY BLOK)
+        targetStats.GetComponent<Unit>().CanParry = false;
+
+        int rollResult = Random.Range(1, 101);
+        
+        if (parryModifier != 0)
+        {
+            Debug.Log($"Rzut {targetStats.Name} na parowanie: {rollResult} Modyfikator do parowania: {parryModifier}");
+        }
+        else
+        {
+            Debug.Log($"Rzut {targetStats.Name} na parowanie: {rollResult}");
+        }
+
+        if (rollResult <= targetStats.WW + parryModifier)
+        {
+            //Zresetowanie bonusu do parowania
+            parryModifier = 0;
+            return true;
+        }      
+        else
+        {
+            //Zresetowanie bonusu do parowania
+            parryModifier = 0;
+            return false;
+        }       
+    }
+
+    private bool Dodge(Stats targetStats)
+    {
+        //Sprawia, że atakowany nie będzie mógł więcej unikać w tej rundzie   
+        targetStats.GetComponent<Unit>().CanDodge = false;
+        
+        int rollResult = Random.Range(1, 101);
+
+        Debug.Log($"Rzut {targetStats.Name} na unik: {rollResult}");
+
+        if (rollResult <= targetStats.Zr + (targetStats.Dodge * 10) - 10)
+        {
+            return true;
+        }      
+        else
+        {
+            return false;
+        }  
+    }
+    #endregion
+
+    #region Reloading
+    public void Reload()
+    {
+        if(Unit.SelectedUnit == null) return;
+
+        Weapon weapon = Unit.SelectedUnit.GetComponent<Weapon>();
+
+        if(weapon.ReloadLeft > 0)
+        {
+            weapon.ReloadLeft --;
+        }
+        
+        if(weapon.ReloadLeft == 0)
+        {
+            Debug.Log($"Broń {Unit.SelectedUnit.GetComponent<Stats>().Name} załadowana.");
+        }
+        else
+        {
+            Debug.Log($"Ładowanie broni {Unit.SelectedUnit.GetComponent<Stats>().Name}. Pozostała/y {weapon.ReloadLeft} akcja/e do końca.");
+        }      
+    }
+    #endregion
+
+
 }

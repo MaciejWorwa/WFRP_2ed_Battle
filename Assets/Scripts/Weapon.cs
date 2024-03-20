@@ -10,7 +10,8 @@ public class Weapon : MonoBehaviour
     public string Name;
 
     [Header("Typ")]
-    public string Type;
+    public string[] Type;
+    public bool TwoHanded;
 
     [Header("Siła")]
     public int S;
@@ -31,5 +32,5 @@ public class Weapon : MonoBehaviour
     public bool ArmourPiercing; // przebijający zbroje
 
 
-    public Dictionary<int, int> WeaponsInInventory = new Dictionary<int, int>(); // słownik zawierający wszystkie posiadane przez postać bronie wraz z ich ReloadLeft
+    public Dictionary<int, int> WeaponsWithReloadLeft = new Dictionary<int, int>(); // słownik zawierający wszystkie posiadane przez postać bronie wraz z ich ReloadLeft
 }

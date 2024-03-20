@@ -27,25 +27,60 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
-    public bool IsAutoKillMode = false;
+    public bool IsAutoDefenseMode;
+    [SerializeField] private Button _autoDefenseButton;
+    public bool IsAutoKillMode;
     [SerializeField] private Button _autoKillButton;
-    public bool IsFriendlyFire = false;
+    public bool IsFriendlyFire;
     [SerializeField] private Button _friendlyFireButton;
+    private Dictionary<Button, bool> allModes;
+
+    private void Start()
+    {
+        // Inicjalizacja słownika z wszystkimi trybami i przyciskami. Ustawienie ich początkowych wartości
+        allModes = new Dictionary<Button, bool>()
+        {
+            {_autoDefenseButton, IsAutoDefenseMode = true},
+            {_autoKillButton, IsAutoKillMode = true},
+            {_friendlyFireButton, IsFriendlyFire = false}
+        };
+
+        // Ustawia kolory przycisków na podstawie początkowych wartości trybów
+        foreach (var pair in allModes)
+        {
+            UpdateButtonColor(pair.Key, pair.Value);
+        }
+    }
+
+    public void SetAutoDefenseMode()
+    {
+        IsAutoDefenseMode = !IsAutoDefenseMode;
+
+        UpdateButtonColor(_autoDefenseButton, IsAutoDefenseMode);
+
+        if (IsAutoDefenseMode)
+        {
+            Debug.Log("Tryb automatycznej obrony został włączony. Jednostki będą automatycznie podejmować próby parowania lub unikania ataków.");
+        }
+        else
+        {
+            Debug.Log("Tryb automatycznej obrony został wyłączony.");
+        }
+    }
 
     public void SetAutoKillMode()
     {
         IsAutoKillMode = !IsAutoKillMode;
-        
-        if(IsAutoKillMode)
+
+        UpdateButtonColor(_autoKillButton, IsAutoKillMode);
+
+        if (IsAutoKillMode)
         {
-            _autoKillButton.GetComponent<Image>().color = Color.green;
-            Debug.Log("Tryb automatycznej śmierci (gdy żywotność spanie poniżej zera) został włączony.");
+            Debug.Log("Tryb automatycznej śmierci (gdy żywotność spadnie poniżej zera) został włączony.");
         }
         else
         {
-            _autoKillButton.GetComponent<Image>().color = Color.white;
-            Debug.Log("Tryb automatycznej śmierci (gdy żywotność spanie poniżej zera) został wyłączony.");
+            Debug.Log("Tryb automatycznej śmierci (gdy żywotność spadnie poniżej zera) został wyłączony.");
         }
     }
 
@@ -53,15 +88,27 @@ public class GameManager : MonoBehaviour
     {
         IsFriendlyFire = !IsFriendlyFire;
 
+        UpdateButtonColor(_friendlyFireButton, IsFriendlyFire);
+
         if (IsFriendlyFire)
         {
-            _friendlyFireButton.GetComponent<Image>().color = Color.green;
             Debug.Log("Friendly fire został włączony.");
         }
         else
         {
-            _friendlyFireButton.GetComponent<Image>().color = Color.white;
             Debug.Log("Friendly fire został wyłączony.");
+        }
+    }
+
+    private void UpdateButtonColor(Button button, bool condition)
+    {
+        if (condition)
+        {
+            button.GetComponent<Image>().color = Color.green;
+        }
+        else
+        {
+            button.GetComponent<Image>().color = Color.white;
         }
     }
 }

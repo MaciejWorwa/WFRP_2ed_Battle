@@ -14,6 +14,9 @@ public class Unit : MonoBehaviour
     public bool IsCharging;
     public bool IsRunning;
     public int AimingBonus;
+    public int DefensiveBonus;
+    public bool CanParry = true;
+    public bool CanDodge = false;
     public Stats Stats;
 
     public TMP_Text NameDisplay;
@@ -28,9 +31,11 @@ public class Unit : MonoBehaviour
         //Ustawia wartość HighlightColor na jaśniejszą wersję DefaultColor. Trzeci parametr określa ilość koloru białego w całości.
         HighlightColor = Color.Lerp(DefaultColor, Color.yellow, 0.3f);
 
+        if(Stats.Dodge > 0) CanDodge = true;
         Stats.TempSz = Stats.Sz;
         Stats.TempHealth = Stats.MaxHealth;
         DisplayUnitHealthPoints();
+
     }
     private void OnMouseUp()
     {
@@ -64,14 +69,21 @@ public class Unit : MonoBehaviour
         if (SelectedUnit == null)
         {
             SelectedUnit = this.gameObject;
+
+            InventoryManager.Instance.UpdateInventoryDropdown(SelectedUnit.GetComponent<Inventory>().allWeapons); //Odświeża listę ekwipunku
         }
         else if (SelectedUnit == this.gameObject)
         {
             MovementManager.Instance.UpdateMovementRange(1); //Resetuje szarżę lub bieg, jeśli były aktywne
 
-            //Resetuje przycisk celowania jeśli był aktywny
+            //Resetuje przycisk celowania i pozycji obronne jeśli były aktywne
             AimingBonus = 0;
             CombatManager.Instance.UpdateAimButtonColor(); 
+            DefensiveBonus = 0;
+            CombatManager.Instance.UpdateDefensivePositionButtonColor(); 
+
+            //Resetuje listę ekwipunku
+            InventoryManager.Instance.ClearInventoryDropdown();
 
             SelectedUnit = null;
         }
@@ -82,7 +94,10 @@ public class Unit : MonoBehaviour
 
             ChangeUnitColor(SelectedUnit);
             SelectedUnit = this.gameObject;
+
             CombatManager.Instance.UpdateAimButtonColor(); //Resetuje przycisk celowania jeśli był aktywny
+            CombatManager.Instance.UpdateDefensivePositionButtonColor(); //Resetuje przycisk pozycji obronnej jeśli był aktywny
+            InventoryManager.Instance.UpdateInventoryDropdown(SelectedUnit.GetComponent<Inventory>().allWeapons); //Odświeża listę ekwipunku
         }
         IsSelected = !IsSelected;
         ChangeUnitColor(this.gameObject);
