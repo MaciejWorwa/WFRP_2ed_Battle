@@ -30,7 +30,9 @@ public class DataManager : MonoBehaviour
         }
     }
     [SerializeField] private TMP_Dropdown _unitsDropdown;
-    [SerializeField] private TMP_Dropdown _weaponsDropdown;
+    [SerializeField] private GameObject _weaponButtonPrefab; // Przycisk odpowiadający każdej z broni
+    [SerializeField] private Transform _weaponScrollViewContent; // Lista wszystkich dostępnych broni
+
 
     #region Loading units stats
     public void LoadAndUpdateStats(GameObject unit)
@@ -96,7 +98,7 @@ public class DataManager : MonoBehaviour
     #endregion
 
     #region Loading weapons stats
-    public void LoadAndUpdateWeapon(GameObject unit)
+    public void LoadAndUpdateWeapons()
     {
         // Ładowanie danych JSON
         TextAsset jsonFile = Resources.Load<TextAsset>("weapons");
@@ -115,20 +117,15 @@ public class DataManager : MonoBehaviour
         }
 
         //Odniesienie do broni postaci
-        Weapon weaponToUpdate = unit.GetComponent<Weapon>();
-
-        if (weaponToUpdate == null)
+        Weapon weaponToUpdate = null;
+        if(Unit.SelectedUnit != null)
         {
-            Debug.LogError("Aby wczytać statystyki broni musisz wybrać jednostkę.");
-            return;
+            weaponToUpdate = Unit.SelectedUnit.GetComponent<Weapon>();
         }
-
-        //Czyści listę dostępnych do wyboru broni
-        _weaponsDropdown.options.Clear();
 
         foreach (var weapon in weaponsArray)
         {
-            if (weapon.Id == weaponToUpdate.Id)
+            if (weaponToUpdate != null && weapon.Id == weaponToUpdate.Id)
             {
                 // Używanie refleksji do aktualizacji wartości wszystkich pól w klasie Weapon
                 FieldInfo[] fields = typeof(WeaponData).GetFields(BindingFlags.Instance | BindingFlags.Public);
@@ -149,7 +146,7 @@ public class DataManager : MonoBehaviour
                 }
 
                 //Dodaje przedmiot do ekwipunku postaci
-                InventoryManager.Instance.AddWeaponToInventory(weapon, unit);
+                InventoryManager.Instance.AddWeaponToInventory(weapon, Unit.SelectedUnit);
 
                 //Dodaje Id broni do słownika ekwipunku postaci
                 if(weaponToUpdate.WeaponsWithReloadLeft.ContainsKey(weapon.Id) == false)
@@ -158,15 +155,33 @@ public class DataManager : MonoBehaviour
                 }
             }
 
-            //Dodaje broń do dropdowna
-            _weaponsDropdown.options.Add(new TMP_Dropdown.OptionData(weapon.Name));
-        }
+            bool buttonExists = _weaponScrollViewContent.GetComponentsInChildren<TextMeshProUGUI>().Any(t => t.text == weapon.Name);
 
-        //Odświeża wyświetlaną wartość dropdowna
-        _weaponsDropdown.RefreshShownValue();
+            if(buttonExists == false)
+            {
+                //Dodaje broń do ScrollViewContent w postaci buttona
+                GameObject buttonObj = Instantiate(_weaponButtonPrefab, _weaponScrollViewContent);
+                TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
+                //Ustala text buttona
+                buttonText.text = weapon.Name;
+
+                Button button = buttonObj.GetComponent<Button>();
+                
+                //Dodaje opcję do CustomDropdowna ze wszystkimi brońmi
+                _weaponScrollViewContent.GetComponent<CustomDropdown>().Buttons.Add(button);
+
+                int currentIndex = _weaponScrollViewContent.GetComponent<CustomDropdown>().Buttons.Count; // Pobiera indeks nowego przycisku
+
+                // Zdarzenie po kliknięciu na konkretny item z listy
+                button.onClick.AddListener(() =>
+                {
+                    _weaponScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(currentIndex); // Wybiera element i aktualizuje jego wygląd
+                });
+            }
+        }
     }
-    #endregion
 }
+#endregion
 
 public static class JsonHelper
 {

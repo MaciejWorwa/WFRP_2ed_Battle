@@ -27,6 +27,8 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
+    [Header("Tryby gry")]
     public bool IsAutoDefenseMode;
     [SerializeField] private Button _autoDefenseButton;
     public bool IsAutoKillMode;
@@ -34,6 +36,9 @@ public class GameManager : MonoBehaviour
     public bool IsFriendlyFire;
     [SerializeField] private Button _friendlyFireButton;
     private Dictionary<Button, bool> allModes;
+
+    [Header("Panele")]
+    [SerializeField] private GameObject _quitGamePanel;
 
     private void Start()
     {
@@ -50,6 +55,37 @@ public class GameManager : MonoBehaviour
         {
             UpdateButtonColor(pair.Key, pair.Value);
         }
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            bool isAnyActivePanel = CloseActivePanels();
+
+            if(isAnyActivePanel == false) 
+            {
+                ShowPanel(_quitGamePanel);
+            }
+        }
+    }
+
+    private void ShowPanel(GameObject panel)
+    {
+        panel.SetActive(true);
+    }
+
+    private bool CloseActivePanels()
+    {
+        GameObject[] allActivePanels = GameObject.FindGameObjectsWithTag("Panel");
+
+        foreach (GameObject panel in allActivePanels)
+        {
+            panel.SetActive(false);
+        }
+    
+        //Zwraca informację, czy były jakieś aktywne panele, czy nie. Jeśli nie było to klawisz Escape będzie powodował wyjście do Menu
+        return allActivePanels.Length > 0 ? true : false;
     }
 
     public void SetAutoDefenseMode()
@@ -110,5 +146,10 @@ public class GameManager : MonoBehaviour
         {
             button.GetComponent<Image>().color = Color.white;
         }
+    }
+
+    public void QuitGame()
+    {
+        Application.Quit();
     }
 }

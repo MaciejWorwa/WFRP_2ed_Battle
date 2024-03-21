@@ -51,6 +51,44 @@
       "AttackRange": 1.5,
       "S": -2,
       "Defensive": true
+    },
+    {
+      "Id": 7,
+      "Name": "Włócznia",
+      "Type": ["melee"],
+      "AttackRange": 1.5,
+      "S": 0,
+      "Fast": true
+    },
+    {
+      "Id": 8,
+      "Name": "Rapier",
+      "Type": ["melee"],
+      "AttackRange": 1.5,
+      "S": -1,
+      "Fast": true
+    },
+    {
+      "Id": 9,
+      "Name": "Długi łuk",
+      "Type": ["ranged"],
+      "TwoHanded": true,
+      "AttackRange": 15,
+      "S": 3,
+      "ReloadTime": 1,
+      "ReloadLeft": 0,
+      "ArmourPiercing": true
+    },
+    {
+      "Id": 10,
+      "Name": "Elfi łuk",
+      "Type": ["ranged"],
+      "TwoHanded": true,
+      "AttackRange": 18,
+      "S": 3,
+      "ReloadTime": 1,
+      "ReloadLeft": 0,
+      "ArmourPiercing": true
     }
   ]
 }

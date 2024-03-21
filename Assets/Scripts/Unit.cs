@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class Unit : MonoBehaviour
@@ -70,7 +69,9 @@ public class Unit : MonoBehaviour
         {
             SelectedUnit = this.gameObject;
 
-            InventoryManager.Instance.UpdateInventoryDropdown(SelectedUnit.GetComponent<Inventory>().allWeapons); //Odświeża listę ekwipunku
+            //Odświeża listę ekwipunku
+            InventoryManager.Instance.InventoryScrollViewContent.GetComponent<CustomDropdown>().SelectedIndex = 0;
+            InventoryManager.Instance.UpdateInventoryDropdown(SelectedUnit.GetComponent<Inventory>().AllWeapons);
         }
         else if (SelectedUnit == this.gameObject)
         {
@@ -83,7 +84,7 @@ public class Unit : MonoBehaviour
             CombatManager.Instance.UpdateDefensivePositionButtonColor(); 
 
             //Resetuje listę ekwipunku
-            InventoryManager.Instance.ClearInventoryDropdown();
+            InventoryManager.Instance.HideInventory();
 
             SelectedUnit = null;
         }
@@ -97,7 +98,10 @@ public class Unit : MonoBehaviour
 
             CombatManager.Instance.UpdateAimButtonColor(); //Resetuje przycisk celowania jeśli był aktywny
             CombatManager.Instance.UpdateDefensivePositionButtonColor(); //Resetuje przycisk pozycji obronnej jeśli był aktywny
-            InventoryManager.Instance.UpdateInventoryDropdown(SelectedUnit.GetComponent<Inventory>().allWeapons); //Odświeża listę ekwipunku
+
+            //Odświeża listę ekwipunku
+            InventoryManager.Instance.InventoryScrollViewContent.GetComponent<CustomDropdown>().SelectedIndex = 0;
+            InventoryManager.Instance.UpdateInventoryDropdown(SelectedUnit.GetComponent<Inventory>().AllWeapons);
         }
         IsSelected = !IsSelected;
         ChangeUnitColor(this.gameObject);

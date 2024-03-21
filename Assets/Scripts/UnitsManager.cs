@@ -31,7 +31,6 @@ public class UnitsManager : MonoBehaviour
     }
     [SerializeField] private GameObject _unitPrefab;
     [SerializeField] private TMP_Dropdown _unitsDropdown;
-    [SerializeField] private TMP_Dropdown _weaponsDropdown;
     [SerializeField] private TMP_InputField _unitNameInputField;
     [SerializeField] private Toggle _unitTagToggle;
     [SerializeField] private Button _createUnitButton;
@@ -77,11 +76,11 @@ public class UnitsManager : MonoBehaviour
 
         if (RandomPositionMode)
         {
-            button.GetComponent<Image>().color = Color.green;
+            button.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.5f);
         }
         else
         {
-            button.GetComponent<Image>().color = Color.white;
+            button.GetComponent<Image>().color = new Color(1f, 1f, 1f, 1f);
         }
     }
 
@@ -207,23 +206,6 @@ public class UnitsManager : MonoBehaviour
 
         //Resetuje Tile, żeby nie było uznawane jako zajęte
         GridManager.Instance.ResetTileOccupancy(unit.transform.position);
-    }
-    #endregion
-
-    #region Changing unit weapons
-    public void ChangeWeapon()
-    {
-        if (Unit.SelectedUnit == null)
-        {
-            Debug.Log("Aby wczytać statystyki broni najpierw musisz zaznaczyć jednostkę.");
-            return;
-        }
-
-        // Ustalenie Id broni na podstawie wyboru z dropdowna
-        Unit.SelectedUnit.GetComponent<Weapon>().Id = _weaponsDropdown.value + 1;
-
-        //Wczytanie statystyk broni
-        DataManager.Instance.LoadAndUpdateWeapon(Unit.SelectedUnit);
     }
     #endregion
 }

@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.TextCore.Text;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
-using static UnityEditor.PlayerSettings;
 using System.Linq;
 
 public class CombatManager : MonoBehaviour
@@ -165,11 +164,15 @@ public class CombatManager : MonoBehaviour
             int shieldModifier = 0;
 
             //Sprawdza, czy atakowany ma tarczę
-            if(targetUnit.GetComponent<Inventory>().heldWeapons.Length > 0)
+            if(targetUnit.GetComponent<Inventory>().EquippedWeapons.Length > 0)
             {
-                foreach (var weapon in targetUnit.GetComponent<Inventory>().heldWeapons)
+                foreach (var weapon in targetUnit.GetComponent<Inventory>().EquippedWeapons)
                 {
-                    if (weapon.Type.Contains("shield")) shieldModifier = 20;
+                    if (weapon != null && weapon.Type.Contains("shield")) 
+                    {
+                        shieldModifier = 20;
+                        break;
+                    }
                 }
             }        
 
