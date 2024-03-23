@@ -36,8 +36,10 @@ public class GameManager : MonoBehaviour
     public bool IsFriendlyFire;
     [SerializeField] private Button _friendlyFireButton;
     private Dictionary<Button, bool> allModes;
+    public bool IsGamePaused;
 
     [Header("Panele")]
+    public GameObject[] activePanels;
     [SerializeField] private GameObject _quitGamePanel;
 
     private void Start()
@@ -59,13 +61,23 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
+        //Pauzuje grę (możliwość ruchu jednostek), gdy któryś z paneli jest otwarty
+        IsGamePaused = CountActivePanels() > 0 ? true : false;
+
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            bool isAnyActivePanel = CloseActivePanels();
+            int activePanelsLength = CountActivePanels();
 
-            if(isAnyActivePanel == false) 
+            if(activePanelsLength == 0) //Otwiera panel wyjścia z gry
             {
                 ShowPanel(_quitGamePanel);
+            }
+            else //Zamyka aktywne panele
+            {
+                foreach (GameObject panel in activePanels)
+                {
+                    panel.SetActive(false);
+                }
             }
         }
     }
@@ -75,17 +87,11 @@ public class GameManager : MonoBehaviour
         panel.SetActive(true);
     }
 
-    private bool CloseActivePanels()
+    private int CountActivePanels()
     {
-        GameObject[] allActivePanels = GameObject.FindGameObjectsWithTag("Panel");
+        activePanels = GameObject.FindGameObjectsWithTag("Panel");
 
-        foreach (GameObject panel in allActivePanels)
-        {
-            panel.SetActive(false);
-        }
-    
-        //Zwraca informację, czy były jakieś aktywne panele, czy nie. Jeśli nie było to klawisz Escape będzie powodował wyjście do Menu
-        return allActivePanels.Length > 0 ? true : false;
+        return activePanels.Length;
     }
 
     public void SetAutoDefenseMode()

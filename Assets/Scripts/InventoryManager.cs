@@ -111,35 +111,42 @@ public class InventoryManager : MonoBehaviour
     #region Removing weapon from inventory
     public void RemoveWeaponFromInventory()
     {
-        if(Unit.SelectedUnit == null || _inventoryDropdown.options.Count == 0) return;
+        if(Unit.SelectedUnit == null || InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons.Count == 0) return;
 
         GameObject unit = Unit.SelectedUnit;
-        int selectedIndex = _inventoryDropdown.value;
+        int selectedIndex = InventoryScrollViewContent.GetComponent<CustomDropdown>().GetSelectedIndex();
 
-        // Sprawdź, czy wybrany indeks mieści się w zakresie opcji
-        if(selectedIndex >= 0 && selectedIndex < _inventoryDropdown.options.Count)
+        //Wybiera broń z ekwipunku na podstawie wartości dropdowna
+        Weapon selectedWeapon = unit.GetComponent<Inventory>().AllWeapons[selectedIndex - 1];
+
+        // Usuwa przedmiot z ekwipunku
+        unit.GetComponent<Inventory>().AllWeapons.Remove(selectedWeapon);
+
+        // Zwraca broń do puli
+        WeaponsPool.Instance.ReturnWeaponToPool(selectedWeapon.gameObject);
+
+        //Usuwa broń ze słownika broni z zapisanym czasem przeładowania
+        Unit.SelectedUnit.GetComponent<Weapon>().WeaponsWithReloadLeft.Remove(selectedWeapon.Id);
+
+        //Jeżeli usuwamy broń, która była aktualnym komponentem Weapon danej jednostki to ustawiamy ten komponent na Pięści, aby zapobiec używaniu statystyk usuniętej broni podczas ataków
+        if(selectedWeapon.Id == Unit.SelectedUnit.GetComponent<Weapon>().Id)
         {
-            Weapon weaponToRemove = unit.GetComponent<Inventory>().AllWeapons[selectedIndex];
+            Unit.SelectedUnit.GetComponent<Weapon>().ResetWeapon();
+        }
 
-            // Usuń przedmiot tylko jeśli znajduje się w ekwipunku
-            if(unit.GetComponent<Inventory>().AllWeapons.Contains(weaponToRemove))
+        //Jeżeli usuwamy broń, która była w rękach, aktualizujemy tablicę dobytych broni
+        Weapon[] equippedWeapons = unit.GetComponent<Inventory>().EquippedWeapons;
+        for (int i = 0; i < equippedWeapons.Length; i++)
+        {
+            if (equippedWeapons[i].Id == selectedWeapon.Id)
             {
-                // Usuń przedmiot z ekwipunku
-                unit.GetComponent<Inventory>().AllWeapons.Remove(weaponToRemove);
-
-                // Zwróć broń do puli
-                WeaponsPool.Instance.ReturnWeaponToPool(weaponToRemove.gameObject);
-
-                // Ustaw poprzedni przedmiot jako wybrany (jeśli usunięto ostatni, to wartość indeksu może być za duża)
-                int newIndex = Mathf.Clamp(selectedIndex - 1, 0, _inventoryDropdown.options.Count - 1);
-
-                _inventoryDropdown.value = newIndex;
-
-                UpdateInventoryDropdown(unit.GetComponent<Inventory>().AllWeapons);
-
-                Debug.Log($"Przedmiot {weaponToRemove.Name} został usunięty z ekwipunku {unit.GetComponent<Stats>().Name} i zwrócony do puli.");
+                equippedWeapons[i] = null;
             }
         }
+
+        UpdateInventoryDropdown(unit.GetComponent<Inventory>().AllWeapons);
+
+        Debug.Log($"Przedmiot {selectedWeapon.Name} został usunięty z ekwipunku {unit.GetComponent<Stats>().Name}.");
     }
     #endregion
 

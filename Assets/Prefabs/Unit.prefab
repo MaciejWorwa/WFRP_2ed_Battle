@@ -204,8 +204,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Id: 0
-  Name: brak broni
-  Type: []
+  Name: "Pi\u0119\u015Bci"
+  Type:
+  - melee
   TwoHanded: 0
   S: -4
   AttackRange: 1.5
@@ -229,8 +230,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64b00dd6635355a42b01278c9c612552, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  allWeapons: []
-  heldWeapons:
+  AllWeapons: []
+  EquippedWeapons:
   - {fileID: 0}
   - {fileID: 0}
 --- !u!1 &3783466440267322661

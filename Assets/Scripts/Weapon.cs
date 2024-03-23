@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class Weapon : MonoBehaviour
 {
@@ -30,7 +31,23 @@ public class Weapon : MonoBehaviour
     public bool Slow; // powolny
     public bool Tiring; // ciężki
     public bool ArmourPiercing; // przebijający zbroje
-
-
     public Dictionary<int, int> WeaponsWithReloadLeft = new Dictionary<int, int>(); // słownik zawierający wszystkie posiadane przez postać bronie wraz z ich ReloadLeft
+
+    public void ResetWeapon()
+    {
+        Id = 0;
+        Name = "Pięści";
+        Type[0] = "melee";
+        TwoHanded = false;
+        S = -4;
+        AttackRange = 1.5f;
+        ReloadTime = 0;
+        ReloadLeft = 0;
+        Defensive = false;
+        Fast = false;
+        Impact = false;
+        Slow = false;
+        Tiring = false;
+        ArmourPiercing = false;
+    }
 }

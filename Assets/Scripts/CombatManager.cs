@@ -43,8 +43,14 @@ public class CombatManager : MonoBehaviour
         Stats attackerStats = attacker.GetComponent<Stats>();
         Stats targetStats = target.GetComponent<Stats>();
 
-        Weapon attackerWeapon = attacker.GetComponent<Weapon>();
+        Weapon attackerWeapon = InventoryManager.Instance.ChooseWeaponToAttack(attacker.gameObject);
         Weapon targetWeapon = target.GetComponent<Weapon>();
+
+        //Jeżeli postać nie posiada w rękach broni to odnosimy się bezpośrednio do jego komponentu Weapon, który odpowiada w tym przypadku walce bez broni
+        if(attackerWeapon == null)
+        {
+            attackerWeapon = attacker.GetComponent<Weapon>();
+        }
 
         //Liczy dystans pomiedzy walczącymi
         _attackDistance = CalculateDistance(attacker.gameObject, target.gameObject);
@@ -56,6 +62,13 @@ public class CombatManager : MonoBehaviour
             if (_attackDistance > 1.5f && attackerWeapon.ReloadLeft != 0)
             {
                 Debug.Log($"Broń wymaga przeładowania.");
+                return;
+            }
+
+            //Sprawdza, czy cel nie znajduje się zbyt blisko (w przypadku ataku dystansowego)
+            if (_attackDistance <= 1.5f && attackerWeapon.Type[0] == "ranged")
+            {
+                Debug.Log($"Stoisz zbyt blisko celu aby wykonać atak dystansowy.");
                 return;
             }
 
@@ -180,11 +193,11 @@ public class CombatManager : MonoBehaviour
 
             if (_attackModifier != 0 || targetUnit.DefensiveBonus != 0 || shieldModifier != 0)
             {
-                Debug.Log($"{attackerStats.Name} Rzut na US: {rollResult} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus - shieldModifier}");
+                Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na US: {rollResult} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus - shieldModifier}");
             }
             else
             {
-                Debug.Log($"{attackerStats.Name} Rzut na US: {rollResult}");
+                Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na US: {rollResult}");
             }
 
             //Sprawia, że po ataku należy przeładować broń
@@ -205,11 +218,11 @@ public class CombatManager : MonoBehaviour
 
             if (_attackModifier > 0 || targetUnit.DefensiveBonus > 0)
             {
-                Debug.Log($"{attackerStats.Name} Rzut na WW: {rollResult} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus}");
+                Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na WW: {rollResult} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus}");
             }
             else
             {
-                Debug.Log($"{attackerStats.Name} Rzut na WW: {rollResult}");
+                Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na WW: {rollResult}");
             }
         }
 
@@ -599,7 +612,7 @@ public class CombatManager : MonoBehaviour
     {
         if(Unit.SelectedUnit == null) return;
 
-        Weapon weapon = Unit.SelectedUnit.GetComponent<Weapon>();
+        Weapon weapon = Unit.SelectedUnit.GetComponent<Inventory>().EquippedWeapons[0];
 
         if(weapon.ReloadLeft > 0)
         {

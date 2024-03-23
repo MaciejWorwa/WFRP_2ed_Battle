@@ -157,7 +157,6 @@ public class UnitsManager : MonoBehaviour
         newUnit.GetComponent<Unit>().ChangeUnitColor(newUnit);
 
         //Zmienia status wybranego pola na zajęte
-
         selectedTile.GetComponent<Tile>().IsOccupied = true;
 
         // Aktualizuje liczbę wszystkich postaci
@@ -175,6 +174,10 @@ public class UnitsManager : MonoBehaviour
         {
             newUnit.name = unitName;
         }
+
+        //Ustala początkową inicjatywę i dodaje jednostkę do kolejki inicjatywy
+        newUnit.GetComponent<Stats>().Initiative = newUnit.GetComponent<Stats>().Zr + Random.Range(1, 11);
+        RoundsManager.Instance.AddUnitToInitiativeQueue(newUnit.GetComponent<Unit>());
     }
     #endregion
 
