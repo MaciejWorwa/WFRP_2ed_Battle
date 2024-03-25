@@ -91,7 +91,7 @@ public class CombatManager : MonoBehaviour
                 UpdateAimButtonColor();
             }
 
-            //Atakowany próbuje parować lub unikać
+            //Atakowany próbuje parować lub unikać.
             if (isSuccessful && attackerWeapon.Type.Contains("melee"))
             {
                 isSuccessful = CheckForParryAndDodge(attackerWeapon, targetWeapon, targetStats, target);
@@ -214,6 +214,12 @@ public class CombatManager : MonoBehaviour
         //Sprawdza czy atak jest atakiem w zwarciu
         if (attackerWeapon.Type.Contains("melee"))
         {
+            //Uwzględnienie zdolności bijatyka, w przypadku walki Pięściami (Id broni = 0)
+            if(attackerWeapon.Id == 0 && attackerStats.StreetFighting == true)
+            {
+                _attackModifier += 10;
+            }
+
             isSuccessful = rollResult <= (attackerStats.WW + _attackModifier - targetUnit.DefensiveBonus);
 
             if (_attackModifier > 0 || targetUnit.DefensiveBonus > 0)
@@ -300,7 +306,7 @@ public class CombatManager : MonoBehaviour
 
         if (_attackDistance <= 1.5f) //Oblicza łączne obrażenia dla ataku w zwarciu
         {
-            damage = attackerStats.StrongBlow ? damageRollResult + attackerStats.S + attackerWeapon.S + 1 : damageRollResult + attackerStats.S + attackerWeapon.S;
+            damage = attackerStats.StrongBlow || (attackerWeapon.Id == 0 && attackerStats.StreetFighting == true) ? damageRollResult + attackerStats.S + attackerWeapon.S + 1 : damageRollResult + attackerStats.S + attackerWeapon.S;
         }
         else //Oblicza łączne obrażenia dla ataku dystansowego
         {
@@ -530,8 +536,9 @@ public class CombatManager : MonoBehaviour
 
             if (targetUnit.CanParry && targetUnit.CanDodge)
             {
-                //Sprawdza, czy atakowana postać ma większą szansę na unik, czy na parowanie i na tej podstawie ustala kolejność tych akcji
-                if (targetStats.WW + parryModifier > (targetStats.Zr + (targetStats.Dodge * 10) - 10))
+                /* Sprawdza, czy atakowana postać ma większą szansę na unik, czy na parowanie i na tej podstawie ustala kolejność tych akcji.
+                Warunek sprawdza też, czy obrońca broni się Pięściami (Id=0). Parowanie pięściami jest możliwe tylko, gdy przeciwnik również atakuje Pięściami */
+                if (targetStats.WW + parryModifier > (targetStats.Zr + (targetStats.Dodge * 10) - 10) && (targetWeapon.Id != 0 || targetWeapon.Id == attackerWeapon.Id))
                 {
                     targetIsDefended = Parry(attackerWeapon, targetWeapon, targetStats, parryModifier);
                 }
@@ -540,7 +547,7 @@ public class CombatManager : MonoBehaviour
                     targetIsDefended = Dodge(targetStats);
                 }
             }
-            else if (targetUnit.CanParry)
+            else if (targetUnit.CanParry && (targetWeapon.Id != 0 || targetWeapon.Id == attackerWeapon.Id))
             {
                 targetIsDefended = Parry(attackerWeapon, targetWeapon, targetStats, parryModifier);
             }

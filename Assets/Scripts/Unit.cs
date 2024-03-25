@@ -10,8 +10,11 @@ public class Unit : MonoBehaviour
     public Color DefaultColor;
     public Color HighlightColor;
     public bool IsSelected { get; private set; } = false;
-    public bool IsCharging;
-    public bool IsRunning;
+    public bool IsCharging; // Szarżuje
+    public bool IsRunning; // Biegnie
+    public bool IsHelpless; // Jest bezbronny
+    public bool IsStunned; // Jest ogłuszony
+    public bool IsTrapped; // Jest unieruchomiony
     public int AimingBonus;
     public int DefensiveBonus;
     public bool CanParry = true;
@@ -35,6 +38,8 @@ public class Unit : MonoBehaviour
         Stats.TempHealth = Stats.MaxHealth;
         DisplayUnitHealthPoints();
 
+        //Aktualizuje kolejkę inicjatywy
+        RoundsManager.Instance.UpdateInitiativeQueue();
     }
     private void OnMouseUp()
     {

@@ -244,6 +244,7 @@ public class StatsData
     public int Armor_legs;
     public int Initiative;
     public bool PrecisionShot;
+    public bool StreetFighting;
     public bool StrongBlow;
     public int Dodge;
 }

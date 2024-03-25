@@ -58,7 +58,8 @@
       "Armor_head": 1,
       "Armor_arms": 0,
       "Armor_torso": 0,
-      "Armor_legs": 0
+      "Armor_legs": 0,
+      "StreetFighting": true
     },
     {
       "Id": 4,
@@ -98,7 +99,8 @@
       "Armor_head": 1,
       "Armor_arms": 0,
       "Armor_torso": 0,
-      "Armor_legs": 0
+      "Armor_legs": 0,
+      "Dodge": 1
     },
     {
       "Id": 6,

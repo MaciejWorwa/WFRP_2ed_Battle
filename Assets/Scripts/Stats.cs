@@ -44,6 +44,7 @@ public class Stats : MonoBehaviour
     public int Initiative;
     public bool InstantReload;
     public bool PrecisionShot;
+    public bool StreetFighting;
     public bool StrongBlow;
 
     [Header("Umiejętności")]

@@ -61,7 +61,7 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        //Pauzuje grę (możliwość ruchu jednostek), gdy któryś z paneli jest otwarty
+        //Pauzuje grę (możliwość ruchu jednostek), gdy któryś z paneli konkretnej jednostki jest otwarty
         IsGamePaused = CountActivePanels() > 0 ? true : false;
 
         if (Input.GetKeyDown(KeyCode.Escape))

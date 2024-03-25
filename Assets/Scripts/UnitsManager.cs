@@ -201,6 +201,11 @@ public class UnitsManager : MonoBehaviour
             GridManager.Instance.ResetColorOfTilesInMovementRange();
         }
 
+        //Usunięcie jednostki z kolejki inicjatywy
+        RoundsManager.Instance.RemoveUnitFromInitiativeQueue(unit.GetComponent<Unit>());
+        //Aktualizuje kolejkę inicjatywy
+        RoundsManager.Instance.UpdateInitiativeQueue();
+
         Destroy(unit);
         IsUnitRemoving = false;
 

@@ -31,7 +31,6 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    [SerializeField] private TMP_Dropdown _inventoryDropdown;
     [SerializeField] private GameObject _weaponButtonPrefab; // Przycisk odpowiadający każdej z broni
     public Transform InventoryScrollViewContent; // Lista ekwipunku postaci
     [SerializeField] private CustomDropdown _weaponsDropdown;
@@ -177,7 +176,7 @@ public class InventoryManager : MonoBehaviour
         if(selectedWeapon.TwoHanded == true) unit.GetComponent<Inventory>().EquippedWeapons[1] = selectedWeapon;
      
         //Ustala, czy postać może parować tą bronią
-        unit.GetComponent<Unit>().CanParry = selectedWeapon.Type.Contains("melee") ? true : false;
+        unit.GetComponent<Unit>().CanParry = selectedWeapon.Type.Contains("melee") && selectedWeapon.Id != 0 ? true : false;
 
         //Odwołanie do komponentu Weapon wybranej postaci
         Weapon unitWeapon = unit.GetComponent<Weapon>();
