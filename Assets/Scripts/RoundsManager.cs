@@ -30,7 +30,9 @@ public class RoundsManager : MonoBehaviour
         }
     }
     public static int RoundNumber;
+    public Dictionary <Unit, int> UnitsWithActionsLeft = new Dictionary<Unit, int>();
     public Dictionary <Unit, int> InitiativeQueue = new Dictionary<Unit, int>();
+    private Unit _activeUnit;
     public Transform InitiativeScrollViewContent; // Lista ekwipunku postaci
     [SerializeField] private GameObject _initiativeOptionPrefab; // Prefab odpowiadający każdej jednostce na liście inicjatywy
 
@@ -39,70 +41,76 @@ public class RoundsManager : MonoBehaviour
         RoundNumber++;
 
         //Resetuje ilość dostępnych akcji dla wszystkich jednostek
-        foreach (var key in InitiativeQueue.Keys.ToList())
+        foreach (var key in UnitsWithActionsLeft.Keys.ToList())
         {
-            InitiativeQueue[key] = 2;
+            UnitsWithActionsLeft[key] = 2;
+            key.CanParry = true;
         }
 
         UpdateInitiativeQueue();
+
+        //Wybiera jednostkę zgodnie z kolejką inicjatywy, jeśli ten tryb jest włączony
+        if (GameManager.Instance.IsAutoSelectUnitMode && _activeUnit != null)
+        {
+            SelectUnitByQueue();
+        }
     }
 
     public void AddUnitToInitiativeQueue(Unit unit)
     {
-        InitiativeQueue.Add(unit, 2);
+        InitiativeQueue.Add(unit, unit.GetComponent<Stats>().Initiative);
+        UnitsWithActionsLeft.Add(unit, 2);
     }
 
     public void RemoveUnitFromInitiativeQueue(Unit unit)
     {
         InitiativeQueue.Remove(unit);
+        UnitsWithActionsLeft.Remove(unit);
     }
 
     public void UpdateInitiativeQueue()
     {
         //Sortowanie malejąco według wartości inicjatywy
-        InitiativeQueue = InitiativeQueue.OrderByDescending(pair => pair.Key.GetComponent<Stats>().Initiative).ToDictionary(pair => pair.Key, pair => pair.Value);
+        InitiativeQueue = InitiativeQueue.OrderByDescending(pair => pair.Value).ToDictionary(pair => pair.Key, pair => pair.Value);
 
         DisplayInitiativeQueue();
     }
 
    private void DisplayInitiativeQueue()
     {
-        // // Sortujemy słownik InitiativeQueue rosnąco według wartości inicjatywy
-        // var sortedInitiativeQueue = InitiativeQueue.OrderBy(pair => pair.Value);
-
-        // Resetujemy wyświetlaną kolejkę usuwając jednostki, których nie ma w słowniku
+        // Resetuje wyświetlaną kolejkę, usuwając wszystkie obiekty "dzieci"
         Transform contentTransform = InitiativeScrollViewContent.transform;
         for (int i = contentTransform.childCount - 1; i >= 0; i--)
         {
             Transform child = contentTransform.GetChild(i);
-            string nameText = child.transform.Find("Name_Text").GetComponent<TextMeshProUGUI>().text;
-
-            // Jeżeli w kolejce inicjatywy nie ma postaci, która jest wypisana na przycisku, usuń przycisk
-            if (!InitiativeQueue.Any(pair => pair.Key.GetComponent<Stats>().Name == nameText))
-            {
-                Destroy(child.gameObject);
-            }
+            Destroy(child.gameObject);
         }
+
+        _activeUnit = null;
 
         // Ustala wyświetlaną kolejkę inicjatywy
         foreach (var pair in InitiativeQueue)
         {
-            Debug.Log(pair.Key.GetComponent<Stats>().Initiative);
+            // Dodaje jednostkę do ScrollViewContent w postaci gameObjectu jako opcja CustomDropdowna
+            GameObject optionObj = Instantiate(_initiativeOptionPrefab, InitiativeScrollViewContent);
 
-            bool buttonExists = InitiativeScrollViewContent.GetComponentsInChildren<TextMeshProUGUI>().Any(t => t.text == pair.Key.GetComponent<Stats>().Name);
+            // Odniesienie do nazwy postaci
+            TextMeshProUGUI nameText = optionObj.transform.Find("Name_Text").GetComponent<TextMeshProUGUI>();
+            nameText.text = pair.Key.GetComponent<Stats>().Name;
 
-            if (!buttonExists)
+            // Odniesienie do wartości inicjatywy
+            TextMeshProUGUI initiativeText = optionObj.transform.Find("Initiative_Text").GetComponent<TextMeshProUGUI>();
+            initiativeText.text = pair.Value.ToString();
+
+            //Wyróżnia postać, która obecnie wykonuje turę. Sprawdza, czy postać ma jeszcze dostępne akcje, jeśli tak to jest jej tura (po zakończeniu tury liczba dostępnych akcji spada do 0)
+            if(UnitsWithActionsLeft[pair.Key] > 0 && _activeUnit == null)
             {
-                // Dodaje jednostkę do ScrollViewContent w postaci gameObjectu jako opcja CustomDropdowna
-                GameObject optionObj = Instantiate(_initiativeOptionPrefab, InitiativeScrollViewContent);
-
-                // Odniesienie do nazwy postaci
-                TextMeshProUGUI nameText = optionObj.transform.Find("Name_Text").GetComponent<TextMeshProUGUI>();
-                nameText.text = pair.Key.GetComponent<Stats>().Name;
-
-                // Odniesienie do wartości inicjatywy
-                TextMeshProUGUI initiativeText = optionObj.transform.Find("Initiative_Text").GetComponent<TextMeshProUGUI>();
-                initiativeText.text = pair.Key.GetComponent<Stats>().Initiative.ToString();
+                _activeUnit = pair.Key;
+                optionObj.GetComponent<Image>().color = new Color(0.15f, 1f, 0.45f, 0.2f);
+            }
+            else
+            {
+                optionObj.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
             }
         }
     }
@@ -110,9 +118,23 @@ public class RoundsManager : MonoBehaviour
 
     public bool DoHalfAction(Unit unit)
     {
-        if (InitiativeQueue.ContainsKey(unit) && InitiativeQueue[unit] >= 1)
+        if (UnitsWithActionsLeft.ContainsKey(unit) && UnitsWithActionsLeft[unit] >= 1)
         {
-            InitiativeQueue[unit]--;
+            UnitsWithActionsLeft[unit]--;
+
+            Debug.Log($"<color=green> Akcja pojedyncza. </color>");
+
+            //Aktualizuje aktywną postać na kolejce inicjatywy, gdy obecna postać wykona wszystkie akcje w tej rundzie
+            if(UnitsWithActionsLeft[unit] == 0)
+            {
+                // Uniemożliwia parowanie postaci, która zużyła wszystkie akcje (chyba, że ma zdolność byłskawicznego bloku)
+                if(!unit.Stats.LightningParry)
+                {
+                    unit.CanParry = false;
+                }
+
+                SelectUnitByQueue();
+            }
             return true;
         }
         else
@@ -124,9 +146,21 @@ public class RoundsManager : MonoBehaviour
 
     public bool DoFullAction(Unit unit)
     {
-        if (InitiativeQueue.ContainsKey(unit) && InitiativeQueue[unit] == 2)
+        if (UnitsWithActionsLeft.ContainsKey(unit) && UnitsWithActionsLeft[unit] == 2)
         {
-            InitiativeQueue[unit] -= 2;
+            UnitsWithActionsLeft[unit] -= 2;
+
+            Debug.Log($"<color=green> Akcja podwójna. </color>");
+            
+            // Uniemożliwia parowanie postaci, która zużyła wszystkie akcje (chyba, że ma zdolność byłskawicznego bloku)
+            if(!unit.Stats.LightningParry)
+            {
+                unit.CanParry = false;
+            }
+
+            //Aktualizuje aktywną postać na kolejce inicjatywy, bo obecna postać wykonała wszystkie akcje w tej rundzie
+            SelectUnitByQueue();
+
             return true;
         }
         else
@@ -134,6 +168,34 @@ public class RoundsManager : MonoBehaviour
             Debug.Log("Ta jednostka nie może w tej rundzie wykonać akcji podwójnej.");
             return false;
         }     
+    }
+
+    private void SelectUnitByQueue()
+    {
+        StartCoroutine(InvokeSelectUnitCoroutine());
+            
+        IEnumerator InvokeSelectUnitCoroutine()
+        {
+            yield return new WaitForSeconds(0.1f);
+
+            //Czeka ze zmianą postaci, aż obecna postać zakończy ruch
+            while (MovementManager.Instance.IsMoving == true)
+            {
+                yield return null; // Czekaj na następną klatkę
+            }
+
+            DisplayInitiativeQueue();
+
+            //Gdy jest aktywny tryb automatycznego wybierania postaci na podstawie kolejki inicjatywy to taka postać jest wybierana. Jeżeli wszystkie wykonały akcje to następuje kolejna runda
+            if (GameManager.Instance.IsAutoSelectUnitMode && _activeUnit != null && _activeUnit.gameObject != Unit.SelectedUnit)
+            {
+                _activeUnit.SelectUnit();
+            }
+            else if (GameManager.Instance.IsAutoSelectUnitMode && _activeUnit == null)
+            {
+                NextRound();
+            }     
+        }
     }
 
 }

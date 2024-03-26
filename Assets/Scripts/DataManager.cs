@@ -243,10 +243,14 @@ public class StatsData
     public int Armor_torso;
     public int Armor_legs;
     public int Initiative;
-    public bool PrecisionShot;
-    public bool StreetFighting;
-    public bool StrongBlow;
-    public int Dodge;
+    public bool LightningParry; // Błyskawiczny blok
+    public bool MasterGunner; // Artylerzysta
+    public bool MightyShot; // Strzał precyzyjny
+    public bool RapidReload; // Błyskawiczne przeładowanie
+    public bool StreetFighting; // Bijatyka
+    public bool StrikeMightyBlow; // Silny cios
+    public bool SureShot; // Strzał mierzony
+    public bool QuickDraw; // Szybkie wyciągnięcie
 }
 
 [System.Serializable]

@@ -3,7 +3,7 @@
     {
       "Id": 1,
       "Race": "Człowiek",
-      "WW": 30,
+      "WW": 80,
       "US": 50,
       "K": 30,
       "Odp": 30,
@@ -23,8 +23,8 @@
     {
       "Id": 2,
       "Race": "Elf",
-      "WW": 30,
-      "US": 50,
+      "WW": 90,
+      "US": 90,
       "K": 30,
       "Odp": 20,
       "Zr": 30,
@@ -38,12 +38,15 @@
       "Armor_head": 1,
       "Armor_arms": 0,
       "Armor_torso": 0,
-      "Armor_legs": 0
+      "Armor_legs": 0,
+      "LightingParry": true,
+      "MightyShot": true,
+      "SureShot": true
     },
     {
       "Id": 3,
       "Race": "Krasnolud",
-      "WW": 30,
+      "WW": 80,
       "US": 50,
       "K": 40,
       "Odp": 50,
@@ -64,7 +67,7 @@
     {
       "Id": 4,
       "Race": "Niziołek",
-      "WW": 30,
+      "WW": 80,
       "US": 50,
       "K": 10,
       "Odp": 10,

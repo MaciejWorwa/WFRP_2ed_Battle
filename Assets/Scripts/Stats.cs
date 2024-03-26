@@ -40,15 +40,20 @@ public class Stats : MonoBehaviour
     public int Armor_torso;
     public int Armor_legs;
 
-    [Header("Zdolności, umiejętności i inicjatywa")]
+    [Header("Inicjatywa")]
     public int Initiative;
-    public bool InstantReload;
-    public bool PrecisionShot;
-    public bool StreetFighting;
-    public bool StrongBlow;
+
+    [Header("Zdolności")]
+    public bool LightningParry; // Błyskawiczny blok
+    public bool MasterGunner; // Artylerzysta
+    public bool MightyShot; // Strzał precyzyjny
+    public bool RapidReload; // Błyskawiczne przeładowanie
+    public bool StreetFighting; // Bijatyka
+    public bool StrikeMightyBlow; // Silny cios
+    public bool SureShot; // Strzał mierzony
+    public bool QuickDraw; // Szybkie wyciągnięcie
 
     [Header("Umiejętności")]
     public int Dodge;
-
 }
 

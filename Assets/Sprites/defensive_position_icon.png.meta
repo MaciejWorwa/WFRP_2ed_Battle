@@ -128,7 +128,8 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      defensive_position_icon_0: 4930843511864884677
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

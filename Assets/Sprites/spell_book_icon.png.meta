@@ -200,7 +200,11 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      spell_book_icon_0: -457310812067381809
+      spell_book_icon_1: -2893706125988074667
+      spell_book_icon_2: 1202699005318297263
+      spell_book_icon_3: 3705168311291537896
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

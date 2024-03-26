@@ -40,7 +40,7 @@ public class InventoryManager : MonoBehaviour
     {
         //Wczytuje listę wszystkich broni
         DataManager.Instance.LoadAndUpdateWeapons();
-        ShowOrHidePanel(GameObject.Find("AddWeapons_Panel")); //TO JEST TYMCZASOWO. MUSZE ROZKMINIĆ TO LEPIEJ. PO PROSTU JAK TEN PANEL NA START JEST NIEAKTYWNY TO SIE ŹLE WCZYTUJĄ INDEKSY BRONI, BO NIE URUCHAMIA SIĘ FUNKCJA AWAKE W KOMPONENCIE CUSTOMDROPDOWN (JEST ON PODPIETY DO TEGO PANELU)
+        //GameManager.Instance.ShowOrHidePanel(GameObject.Find("AddWeapons_Panel")); //TO JEST TYMCZASOWO. MUSZE ROZKMINIĆ TO LEPIEJ. PO PROSTU JAK TEN PANEL NA START JEST NIEAKTYWNY TO SIE ŹLE WCZYTUJĄ INDEKSY BRONI, BO NIE URUCHAMIA SIĘ FUNKCJA AWAKE W KOMPONENCIE CUSTOMDROPDOWN (JEST ON PODPIETY DO TEGO PANELU)
     }
 
     #region Inventory panel managing
@@ -48,14 +48,8 @@ public class InventoryManager : MonoBehaviour
     {
         if(Input.GetKeyDown(KeyCode.I) && Unit.SelectedUnit != null)
         {
-            ShowOrHidePanel(_inventoryPanel);
+            GameManager.Instance.ShowOrHidePanel(_inventoryPanel);
         }
-    }
-
-    public void ShowOrHidePanel(GameObject panel)
-    {
-        //Gdy panel jest zamknięty to go otwiera, a gdy otwarty to go zamyka
-        panel.SetActive(!panel.activeSelf);
     }
 
     public void HideInventory()

@@ -38,10 +38,17 @@ public class CombatManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button _defensivePositionButton;
 
     #region Attack function
-    public void Attack(Unit attacker, Unit target) 
+    public void Attack(Unit attacker, Unit target, bool opportunityAttack) 
     {
-        Stats attackerStats = attacker.GetComponent<Stats>();
-        Stats targetStats = target.GetComponent<Stats>();
+        //Sprawdza też, czy gra nie jest wstrzymana (np. poprzez otwarcie dodatkowych paneli)
+        if(GameManager.Instance.IsGamePaused)
+        {
+            Debug.Log("Gra została wstrzymana. Aby ją wznowić musisz wyłączyć okno znajdujące się na polu gry.");
+            return; 
+        } 
+
+        Stats attackerStats = attacker.Stats;
+        Stats targetStats = target.Stats;
 
         Weapon attackerWeapon = InventoryManager.Instance.ChooseWeaponToAttack(attacker.gameObject);
         Weapon targetWeapon = target.GetComponent<Weapon>();
@@ -71,6 +78,29 @@ public class CombatManager : MonoBehaviour
                 Debug.Log($"Stoisz zbyt blisko celu aby wykonać atak dystansowy.");
                 return;
             }
+
+            //Wykonuje akcję (pomija szarżę, bo akcja została wykonaa na początku ruchu postaci, pomija też atak okazyjny)
+            bool canDoAction = true;
+            if(attacker.IsCharging !=true && opportunityAttack == false)
+            {
+                canDoAction = RoundsManager.Instance.DoHalfAction(attacker);
+            }
+            else if (attacker.IsCharging)
+            {
+                //Zresetowanie szarży
+                MovementManager.Instance.UpdateMovementRange(1);
+
+                canDoAction = RoundsManager.Instance.DoFullAction(attacker);
+            }
+            //DODAĆ OPCJE WIELOKROTNEGO, OSTROŻNEGO I SZALEŃCZEGO ATAKU
+
+            if(!canDoAction) return;
+
+            //Resetuje pozycję obronną, jeśli była aktywna
+            if (attacker.DefensiveBonus != 0)
+            {
+                DefensivePosition();
+            }  
 
             //Aktualizuje modyfikator ataku o celowanie
             _attackModifier += attacker.AimingBonus;
@@ -193,11 +223,11 @@ public class CombatManager : MonoBehaviour
 
             if (_attackModifier != 0 || targetUnit.DefensiveBonus != 0 || shieldModifier != 0)
             {
-                Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na US: {rollResult} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus - shieldModifier}");
+                Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na US: {rollResult} Wartość cechy: {attackerStats.US} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus - shieldModifier}");
             }
             else
             {
-                Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na US: {rollResult}");
+                Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na US: {rollResult} Wartość cechy: {attackerStats.US}");
             }
 
             //Sprawia, że po ataku należy przeładować broń
@@ -205,7 +235,7 @@ public class CombatManager : MonoBehaviour
             attackerWeapon.WeaponsWithReloadLeft[attackerWeapon.Id] = attackerWeapon.ReloadLeft;
 
             //Uwzględnia zdolność Błyskawicznego Przeładowania
-            if (attackerStats.InstantReload == true)
+            if (attackerStats.RapidReload == true)
             {
                 attackerWeapon.ReloadLeft--;   
             }
@@ -224,11 +254,11 @@ public class CombatManager : MonoBehaviour
 
             if (_attackModifier > 0 || targetUnit.DefensiveBonus > 0)
             {
-                Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na WW: {rollResult} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus}");
+                Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na WW: {rollResult} Wartość cechy: {attackerStats.WW} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus}");
             }
             else
             {
-                Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na WW: {rollResult}");
+                Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na WW: {rollResult} Wartość cechy: {attackerStats.WW}");
             }
         }
 
@@ -306,11 +336,11 @@ public class CombatManager : MonoBehaviour
 
         if (_attackDistance <= 1.5f) //Oblicza łączne obrażenia dla ataku w zwarciu
         {
-            damage = attackerStats.StrongBlow || (attackerWeapon.Id == 0 && attackerStats.StreetFighting == true) ? damageRollResult + attackerStats.S + attackerWeapon.S + 1 : damageRollResult + attackerStats.S + attackerWeapon.S;
+            damage = attackerStats.StrikeMightyBlow || (attackerWeapon.Id == 0 && attackerStats.StreetFighting == true) ? damageRollResult + attackerStats.S + attackerWeapon.S + 1 : damageRollResult + attackerStats.S + attackerWeapon.S;
         }
         else //Oblicza łączne obrażenia dla ataku dystansowego
         {
-            damage = attackerStats.PrecisionShot ? damageRollResult + attackerWeapon.S + 1 : damageRollResult + attackerWeapon.S;             
+            damage = attackerStats.MightyShot ? damageRollResult + attackerWeapon.S + 1 : damageRollResult + attackerWeapon.S;             
         }
 
         return damage;
@@ -372,7 +402,13 @@ public class CombatManager : MonoBehaviour
         }
         else
         {
-            unit.AimingBonus += 10; //DODAĆ W PRZYSZŁOŚCI uwzględnienie umiejętności strzał mierzony.
+            //Wykonuje akcję
+            bool canDoAction;
+            canDoAction = RoundsManager.Instance.DoHalfAction(Unit.SelectedUnit.GetComponent<Unit>());
+            if(!canDoAction) return;  
+
+            //Dodaje modyfikator do trafienia uzwględniając
+            unit.AimingBonus += Unit.SelectedUnit.GetComponent<Stats>().SureShot ? 20 : 10; 
 
             Debug.Log("Przycelowanie");
         }
@@ -427,10 +463,7 @@ public class CombatManager : MonoBehaviour
             {
                 yield return new WaitForSeconds(delay);
 
-                Attack(attacker.GetComponent<Unit>(), target.GetComponent<Unit>());
-
-                //Zresetowanie szarży
-                MovementManager.Instance.UpdateMovementRange(1);
+                Attack(attacker.GetComponent<Unit>(), target.GetComponent<Unit>(), false);
             }
         }
         else
@@ -496,6 +529,10 @@ public class CombatManager : MonoBehaviour
 
         if (unit.DefensiveBonus == 0)
         {
+            //Wykonuje akcję
+            bool canDoAction = RoundsManager.Instance.DoFullAction(unit);
+            if(!canDoAction) return;   
+
             Debug.Log("Pozycja obronna.");
 
             unit.DefensiveBonus = 20;
@@ -566,6 +603,12 @@ public class CombatManager : MonoBehaviour
             
     private bool Parry(Weapon attackerWeapon, Weapon targetWeapon, Stats targetStats, int parryModifier)
     {
+        //Wykonuje akcję
+        if(targetStats.LightningParry != true)
+        {
+            RoundsManager.Instance.DoHalfAction(targetStats.GetComponent<Unit>());
+        }
+
         //Sprawia, że atakowany nie będzie mógł więcej parować w tej rundzie (W PRZYSZŁOŚCI UWZGLĘDNIĆ TU BŁYSKAWICZNY BLOK)
         targetStats.GetComponent<Unit>().CanParry = false;
 
@@ -573,25 +616,21 @@ public class CombatManager : MonoBehaviour
         
         if (parryModifier != 0)
         {
-            Debug.Log($"Rzut {targetStats.Name} na parowanie: {rollResult} Modyfikator do parowania: {parryModifier}");
+            Debug.Log($"Rzut {targetStats.Name} na parowanie: {rollResult} Wartość cechy: {targetStats.WW} Modyfikator do parowania: {parryModifier}");
         }
         else
         {
-            Debug.Log($"Rzut {targetStats.Name} na parowanie: {rollResult}");
+            Debug.Log($"Rzut {targetStats.Name} na parowanie: {rollResult} Wartość cechy: {targetStats.WW}");
         }
 
         if (rollResult <= targetStats.WW + parryModifier)
         {
-            //Zresetowanie bonusu do parowania
-            parryModifier = 0;
             return true;
         }      
         else
         {
-            //Zresetowanie bonusu do parowania
-            parryModifier = 0;
             return false;
-        }       
+        }        
     }
 
     private bool Dodge(Stats targetStats)
@@ -601,7 +640,7 @@ public class CombatManager : MonoBehaviour
         
         int rollResult = Random.Range(1, 101);
 
-        Debug.Log($"Rzut {targetStats.Name} na unik: {rollResult}");
+        Debug.Log($"Rzut {targetStats.Name} na unik: {rollResult} Wartość cechy: {targetStats.Zr}");
 
         if (rollResult <= targetStats.Zr + (targetStats.Dodge * 10) - 10)
         {
@@ -623,7 +662,12 @@ public class CombatManager : MonoBehaviour
 
         if(weapon.ReloadLeft > 0)
         {
-            weapon.ReloadLeft --;
+            //Wykonuje akcję
+            bool canDoAction;
+            canDoAction = RoundsManager.Instance.DoHalfAction(Unit.SelectedUnit.GetComponent<Unit>());
+            if(!canDoAction) return;  
+
+            weapon.ReloadLeft --;       
         }
         
         if(weapon.ReloadLeft == 0)

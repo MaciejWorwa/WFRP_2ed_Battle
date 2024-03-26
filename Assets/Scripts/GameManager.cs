@@ -33,6 +33,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button _autoDefenseButton;
     public bool IsAutoKillMode;
     [SerializeField] private Button _autoKillButton;
+    public bool IsAutoSelectUnitMode;
+    [SerializeField] private Button _autoSelectUnitButton;
     public bool IsFriendlyFire;
     [SerializeField] private Button _friendlyFireButton;
     private Dictionary<Button, bool> allModes;
@@ -48,8 +50,9 @@ public class GameManager : MonoBehaviour
         allModes = new Dictionary<Button, bool>()
         {
             {_autoDefenseButton, IsAutoDefenseMode = true},
+            {_autoSelectUnitButton, IsAutoSelectUnitMode = true},
             {_autoKillButton, IsAutoKillMode = true},
-            {_friendlyFireButton, IsFriendlyFire = false}
+            {_friendlyFireButton, IsFriendlyFire = false},
         };
 
         // Ustawia kolory przycisków na podstawie początkowych wartości trybów
@@ -85,6 +88,12 @@ public class GameManager : MonoBehaviour
     private void ShowPanel(GameObject panel)
     {
         panel.SetActive(true);
+    }
+
+    public void ShowOrHidePanel(GameObject panel)
+    {
+        //Gdy panel jest zamknięty to go otwiera, a gdy otwarty to go zamyka
+        panel.SetActive(!panel.activeSelf);
     }
 
     private int CountActivePanels()
@@ -123,6 +132,22 @@ public class GameManager : MonoBehaviour
         else
         {
             Debug.Log("Tryb automatycznej śmierci (gdy żywotność spadnie poniżej zera) został wyłączony.");
+        }
+    }
+
+    public void SetAutoSelectUnitMode()
+    {
+        IsAutoSelectUnitMode = !IsAutoSelectUnitMode;
+
+        UpdateButtonColor(_autoSelectUnitButton, IsAutoSelectUnitMode);
+
+        if (IsAutoSelectUnitMode)
+        {
+            Debug.Log("Tryb automatycznego wyboru jednostki zgodnie z kolejką inicjatywy został włączony.");
+        }
+        else
+        {
+            Debug.Log("Tryb automatycznego wyboru jednostki zgodnie z kolejką inicjatywy został wyłączony.");
         }
     }
 

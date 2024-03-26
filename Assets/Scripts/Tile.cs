@@ -40,17 +40,13 @@ public class Tile : MonoBehaviour
         }
         if(Unit.SelectedUnit != null)
         {
-            if(Unit.SelectedUnit.GetComponent<Unit>().IsCharging)
+            Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
+
+            if(unit.IsCharging)
             {
                 Debug.Log("Wybierz przeciwnika, na którego chcesz zaszarżować.");
                 return;
-            }
-
-            //Resetuje przycelowanie, jeśli było aktywne
-            if (Unit.SelectedUnit.GetComponent<Unit>().AimingBonus != 0)
-            {
-                CombatManager.Instance.SetAim();
-            }
+            }     
 
             //Wykonuje ruch na kliknięte pole
             MovementManager.Instance.MoveSelectedUnit(this.gameObject, Unit.SelectedUnit);

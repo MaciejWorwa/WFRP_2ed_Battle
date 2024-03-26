@@ -29,7 +29,7 @@ public class MovementManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-    private bool _isMoving;
+    [HideInInspector] public bool IsMoving;
     [SerializeField] private Button _chargeButton;
     [SerializeField] private Button _runButton;
 
@@ -37,7 +37,7 @@ public class MovementManager : MonoBehaviour
     public void MoveSelectedUnit(GameObject selectedTile, GameObject unit)
     {
         // Nie pozwala wykonać akcji ruchu, dopóki poprzedni ruch nie zostanie zakończony. Sprawdza też, czy gra nie jest wstrzymana (np. poprzez otwarcie dodatkowych paneli)
-        if( _isMoving == true || GameManager.Instance.IsGamePaused) return;    
+        if( IsMoving == true || GameManager.Instance.IsGamePaused) return;    
 
         // Sprawdza zasięg ruchu postaci
         int movementRange = unit.GetComponent<Stats>().TempSz;
@@ -57,6 +57,31 @@ public class MovementManager : MonoBehaviour
         // Sprawdza czy wybrane pole jest w zasięgu ruchu postaci.
         if (path.Count > 0 && path.Count <= movementRange)
         {
+            //Wykonuje akcję
+            bool canDoAction = true;
+            if(unit.GetComponent<Unit>().IsRunning) // Bieg
+            {
+                canDoAction = RoundsManager.Instance.DoFullAction(unit.GetComponent<Unit>());
+            }
+            else if(!unit.GetComponent<Unit>().IsCharging) // Zwykły ruch. Akcje za szarże są zużywane podczas ataku
+            {
+                canDoAction = RoundsManager.Instance.DoHalfAction(unit.GetComponent<Unit>());
+            }
+
+            if(!canDoAction) return;   
+
+            //Resetuje przycelowanie, jeśli było aktywne
+            if (Unit.SelectedUnit.GetComponent<Unit>().AimingBonus != 0)
+            {
+                CombatManager.Instance.SetAim();
+                CombatManager.Instance.DefensivePosition();
+            }
+            //Resetuje pozycję obronną, jeśli była aktywna
+            if (Unit.SelectedUnit.GetComponent<Unit>().DefensiveBonus != 0)
+            {
+                CombatManager.Instance.DefensivePosition();
+            }
+
             // Oznacza wybrane pole jako zajęte (gdyż trochę potrwa, zanim postać tam dojdzie i gdyby nie zaznaczyć, to można na nie ruszyć inną postacią)
             selectedTile.GetComponent<Tile>().IsOccupied = true;
 
@@ -90,7 +115,7 @@ public class MovementManager : MonoBehaviour
 
             while (elapsedTime < duration)
             {
-                _isMoving = true;
+                IsMoving = true;
 
                 unit.transform.position = Vector3.Lerp(unit.transform.position, nextPos, elapsedTime / duration);
                 elapsedTime += Time.deltaTime;
@@ -102,7 +127,7 @@ public class MovementManager : MonoBehaviour
 
         if (unit.transform.position == path[iterations - 1])
         {
-            _isMoving = false;
+            IsMoving = false;
             GridManager.Instance.HighlightTilesInMovementRange(Unit.SelectedUnit.GetComponent<Stats>());
         }
     }
@@ -243,6 +268,12 @@ public class MovementManager : MonoBehaviour
             modifier = 1;
         }
 
+        if(modifier > 1 && RoundsManager.Instance.UnitsWithActionsLeft[unit.GetComponent<Unit>()] < 2) //Sprawdza, czy jednostka może wykonać akcję podwójną
+        {
+            Debug.Log("Ta jednostka nie może w tej rundzie wykonać akcji podwójnej.");
+            return;
+        }
+
         //Sprawdzenie, czy postać walczy bronia dystansową. Jeśli tak, to szarża nie jest możliwa
         if(modifier == 2 && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type[0] == "ranged")
         {
@@ -294,7 +325,7 @@ public class MovementManager : MonoBehaviour
                 Debug.Log($"Ruch spowodował atak okazyjny od {unit.GetComponent<Stats>().Name}.");
 
                 // Wywołanie ataku okazyjnego
-                CombatManager.Instance.Attack(unit, movingUnit.GetComponent<Unit>());             
+                CombatManager.Instance.Attack(unit, movingUnit.GetComponent<Unit>(), true);             
             }
         }
     }

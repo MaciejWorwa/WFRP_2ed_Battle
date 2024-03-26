@@ -64,11 +64,11 @@ public class Unit : MonoBehaviour
                 return;
             }
 
-            CombatManager.Instance.Attack(SelectedUnit.GetComponent<Unit>(), this);
+            CombatManager.Instance.Attack(SelectedUnit.GetComponent<Unit>(), this, false);
         }
     }
 
-    private void SelectUnit()
+    public void SelectUnit()
     {
         if (SelectedUnit == null)
         {
