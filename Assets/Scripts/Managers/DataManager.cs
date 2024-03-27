@@ -29,13 +29,14 @@ public class DataManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-    [SerializeField] private TMP_Dropdown _unitsDropdown;
-    [SerializeField] private GameObject _weaponButtonPrefab; // Przycisk odpowiadający każdej z broni
+    //[SerializeField] private TMP_Dropdown _unitsDropdown;
+    [SerializeField] private GameObject _buttonPrefab; // Przycisk odpowiadający każdej z broni
     [SerializeField] private Transform _weaponScrollViewContent; // Lista wszystkich dostępnych broni
+    [SerializeField] private Transform _unitScrollViewContent; // Lista wszystkich dostępnych ras (jednostek)
 
 
     #region Loading units stats
-    public void LoadAndUpdateStats(GameObject unit)
+    public void LoadAndUpdateStats(GameObject unitObject = null)
     {
         // Ładowanie danych JSON
         TextAsset jsonFile = Resources.Load<TextAsset>("units");
@@ -53,47 +54,67 @@ public class DataManager : MonoBehaviour
             return;
         }
 
-        //Odniesienie do statystyk postaci
-        Stats statsToUpdate = unit.GetComponent<Stats>();
-
-        if (statsToUpdate == null)
+        //Jeśli w argumencie została przekazana jakaś jednostka to pobieramy jej statystyki, które później będziemy aktualizować
+        Unit unit = null;
+        Stats statsToUpdate = null;
+        if (unitObject != null)
         {
-            Debug.LogError("Aby wczytać statystyki musisz wybrać jednostkę.");
-            return;
+            unit = unitObject.GetComponent<Unit>();
+            //Odniesienie do statystyk postaci
+            statsToUpdate = unitObject.GetComponent<Stats>();
         }
-
-        //Czyści listę dostępnych do wyboru jednostek
-        _unitsDropdown.options.Clear();
 
         foreach (var stats in statsArray)
         {
-            if (stats.Id == statsToUpdate.Id)
+            //Aktualizuje statystyki jednostki, o ile jakaś jednostka jest wybrana
+            if (statsToUpdate != null)
             {
-                // Używanie refleksji do aktualizacji wartości wszystkich pól w klasie Stats
-                FieldInfo[] fields = typeof(StatsData).GetFields(BindingFlags.Instance | BindingFlags.Public);
-                foreach (var field in fields)
+                if (stats.Id == statsToUpdate.Id)
                 {
-                    var targetField = typeof(Stats).GetField(field.Name, BindingFlags.Instance | BindingFlags.Public);
-                    if (targetField != null)
+                    // Używanie refleksji do aktualizacji wartości wszystkich pól w klasie Stats
+                    FieldInfo[] fields = typeof(StatsData).GetFields(BindingFlags.Instance | BindingFlags.Public);
+                    foreach (var field in fields)
                     {
-                        targetField.SetValue(statsToUpdate, field.GetValue(stats));
+                        var targetField = typeof(Stats).GetField(field.Name, BindingFlags.Instance | BindingFlags.Public);
+                        if (targetField != null)
+                        {
+                            targetField.SetValue(statsToUpdate, field.GetValue(stats));
+                        }
                     }
-                }
 
-                // Aktualizuje wyświetlaną nazwę postaci i jej punkty żywotności, jeśli ta postać jest aktualizowana, a nie tworzona po raz pierwszy
-                if(unit.GetComponent<Unit>().Stats != null)
-                {
-                    unit.GetComponent<Unit>().DisplayUnitName();
-                    unit.GetComponent<Unit>().DisplayUnitHealthPoints();
+                    // Aktualizuje wyświetlaną nazwę postaci i jej punkty żywotności, jeśli ta postać jest aktualizowana, a nie tworzona po raz pierwszy
+                    if (unit.Stats != null)
+                    {
+                        unit.DisplayUnitName();
+                        unit.DisplayUnitHealthPoints();
+                    }
                 }
             }
 
-            //Dodaje jednostkę do dropdowna
-            _unitsDropdown.options.Add(new TMP_Dropdown.OptionData(stats.Race));
-        }
+            bool buttonExists = _unitScrollViewContent.GetComponentsInChildren<TextMeshProUGUI>().Any(t => t.text == stats.Race);
 
-        //Odświeża wyświetlaną wartość dropdowna
-        _unitsDropdown.RefreshShownValue();
+            if (buttonExists == false)
+            {
+                //Dodaje jednostkę do ScrollViewContent w postaci buttona
+                GameObject buttonObj = Instantiate(_buttonPrefab, _unitScrollViewContent);
+                TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
+                //Ustala text buttona
+                buttonText.text = stats.Race;
+
+                Button button = buttonObj.GetComponent<Button>();
+
+                //Dodaje opcję do CustomDropdowna ze wszystkimi jednostkami
+                _unitScrollViewContent.GetComponent<CustomDropdown>().Buttons.Add(button);
+
+                int currentIndex = _unitScrollViewContent.GetComponent<CustomDropdown>().Buttons.Count; // Pobiera indeks nowego przycisku
+
+                // Zdarzenie po kliknięciu na konkretny item z listy
+                button.onClick.AddListener(() =>
+                {
+                    _unitScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(currentIndex); // Wybiera element i aktualizuje jego wygląd
+                });
+            }
+        }
     }
     #endregion
 
@@ -160,7 +181,7 @@ public class DataManager : MonoBehaviour
             if(buttonExists == false)
             {
                 //Dodaje broń do ScrollViewContent w postaci buttona
-                GameObject buttonObj = Instantiate(_weaponButtonPrefab, _weaponScrollViewContent);
+                GameObject buttonObj = Instantiate(_buttonPrefab, _weaponScrollViewContent);
                 TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
                 //Ustala text buttona
                 buttonText.text = weapon.Name;
@@ -213,7 +234,7 @@ public static class JsonHelper
     }
 }
 
-#region Odzwierciedlenia klas Stats i Weapon
+#region Equivalents for Stats i Weapon classes
 [System.Serializable]
 public class StatsData
 {

@@ -5,6 +5,7 @@ using System.Linq;
 using TMPro;
 using System.Reflection;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 public class InventoryManager : MonoBehaviour
 {
@@ -31,7 +32,7 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    [SerializeField] private GameObject _weaponButtonPrefab; // Przycisk odpowiadający każdej z broni
+    [SerializeField] private GameObject _buttonPrefab; // Przycisk odpowiadający każdej z broni
     public Transform InventoryScrollViewContent; // Lista ekwipunku postaci
     [SerializeField] private CustomDropdown _weaponsDropdown;
     [SerializeField] private GameObject _inventoryPanel;
@@ -39,8 +40,7 @@ public class InventoryManager : MonoBehaviour
     void Start()
     {
         //Wczytuje listę wszystkich broni
-        DataManager.Instance.LoadAndUpdateWeapons();
-        //GameManager.Instance.ShowOrHidePanel(GameObject.Find("AddWeapons_Panel")); //TO JEST TYMCZASOWO. MUSZE ROZKMINIĆ TO LEPIEJ. PO PROSTU JAK TEN PANEL NA START JEST NIEAKTYWNY TO SIE ŹLE WCZYTUJĄ INDEKSY BRONI, BO NIE URUCHAMIA SIĘ FUNKCJA AWAKE W KOMPONENCIE CUSTOMDROPDOWN (JEST ON PODPIETY DO TEGO PANELU)
+        DataManager.Instance.LoadAndUpdateWeapons();       
     }
 
     #region Inventory panel managing
@@ -92,6 +92,13 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
+        // Sprawdzenie, czy przedmiot o takiej samej nazwie już istnieje w ekwipunku
+        if (unit.GetComponent<Inventory>().AllWeapons.Any(w => w.Name == newWeapon.Name))
+        {
+            Debug.Log($"Przedmiot {newWeapon.Name} już znajduje się w ekwipunku {unit.GetComponent<Stats>().Name}.");
+            return;
+        }
+
         //Dodaje przedmiot do ekwipunku
         unit.GetComponent<Inventory>().AllWeapons.Add(newWeapon);
 
@@ -108,6 +115,9 @@ public class InventoryManager : MonoBehaviour
 
         GameObject unit = Unit.SelectedUnit;
         int selectedIndex = InventoryScrollViewContent.GetComponent<CustomDropdown>().GetSelectedIndex();
+
+        if (selectedIndex > unit.GetComponent<Inventory>().AllWeapons.Count || selectedIndex == 0) return;
+        if (InventoryScrollViewContent.GetComponent<CustomDropdown>().SelectedButton == null) return;
 
         //Wybiera broń z ekwipunku na podstawie wartości dropdowna
         Weapon selectedWeapon = unit.GetComponent<Inventory>().AllWeapons[selectedIndex - 1];
@@ -131,7 +141,7 @@ public class InventoryManager : MonoBehaviour
         Weapon[] equippedWeapons = unit.GetComponent<Inventory>().EquippedWeapons;
         for (int i = 0; i < equippedWeapons.Length; i++)
         {
-            if (equippedWeapons[i].Id == selectedWeapon.Id)
+            if (equippedWeapons[i] != null && equippedWeapons[i].Id == selectedWeapon.Id)
             {
                 equippedWeapons[i] = null;
             }
@@ -147,12 +157,31 @@ public class InventoryManager : MonoBehaviour
     public void GrabWeapon()
     {
         if(Unit.SelectedUnit == null || InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons.Count == 0) return;
+        if (InventoryScrollViewContent.GetComponent<CustomDropdown>().SelectedButton == null) return;
 
         GameObject unit = Unit.SelectedUnit;
         int selectedIndex = InventoryScrollViewContent.GetComponent<CustomDropdown>().GetSelectedIndex();
+        if (selectedIndex == 0)
+        {
+            Debug.Log("Musisz wybrać broń, w którą chcesz się wyposażyć.");
+            return;
+        }
 
         //Wybiera broń z ekwipunku na podstawie wartości dropdowna
         Weapon selectedWeapon = unit.GetComponent<Inventory>().AllWeapons[selectedIndex - 1];
+
+        //Wykonuje akcję, jeżeli obecnie wybrana broń jest inna niż ta trzymana w rękach
+        if (selectedWeapon != unit.GetComponent<Inventory>().EquippedWeapons[0] && selectedWeapon != unit.GetComponent<Inventory>().EquippedWeapons[1])
+        {
+            //Uwzględnia szybkie wyciągnięcie
+            if(!unit.GetComponent<Stats>().QuickDraw)
+            {
+                bool canDoAction = true;
+                canDoAction = RoundsManager.Instance.DoHalfAction(unit.GetComponent<Unit>());
+                if (!canDoAction) return;
+            }
+        }
+        else return;
 
         //Jeżeli postać trzymała wcześniej broń dwuręczną to odkłada ją z powrotem do ekwipunku
         if(unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].TwoHanded == true)
@@ -199,11 +228,14 @@ public class InventoryManager : MonoBehaviour
     #region Inventory dropdown list managing
     public void UpdateInventoryDropdown(List<Weapon> weapons)
     {
+        //Ustala wyświetlaną nazwę właściciela ekwipunku
+        _inventoryPanel.transform.Find("inventory_name").GetComponent<TMP_Text>().text = "Ekwipunek " + Unit.SelectedUnit.GetComponent<Stats>().Name;
+
         // Resetuje wyświetlany ekwipunek
         var buttons = InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons;
         for (int i = buttons.Count - 1; i >= 0; i--)
         {
-            Button button = buttons[i];
+            UnityEngine.UI.Button button = buttons[i];
             string buttonText = button.GetComponentInChildren<TextMeshProUGUI>().text;
 
             Weapon weapon = weapons.Find(obj => obj.Name == buttonText);
@@ -222,12 +254,12 @@ public class InventoryManager : MonoBehaviour
             if (!buttonExists)
             {
                 // Dodaje broń do ScrollViewContent w postaci buttona
-                GameObject buttonObj = Instantiate(_weaponButtonPrefab, InventoryScrollViewContent);
+                GameObject buttonObj = Instantiate(_buttonPrefab, InventoryScrollViewContent);
                 TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
                 // Ustala text buttona
                 buttonText.text = weapon.Name;
 
-                Button button = buttonObj.GetComponent<Button>();
+                UnityEngine.UI.Button button = buttonObj.GetComponent<UnityEngine.UI.Button>();
 
                 // Dodaje opcję do CustomDropdowna ze wszystkimi brońmi
                 InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons.Add(button);
@@ -253,7 +285,7 @@ public class InventoryManager : MonoBehaviour
         if(Unit.SelectedUnit == null) return;
 
         //List<Weapon> allWeapons = Unit.SelectedUnit.GetComponent<Inventory>().AllWeapons;
-        List<Button> allWeaponButtons = InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons;
+        List<UnityEngine.UI.Button> allWeaponButtons = InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons;
         Weapon[] equippedWeapons = Unit.SelectedUnit.GetComponent<Inventory>().EquippedWeapons;
 
         for (int i = 0; i < allWeaponButtons.Count; i++)

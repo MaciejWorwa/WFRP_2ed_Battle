@@ -30,15 +30,26 @@ public class RoundsManager : MonoBehaviour
         }
     }
     public static int RoundNumber;
+    [SerializeField] private TMP_Text _roundNumberDisplay;
+    [SerializeField] private TMP_Text _nextRoundButtonText;
     public Dictionary <Unit, int> UnitsWithActionsLeft = new Dictionary<Unit, int>();
     public Dictionary <Unit, int> InitiativeQueue = new Dictionary<Unit, int>();
     private Unit _activeUnit;
     public Transform InitiativeScrollViewContent; // Lista ekwipunku postaci
     [SerializeField] private GameObject _initiativeOptionPrefab; // Prefab odpowiadający każdej jednostce na liście inicjatywy
 
+    private void Start()
+    {
+        RoundNumber = 0;
+        _roundNumberDisplay.text = "Zaczynamy?";
+        _nextRoundButtonText.text = "Start";
+    }
+
     public void NextRound()
     {
         RoundNumber++;
+        _roundNumberDisplay.text = "Runda: " + RoundNumber;
+        _nextRoundButtonText.text = "Następna runda";
 
         //Resetuje ilość dostępnych akcji dla wszystkich jednostek
         foreach (var key in UnitsWithActionsLeft.Keys.ToList())
@@ -122,7 +133,7 @@ public class RoundsManager : MonoBehaviour
         {
             UnitsWithActionsLeft[unit]--;
 
-            Debug.Log($"<color=green> Akcja pojedyncza. </color>");
+            Debug.Log($"<color=green> {unit.GetComponent<Stats>().Name} wykonał/a akcję pojedynczą. </color>");
 
             //Aktualizuje aktywną postać na kolejce inicjatywy, gdy obecna postać wykona wszystkie akcje w tej rundzie
             if(UnitsWithActionsLeft[unit] == 0)
@@ -150,7 +161,7 @@ public class RoundsManager : MonoBehaviour
         {
             UnitsWithActionsLeft[unit] -= 2;
 
-            Debug.Log($"<color=green> Akcja podwójna. </color>");
+            Debug.Log($"<color=green> {unit.GetComponent<Stats>().Name} wykonał/a akcję podwójną. </color>");
             
             // Uniemożliwia parowanie postaci, która zużyła wszystkie akcje (chyba, że ma zdolność byłskawicznego bloku)
             if(!unit.Stats.LightningParry)

@@ -171,7 +171,7 @@ public class GameManager : MonoBehaviour
     {
         if (condition)
         {
-            button.GetComponent<Image>().color = Color.green;
+            button.GetComponent<Image>().color = new Color(0.15f, 1f, 0.45f);
         }
         else
         {

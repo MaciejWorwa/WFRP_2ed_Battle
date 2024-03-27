@@ -343,6 +343,8 @@ public class CombatManager : MonoBehaviour
             damage = attackerStats.MightyShot ? damageRollResult + attackerWeapon.S + 1 : damageRollResult + attackerWeapon.S;             
         }
 
+        if (damage < 0) damage = 0;
+
         return damage;
     }
     #endregion

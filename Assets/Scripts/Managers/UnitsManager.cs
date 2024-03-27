@@ -2,8 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-//using UnityEngine.UIElements;
 using TMPro;
+using UnityEngine.UIElements;
 
 public class UnitsManager : MonoBehaviour
 {
@@ -30,62 +30,85 @@ public class UnitsManager : MonoBehaviour
         }
     }
     [SerializeField] private GameObject _unitPrefab;
-    [SerializeField] private TMP_Dropdown _unitsDropdown;
+    [SerializeField] private CustomDropdown _unitsDropdown;
     [SerializeField] private TMP_InputField _unitNameInputField;
-    [SerializeField] private Toggle _unitTagToggle;
-    [SerializeField] private Button _createUnitButton;
-    [SerializeField] private Button _destroyUnitButton;
+    [SerializeField] private UnityEngine.UI.Toggle _randomPositionToggle;
+    [SerializeField] private UnityEngine.UI.Toggle _unitTagToggle;
+    [SerializeField] private UnityEngine.UI.Button _createUnitButton;
+    [SerializeField] private UnityEngine.UI.Button _removeUnitButton;
+    [SerializeField] private UnityEngine.UI.Button _removeUnitConfirmButton;
+    [SerializeField] private GameObject _removeUnitConfirmPanel;
     [SerializeField] private int _unitsAmount;
     public static bool IsTileSelecting;
     public static bool IsUnitRemoving;
-    public static bool RandomPositionMode = false;
+
+    void Start()
+    {
+        //Wczytuje listę wszystkich jednostek
+        DataManager.Instance.LoadAndUpdateStats();
+
+        _removeUnitConfirmButton.onClick.AddListener(() =>
+        {
+            if(Unit.SelectedUnit!= null)
+            {
+                DestroyUnit(Unit.SelectedUnit);
+                _removeUnitConfirmPanel.SetActive(false);
+            }
+            else
+            {
+                Debug.Log("Aby usunąć jednostkę, musisz najpierw ją wybrać.");
+            }
+        });
+    }
+
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Delete) && Unit.SelectedUnit != null)
+        {
+            if(_removeUnitConfirmPanel.activeSelf == false)
+            {
+                _removeUnitConfirmPanel.SetActive(true);
+            }
+            else
+            {
+                DestroyUnit(Unit.SelectedUnit);
+                _removeUnitConfirmPanel.SetActive(false);
+            }
+        }
+    }
 
     #region Creating units
     public void CreateUnitMode(GameObject button)
     {
-        if(!RandomPositionMode)
+        if (!_randomPositionToggle.isOn)
         {
             IsTileSelecting = true;
 
             //Zmienia kolor przycisku tworzenia jednostek na aktywny
-            _createUnitButton.GetComponent<Image>().color = Color.green;
+            _createUnitButton.GetComponent<UnityEngine.UI.Image>().color = Color.green;
 
             Debug.Log("Wybierz pole na którym chcesz stworzyć jednostkę.");
             return;
         }
         else
         {
-            CreateUnit(_unitsDropdown.value + 1, _unitNameInputField.text, Vector2.zero); // TEMP
+            CreateUnit(_unitsDropdown.GetSelectedIndex(), _unitNameInputField.text, Vector2.zero);
         }
     }
 
     public void CreateUnitOnSelectedTile(Vector2 position)
     {
-        CreateUnit(_unitsDropdown.value + 1, _unitNameInputField.text, position);
+        CreateUnit(_unitsDropdown.GetSelectedIndex(), _unitNameInputField.text, position);
 
         //Resetuje kolor przycisku tworzenia jednostek
-        _createUnitButton.GetComponent<Image>().color = Color.white;
-    }
-
-    public void SetRandomPositionMode(GameObject button)
-    {
-        RandomPositionMode = !RandomPositionMode;
-
-        //Resetuje kolor przycisku tworzenia jednostek
-        _createUnitButton.GetComponent<Image>().color = Color.white;
-
-        if (RandomPositionMode)
-        {
-            button.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.5f);
-        }
-        else
-        {
-            button.GetComponent<Image>().color = new Color(1f, 1f, 1f, 1f);
-        }
+        _createUnitButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;
     }
 
     public void CreateUnit(int unitId, string unitName, Vector2 position)
     {
+        //Resetuje inpu field z nazwą jednostki
+        _unitNameInputField.text = null;
+
         int width = GridManager.Instance.Width;
         int height = GridManager.Instance.Height;
 
@@ -104,7 +127,7 @@ public class UnitsManager : MonoBehaviour
 
         do
         {
-            if(RandomPositionMode)
+            if(_randomPositionToggle.isOn)
             {
                 // Generowanie losowej pozycji na mapie
                 int x = xEven ? Random.Range(-width / 2, width / 2) : Random.Range(-width / 2, width / 2 + 1);
@@ -125,7 +148,14 @@ public class UnitsManager : MonoBehaviour
             // Sprawdzenie, czy liczba prób nie przekracza maksymalnej liczby dostępnych pól
             if (attempts > availableTiles)
             {
-                Debug.Log("Nie można stworzyć nowej jednostki. Brak wolnych pól.");
+                if(_randomPositionToggle.isOn)
+                {
+                    Debug.Log("Nie można stworzyć nowej jednostki. Brak wolnych pól.");
+                }
+                else
+                {
+                    Debug.Log("Wybrane pole jest zajęte. Nie można utworzyć nowej jednostki.");
+                }
                 return;
             }
         }
@@ -162,7 +192,7 @@ public class UnitsManager : MonoBehaviour
         // Aktualizuje liczbę wszystkich postaci
         _unitsAmount++;
 
-        //Wczytuje statystyki dla danego typu jednostki na podstawie jego Id
+        //Wczytuje statystyki dla danego typu jednostki, którą najpierw oznacza jako wybraną
         DataManager.Instance.LoadAndUpdateStats(newUnit);
 
         //Ustala nazwę GameObjectu jednostki
@@ -187,7 +217,9 @@ public class UnitsManager : MonoBehaviour
         IsUnitRemoving = true;
 
         //Zmienia kolor przycisku usuwania jednostek na aktywny
-        _destroyUnitButton.GetComponent<Image>().color = Color.green;
+        _removeUnitButton.GetComponent<UnityEngine.UI.Image>().color = Color.green;
+
+        Debug.Log("Wybierz jednostkę, którą chcesz usunąć.");
     }
     public void DestroyUnit(GameObject unit = null)
     {
@@ -210,7 +242,7 @@ public class UnitsManager : MonoBehaviour
         IsUnitRemoving = false;
 
         //Resetuje kolor przycisku tworzenia jednostek
-        _destroyUnitButton.GetComponent<Image>().color = Color.white;
+        _removeUnitButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;
 
         //Resetuje Tile, żeby nie było uznawane jako zajęte
         GridManager.Instance.ResetTileOccupancy(unit.transform.position);
