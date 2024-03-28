@@ -44,6 +44,7 @@ public class Stats : MonoBehaviour
     public int Initiative;
 
     [Header("Zdolności")]
+    public bool Ambidextrous; // Oburęczność
     public bool LightningParry; // Błyskawiczny blok
     public bool MasterGunner; // Artylerzysta
     public bool MightyShot; // Strzał precyzyjny

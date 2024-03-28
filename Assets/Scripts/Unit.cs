@@ -111,6 +111,9 @@ public class Unit : MonoBehaviour
         IsSelected = !IsSelected;
         ChangeUnitColor(this.gameObject);
         GridManager.Instance.HighlightTilesInMovementRange(Stats);
+
+        //Aktualizuje panel ze statystykami postaci na górze ekranu
+        UnitsManager.Instance.UpdateUnitPanel(SelectedUnit);
     }
 
     public void ChangeUnitColor(GameObject unit)

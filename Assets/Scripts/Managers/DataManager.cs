@@ -264,6 +264,7 @@ public class StatsData
     public int Armor_torso;
     public int Armor_legs;
     public int Initiative;
+    public bool Ambidextrous; // Oburęczność
     public bool LightningParry; // Błyskawiczny blok
     public bool MasterGunner; // Artylerzysta
     public bool MightyShot; // Strzał precyzyjny

@@ -29,6 +29,10 @@ public class UnitsManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
+    [SerializeField] private GameObject _unitPanel;
+    [SerializeField] private TMP_Text _nameDisplay;
+     [SerializeField] private TMP_Text _raceDisplay;
     [SerializeField] private GameObject _unitPrefab;
     [SerializeField] private CustomDropdown _unitsDropdown;
     [SerializeField] private TMP_InputField _unitNameInputField;
@@ -106,7 +110,13 @@ public class UnitsManager : MonoBehaviour
 
     public void CreateUnit(int unitId, string unitName, Vector2 position)
     {
-        //Resetuje inpu field z nazwą jednostki
+        if(_unitsDropdown.SelectedButton == null)
+        {
+            Debug.Log("Wybierz jednostkę z listy.");
+            return;
+        }
+
+        //Resetuje input field z nazwą jednostki
         _unitNameInputField.text = null;
 
         int width = GridManager.Instance.Width;
@@ -192,7 +202,7 @@ public class UnitsManager : MonoBehaviour
         // Aktualizuje liczbę wszystkich postaci
         _unitsAmount++;
 
-        //Wczytuje statystyki dla danego typu jednostki, którą najpierw oznacza jako wybraną
+        //Wczytuje statystyki dla danego typu jednostki
         DataManager.Instance.LoadAndUpdateStats(newUnit);
 
         //Ustala nazwę GameObjectu jednostki
@@ -246,6 +256,24 @@ public class UnitsManager : MonoBehaviour
 
         //Resetuje Tile, żeby nie było uznawane jako zajęte
         GridManager.Instance.ResetTileOccupancy(unit.transform.position);
+    }
+    #endregion
+
+    #region Update unit panel (at the top of the screen)
+    public void UpdateUnitPanel(GameObject unit)
+    {
+        if(unit == null)
+        {
+            _unitPanel.SetActive(false);
+            return;
+        }
+        else
+        {
+            _unitPanel.SetActive(true);
+        }
+
+        _nameDisplay.text = unit.GetComponent<Stats>().Name;
+        _raceDisplay.text = unit.GetComponent<Stats>().Race;
     }
     #endregion
 }

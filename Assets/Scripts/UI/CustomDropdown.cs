@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class CustomDropdown : MonoBehaviour
 {
@@ -30,27 +31,33 @@ public class CustomDropdown : MonoBehaviour
     {
         if (SelectedIndex >= 1 && SelectedIndex <= Buttons.Count && Buttons[SelectedIndex - 1].GetComponent<Image>().color != _activeColor)
         {
-            Buttons[SelectedIndex - 1].GetComponent<Image>().color = _defaultColor;
+            ResetColor(SelectedIndex);
         }
         
         SelectedButton = null;
         SelectedIndex = index;
+        SelectedButton = Buttons[SelectedIndex - 1];
 
         if(Buttons[SelectedIndex - 1].GetComponent<Image>().color != _activeColor)
         {
             Buttons[SelectedIndex - 1].GetComponent<Image>().color = _selectedColor;
-            SelectedButton = Buttons[SelectedIndex - 1];
         }
     }
 
     public void MakeOptionActive(int index)
     {
         Buttons[index - 1].GetComponent<Image>().color = _activeColor;
+
+        //W przypadku aktywnych (trzymanych) broni z ekwipunku pokazuje informację o ręce, w której dana broń jest trzymana
+        InventoryManager.Instance.DisplayHandInfo(Buttons[index - 1]);
     }
 
     public void ResetColor(int index)
     {
         Buttons[index - 1].GetComponent<Image>().color = _defaultColor;
+
+        //Ukrywa widok informacji o tym, w której ręce trzymana jest broń
+        Buttons[index - 1].transform.Find("hand_text").gameObject.SetActive(false);
     }
 
     public int GetSelectedIndex()

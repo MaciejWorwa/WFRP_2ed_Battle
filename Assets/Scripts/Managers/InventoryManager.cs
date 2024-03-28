@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 using System.Linq;
 using TMPro;
 using System.Reflection;
@@ -36,11 +37,17 @@ public class InventoryManager : MonoBehaviour
     public Transform InventoryScrollViewContent; // Lista ekwipunku postaci
     [SerializeField] private CustomDropdown _weaponsDropdown;
     [SerializeField] private GameObject _inventoryPanel;
+    private int _selectedHand;
+    [SerializeField] private UnityEngine.UI.Button _leftHandButton;
+    [SerializeField] private UnityEngine.UI.Button _rightHandButton;
 
     void Start()
     {
         //Wczytuje listę wszystkich broni
-        DataManager.Instance.LoadAndUpdateWeapons();       
+        DataManager.Instance.LoadAndUpdateWeapons(); 
+
+        //Ustawia domyślną rękę na prawą
+        SelectHand(true);    
     }
 
     #region Inventory panel managing
@@ -101,6 +108,8 @@ public class InventoryManager : MonoBehaviour
 
         //Dodaje przedmiot do ekwipunku
         unit.GetComponent<Inventory>().AllWeapons.Add(newWeapon);
+        //Sortuje listę alfabetycznie
+        unit.GetComponent<Inventory>().AllWeapons.Sort((x, y) => x.Name.CompareTo(y.Name));
 
         UpdateInventoryDropdown(unit.GetComponent<Inventory>().AllWeapons);
 
@@ -170,8 +179,13 @@ public class InventoryManager : MonoBehaviour
         //Wybiera broń z ekwipunku na podstawie wartości dropdowna
         Weapon selectedWeapon = unit.GetComponent<Inventory>().AllWeapons[selectedIndex - 1];
 
+        //Odniesienie do trzymanych przez postać broni
+        Weapon[] equippedWeapons = unit.GetComponent<Inventory>().EquippedWeapons;
+
         //Wykonuje akcję, jeżeli obecnie wybrana broń jest inna niż ta trzymana w rękach
-        if (selectedWeapon != unit.GetComponent<Inventory>().EquippedWeapons[0] && selectedWeapon != unit.GetComponent<Inventory>().EquippedWeapons[1])
+        bool containsSelectedWeapon = equippedWeapons.Contains(selectedWeapon);
+        bool selectedWeaponIsNotInSelectedHand = !containsSelectedWeapon || (_selectedHand != Array.IndexOf(equippedWeapons, selectedWeapon));
+        if (selectedWeaponIsNotInSelectedHand)
         {
             //Uwzględnia szybkie wyciągnięcie
             if(!unit.GetComponent<Stats>().QuickDraw)
@@ -180,24 +194,32 @@ public class InventoryManager : MonoBehaviour
                 canDoAction = RoundsManager.Instance.DoHalfAction(unit.GetComponent<Unit>());
                 if (!canDoAction) return;
             }
+
+            //W przypadku, gdy dana broń jest już trzymana, ale chcemy jedynie zmienić rękę to usuwa tą broń z poprzedniej ręki
+            if(containsSelectedWeapon)
+            {
+                equippedWeapons[Array.IndexOf(equippedWeapons, selectedWeapon)] = null;
+            }
         }
         else return;
 
-        //Jeżeli postać trzymała wcześniej broń dwuręczną to odkłada ją z powrotem do ekwipunku
-        if(unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].TwoHanded == true)
+        //Jeżeli postać trzymała wcześniej broń dwuręczną to "zdejmujemy" ją również z drugiej ręki
+        if(equippedWeapons[0] != null && equippedWeapons[0].TwoHanded == true)
         {
-            unit.GetComponent<Inventory>().EquippedWeapons[0] = null;
-            unit.GetComponent<Inventory>().EquippedWeapons[1] = null;
+            int otherHand = _selectedHand == 0 ? 1 : 0;
+            equippedWeapons[otherHand] = null;
         }
 
         //Ustala rękę, do której zostanie wzięta broń (0 oznacza rękę dominującą, 1 rękę niedominującą)
-        if(selectedWeapon.Type.Contains("melee") && !selectedWeapon.Type.Contains("shield")) unit.GetComponent<Inventory>().EquippedWeapons[0] = selectedWeapon;
-        if(selectedWeapon.Type.Contains("ranged")) unit.GetComponent<Inventory>().EquippedWeapons[0] = selectedWeapon;
-        if(selectedWeapon.Type.Contains("shield")) unit.GetComponent<Inventory>().EquippedWeapons[1] = selectedWeapon;
+        equippedWeapons[_selectedHand] = selectedWeapon;
 
         //Jeśli broń jest dwuręczna to postać bierze ją także do drugiej ręki
-        if(selectedWeapon.TwoHanded == true) unit.GetComponent<Inventory>().EquippedWeapons[1] = selectedWeapon;
-     
+        if(selectedWeapon.TwoHanded == true)
+        {
+            equippedWeapons[0] = selectedWeapon;
+            equippedWeapons[1] = selectedWeapon;
+        }
+
         //Ustala, czy postać może parować tą bronią
         unit.GetComponent<Unit>().CanParry = selectedWeapon.Type.Contains("melee") && selectedWeapon.Id != 0 ? true : false;
 
@@ -223,6 +245,40 @@ public class InventoryManager : MonoBehaviour
 
         Debug.Log($"{unit.GetComponent<Stats>().Name} dobył {selectedWeapon.Name}.");
     }
+    public void SelectHand(bool rightHand)
+    {
+        _selectedHand = rightHand ? 0 : 1;
+
+        // Wyróżnia wybrany przycisk
+        UnityEngine.UI.Button activeButton = rightHand ? _rightHandButton : _leftHandButton;
+        UnityEngine.UI.Button inactiveButton = rightHand ? _leftHandButton : _rightHandButton;
+
+        // Ustawia kolor aktywnego przycisku na zielony, a nieaktywnego na domyślny
+        Color activeColor = new Color(0.15f, 1f, 0.45f);
+        Color inactiveColor = Color.white;
+
+        activeButton.GetComponent<UnityEngine.UI.Image>().color = activeColor;
+        inactiveButton.GetComponent<UnityEngine.UI.Image>().color = inactiveColor;
+    }
+
+    public void DisplayHandInfo(UnityEngine.UI.Button button)
+    {
+        button.transform.Find("hand_text").gameObject.SetActive(true);
+
+        string buttonText = button.transform.Find("Text (TMP)").GetComponent<TMP_Text>().text;
+        string rightHandWeapon = Unit.SelectedUnit.GetComponent<Inventory>().EquippedWeapons[0]?.Name;
+        string leftHandWeapon = Unit.SelectedUnit.GetComponent<Inventory>().EquippedWeapons[1]?.Name;
+        string handInfoText = null;
+
+        if (rightHandWeapon == buttonText) handInfoText = "P";     
+        else if (leftHandWeapon == buttonText) handInfoText = "L";
+            
+        button.transform.Find("hand_text").GetComponent<TMP_Text>().text = handInfoText;
+        if(handInfoText == null)
+        {
+            button.transform.Find("hand_text").gameObject.SetActive(false);
+        }
+    }
     #endregion
 
     #region Inventory dropdown list managing
@@ -231,47 +287,39 @@ public class InventoryManager : MonoBehaviour
         //Ustala wyświetlaną nazwę właściciela ekwipunku
         _inventoryPanel.transform.Find("inventory_name").GetComponent<TMP_Text>().text = "Ekwipunek " + Unit.SelectedUnit.GetComponent<Stats>().Name;
 
-        // Resetuje wyświetlany ekwipunek
+        // Resetowanie wyświetlanego ekwipunku poprzez usunięcie wszystkich przycisków
         var buttons = InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons;
         for (int i = buttons.Count - 1; i >= 0; i--)
         {
             UnityEngine.UI.Button button = buttons[i];
-            string buttonText = button.GetComponentInChildren<TextMeshProUGUI>().text;
-
-            Weapon weapon = weapons.Find(obj => obj.Name == buttonText);
-
-            if (weapon == null)
-            {
-                buttons.Remove(button);
-                Destroy(button.gameObject);
-            }
+            buttons.Remove(button);
+            Destroy(button.gameObject);
         }
+
         // Ustala wyświetlany ekwipunek postaci
         foreach (var weapon in weapons)
         {
-            bool buttonExists = InventoryScrollViewContent.GetComponentsInChildren<TextMeshProUGUI>().Any(t => t.text == weapon.Name);
+            // Dodaje broń do ScrollViewContent w postaci buttona
+            GameObject buttonObj = Instantiate(_buttonPrefab, InventoryScrollViewContent);
+            TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
+            // Ustala text buttona
+            buttonText.text = weapon.Name;
 
-            if (!buttonExists)
+            UnityEngine.UI.Button button = buttonObj.GetComponent<UnityEngine.UI.Button>();
+
+            // Dodaje opcję do CustomDropdowna ze wszystkimi brońmi
+            InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons.Add(button);
+            //Sortuje listę alfabetycznie
+            InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons.Sort((x, y) => x.GetComponentInChildren<TextMeshProUGUI>().text.CompareTo(y.GetComponentInChildren<TextMeshProUGUI>().text));
+
+
+            // Zdarzenie po kliknięciu na konkretny item z listy
+            button.onClick.AddListener(() =>
             {
-                // Dodaje broń do ScrollViewContent w postaci buttona
-                GameObject buttonObj = Instantiate(_buttonPrefab, InventoryScrollViewContent);
-                TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
-                // Ustala text buttona
-                buttonText.text = weapon.Name;
+                int buttonIndex = InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons.IndexOf(button);
 
-                UnityEngine.UI.Button button = buttonObj.GetComponent<UnityEngine.UI.Button>();
-
-                // Dodaje opcję do CustomDropdowna ze wszystkimi brońmi
-                InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons.Add(button);
-
-                // Zdarzenie po kliknięciu na konkretny item z listy
-                button.onClick.AddListener(() =>
-                {
-                    int buttonIndex = InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons.IndexOf(button);
-
-                    InventoryScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(buttonIndex + 1); // Wybiera element i aktualizuje jego wygląd
-                });
-            }
+                InventoryScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(buttonIndex + 1); // Wybiera element i aktualizuje jego wygląd
+            });
         }
 
         //Ponowna inicjalizacja przycisków po dodaniu/usunięciu przycisków z listy Buttons
@@ -284,7 +332,6 @@ public class InventoryManager : MonoBehaviour
     {
         if(Unit.SelectedUnit == null) return;
 
-        //List<Weapon> allWeapons = Unit.SelectedUnit.GetComponent<Inventory>().AllWeapons;
         List<UnityEngine.UI.Button> allWeaponButtons = InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons;
         Weapon[] equippedWeapons = Unit.SelectedUnit.GetComponent<Inventory>().EquippedWeapons;
 
@@ -312,8 +359,9 @@ public class InventoryManager : MonoBehaviour
     {
         Inventory inventory = unit.GetComponent<Inventory>();
 
-        //Gdy postać trzyma broń w ręce dominującej to atakuje za jej pomocą, w przeciwnym razie używa drugiej ręki
-        Weapon weapon = inventory.EquippedWeapons[0] != null ? inventory.EquippedWeapons[0] : inventory.EquippedWeapons[1];
+        //Gdy postać trzyma broń w ręce, która jest oznaczona jako aktywna to atakuje za jej pomocą, w przeciwnym razie używa drugiej ręki
+        int otherHand = _selectedHand == 0 ? 1 : 0;
+        Weapon weapon = inventory.EquippedWeapons[_selectedHand] != null ? inventory.EquippedWeapons[_selectedHand] : inventory.EquippedWeapons[otherHand];
 
         return weapon;
     }

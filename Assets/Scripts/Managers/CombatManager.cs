@@ -198,6 +198,16 @@ public class CombatManager : MonoBehaviour
     {
         bool isSuccessful = false;
 
+        //Uwzględnia utrudnienie za atak słabszą ręką (sprawdza, czy dominująca ręka jest pusta lub inna od broni, którą wykonywany jest atak)
+        if(attackerStats.GetComponent<Inventory>().EquippedWeapons[0] == null || attackerWeapon.Name != attackerStats.GetComponent<Inventory>().EquippedWeapons[0].Name)
+        {
+            //Sprawdza, czy postać nie jest oburęczna albo nie uderza pięściami
+            if (!attackerStats.Ambidextrous && attackerWeapon.Id != 0)
+            {
+                _attackModifier -= 20;
+            }
+        }
+
         //Sprawdza, czy atak jest atakiem dystansowym
         if (attackerWeapon.Type.Contains("ranged"))
         {
@@ -252,7 +262,7 @@ public class CombatManager : MonoBehaviour
 
             isSuccessful = rollResult <= (attackerStats.WW + _attackModifier - targetUnit.DefensiveBonus);
 
-            if (_attackModifier > 0 || targetUnit.DefensiveBonus > 0)
+            if (_attackModifier != 0 || targetUnit.DefensiveBonus != 0)
             {
                 Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na WW: {rollResult} Wartość cechy: {attackerStats.WW} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus}");
             }
@@ -382,6 +392,9 @@ public class CombatManager : MonoBehaviour
                 armor = targetStats.Armor_legs;
                 break;
         }
+
+        //Podwaja wartość zbroi w przypadku walki przy użyciu pięści
+        if(attackerWeapon.Id == 0) armor *= 2;
 
         //Uwzględnienie broni przebijających zbroję
         if (attackerWeapon.ArmourPiercing == true) armor --;
@@ -605,13 +618,19 @@ public class CombatManager : MonoBehaviour
             
     private bool Parry(Weapon attackerWeapon, Weapon targetWeapon, Stats targetStats, int parryModifier)
     {
-        //Wykonuje akcję
-        if(targetStats.LightningParry != true)
+        //Wykonuje akcję, jeżeli postać nie posiada błyskawicznego bloku lub dwóch broni/tarczy (sprawdza, czy broń trzymana w drugiej ręce jest jednoręczna, jeśli tak to znaczy, że nie zużywa akcji)
+        var equippedWeapons = targetStats.GetComponent<Inventory>().EquippedWeapons;
+        bool isFirstWeaponShield = equippedWeapons[0] != null && equippedWeapons[0].Type.Contains("shield");
+        bool hasTwoOneHandedWeaponsOrShield = (equippedWeapons[0] != null && equippedWeapons[1] != null && equippedWeapons[0].Name != equippedWeapons[1].Name) || isFirstWeaponShield;
+
+        Debug.Log("isFirstWeaponShield " + isFirstWeaponShield);
+        Debug.Log("hasTwoOneHandedWeaponsOrShield " + hasTwoOneHandedWeaponsOrShield);
+        if(targetStats.LightningParry != true && hasTwoOneHandedWeaponsOrShield != true)
         {
             RoundsManager.Instance.DoHalfAction(targetStats.GetComponent<Unit>());
         }
 
-        //Sprawia, że atakowany nie będzie mógł więcej parować w tej rundzie (W PRZYSZŁOŚCI UWZGLĘDNIĆ TU BŁYSKAWICZNY BLOK)
+        //Sprawia, że atakowany nie będzie mógł więcej parować w tej rundzie
         targetStats.GetComponent<Unit>().CanParry = false;
 
         int rollResult = Random.Range(1, 101);
