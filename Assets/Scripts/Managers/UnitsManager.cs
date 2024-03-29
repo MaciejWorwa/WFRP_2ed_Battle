@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.UIElements;
+using System.Reflection;
 
 public class UnitsManager : MonoBehaviour
 {
@@ -32,7 +33,8 @@ public class UnitsManager : MonoBehaviour
 
     [SerializeField] private GameObject _unitPanel;
     [SerializeField] private TMP_Text _nameDisplay;
-     [SerializeField] private TMP_Text _raceDisplay;
+    [SerializeField] private TMP_Text _raceDisplay;
+    [SerializeField] private TMP_Text _healthDisplay;
     [SerializeField] private GameObject _unitPrefab;
     [SerializeField] private CustomDropdown _unitsDropdown;
     [SerializeField] private TMP_InputField _unitNameInputField;
@@ -40,11 +42,13 @@ public class UnitsManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Toggle _unitTagToggle;
     [SerializeField] private UnityEngine.UI.Button _createUnitButton;
     [SerializeField] private UnityEngine.UI.Button _removeUnitButton;
+    [SerializeField] private UnityEngine.UI.Button _updateUnitButton;
     [SerializeField] private UnityEngine.UI.Button _removeUnitConfirmButton;
     [SerializeField] private GameObject _removeUnitConfirmPanel;
     [SerializeField] private int _unitsAmount;
     public static bool IsTileSelecting;
     public static bool IsUnitRemoving;
+    public static bool IsUnitEditing = false;
 
     void Start()
     {
@@ -259,6 +263,121 @@ public class UnitsManager : MonoBehaviour
     }
     #endregion
 
+    #region Unit editing
+    public void EditUnitModeOn()
+    {
+        IsUnitEditing = true;
+        
+        _createUnitButton.gameObject.SetActive(false);
+        _removeUnitButton.gameObject.SetActive(false);
+        _randomPositionToggle.gameObject.SetActive(false);
+        _updateUnitButton.gameObject.SetActive(true);
+    }
+
+    public void EditUnitModeOff()
+    {
+        IsUnitEditing = false;
+        
+        _createUnitButton.gameObject.SetActive(true);
+        _removeUnitButton.gameObject.SetActive(true);
+        _randomPositionToggle.gameObject.SetActive(true);
+        _updateUnitButton.gameObject.SetActive(false);
+    }
+
+    public void UpdateUnitNameOrRace()
+    {
+        if(Unit.SelectedUnit == null) return;
+
+        if(_unitsDropdown.SelectedButton == null)
+        {
+            Debug.Log("Wybierz rasę z listy.");
+            return;
+        }
+    
+        GameObject unit = Unit.SelectedUnit;
+
+        //Ustala nową rasę na podstawie rasy wybranej z listy
+        unit.GetComponent<Stats>().Id = _unitsDropdown.GetSelectedIndex();
+
+        //Ustawia tag postaci, który definiuje, czy jest to sojusznik, czy przeciwnik, a także jej domyślny kolor.
+        if (_unitTagToggle.isOn)
+        {
+            unit.tag = "PlayerUnit";
+            unit.GetComponent<Unit>().DefaultColor = new Color(0f, 0.54f, 0.17f, 1.0f);
+        }
+        else
+        {
+            unit.tag = "EnemyUnit";
+            unit.GetComponent<Unit>().DefaultColor = new Color(0.72f, 0.15f, 0.17f, 1.0f);
+        }
+        unit.GetComponent<Unit>().ChangeUnitColor(unit);
+
+        //Aktualizuje statystyki
+        DataManager.Instance.LoadAndUpdateStats(unit);
+
+        //Aktualizuje imię postaci
+        if(_unitNameInputField.text.Length > 0)
+        {
+            unit.GetComponent<Stats>().Name = _unitNameInputField.text;
+            unit.GetComponent<Unit>().DisplayUnitName();
+            //Resetuje input field z nazwą jednostki
+            _unitNameInputField.text = null;
+        }
+
+        //Ustala inicjatywę i aktualizuje kolejkę inicjatywy
+        unit.GetComponent<Stats>().Initiative = unit.GetComponent<Stats>().Zr + Random.Range(1, 11);
+        RoundsManager.Instance.RemoveUnitFromInitiativeQueue(unit.GetComponent<Unit>());
+        RoundsManager.Instance.AddUnitToInitiativeQueue(unit.GetComponent<Unit>());
+        RoundsManager.Instance.UpdateInitiativeQueue();
+
+        //Aktualizuje wyświetlany panel ze statystykami
+        UpdateUnitPanel(unit);
+    }
+
+    public void EditAttribute(GameObject textInput)
+    {
+        GameObject unit = Unit.SelectedUnit;
+
+        // Pobiera pole ze statystyk postaci o nazwie takiej samej jak nazwa textInputa (z wyłączeniem słowa "input")
+        string attributeName = textInput.name.Replace("_input", "");
+        FieldInfo field = unit.GetComponent<Stats>().GetType().GetField(attributeName);
+
+        if(field == null) return;
+
+        // Zmienia wartść cechy
+        if (field.FieldType == typeof(int))
+        {
+            // Pobiera wartość inputa, starając się przekonwertować ją na int
+            int value = int.TryParse(textInput.GetComponent<TMP_InputField>().text, out int inputValue) ? inputValue : 0;
+
+            field.SetValue(unit.GetComponent<Stats>(), value);
+            Debug.Log($"Atrybut {field.Name} zmieniony na {value}");
+        }
+        else if (field.FieldType == typeof(bool)) 
+        {
+            bool boolValue = textInput.GetComponent<UnityEngine.UI.Toggle>().isOn; 
+            field.SetValue(unit.GetComponent<Stats>(), boolValue);
+            Debug.Log($"Atrybut {field.Name} zmieniony na {boolValue}");
+        }
+        else
+        {
+            Debug.Log($"Nie udało się zmienić wartości cechy.");
+        }         
+
+        if(attributeName == "MaxHealth")
+        {
+            unit.GetComponent<Stats>().TempHealth = unit.GetComponent<Stats>().MaxHealth;
+            unit.GetComponent<Unit>().DisplayUnitHealthPoints();
+        }
+        if(attributeName == "K" || attributeName == "Odp")
+        {
+            unit.GetComponent<Unit>().CalculateStrengthAndToughness();
+        }
+
+        UpdateUnitPanel(unit);
+    }
+    #endregion
+
     #region Update unit panel (at the top of the screen)
     public void UpdateUnitPanel(GameObject unit)
     {
@@ -272,8 +391,47 @@ public class UnitsManager : MonoBehaviour
             _unitPanel.SetActive(true);
         }
 
-        _nameDisplay.text = unit.GetComponent<Stats>().Name;
-        _raceDisplay.text = unit.GetComponent<Stats>().Race;
+        Stats stats = unit.GetComponent<Stats>();
+        _nameDisplay.text = stats.Name;
+        _raceDisplay.text = stats.Race;
+        _healthDisplay.text = stats.TempHealth + "/" + stats.MaxHealth;
+
+        LoadAttributes(unit);
+    }
+
+    private void LoadAttributes(GameObject unit)
+    {
+        // Wyszukuje wszystkie pola tekstowe i przyciski do ustalania statystyk postaci wewnatrz gry
+        GameObject[] attributeInputFields = GameObject.FindGameObjectsWithTag("Attribute");
+
+        foreach (var inputField in attributeInputFields)
+        {
+            // Pobiera pole ze statystyk postaci o nazwie takiej samej jak nazwa textInputa (z wyłączeniem słowa "input")
+            string attributeName = inputField.name.Replace("_input", "");
+            FieldInfo field = unit.GetComponent<Stats>().GetType().GetField(attributeName);
+
+            if(field == null) continue;
+
+            // Jeśli znajdzie takie pole, to zmienia wartość wyświetlanego tekstu na wartość tej cechy
+            if (field.FieldType == typeof(int)) // to działa dla cech opisywanych wartościami int
+            {
+                int value = (int)field.GetValue(unit.GetComponent<Stats>());
+
+                if (inputField.GetComponent<TMPro.TMP_InputField>() != null)
+                {
+                    inputField.GetComponent<TMPro.TMP_InputField>().text = value.ToString();
+                }
+                else if (inputField.GetComponent<UnityEngine.UI.Slider>() != null)
+                {
+                    inputField.GetComponent<UnityEngine.UI.Slider>().value = value;
+                }
+            }
+            else if (field.FieldType == typeof(bool)) // to działa dla cech opisywanych wartościami bool
+            {
+                bool value = (bool)field.GetValue(unit.GetComponent<Stats>());
+                inputField.GetComponent<UnityEngine.UI.Toggle>().isOn = value;
+            }
+        }
     }
     #endregion
 }

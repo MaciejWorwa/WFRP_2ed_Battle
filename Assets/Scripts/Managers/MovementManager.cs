@@ -96,7 +96,7 @@ public class MovementManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("Wybrane pole jest poza zasięgiem ruchu postaci.");
+            Debug.Log("Wybrane pole jest poza zasięgiem ruchu postaci lub jest zajęte.");
         }
     }
 
@@ -326,6 +326,22 @@ public class MovementManager : MonoBehaviour
 
                 // Wywołanie ataku okazyjnego
                 CombatManager.Instance.Attack(unit, movingUnit.GetComponent<Unit>(), true);             
+            }
+        }
+    }
+    #endregion
+
+    #region Highlight path
+    public void HighlightPath(GameObject unit, GameObject tile)
+    {
+        var path = FindPath(unit.transform.position, new Vector3 (tile.transform.position.x, tile.transform.position.y, 0), unit.GetComponent<Stats>().TempSz);
+
+        if(path.Count <= unit.GetComponent<Stats>().TempSz)
+        {
+            foreach (Vector3 tilePosition in path)
+            {
+                Collider2D collider = Physics2D.OverlapCircle(tilePosition, 0.1f);
+                collider.gameObject.GetComponent<Tile>().HighlightTile();
             }
         }
     }

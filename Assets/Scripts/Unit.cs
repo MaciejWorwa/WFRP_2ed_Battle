@@ -30,12 +30,12 @@ public class Unit : MonoBehaviour
 
         DisplayUnitName();
 
-        //Ustawia wartość HighlightColor na jaśniejszą wersję DefaultColor. Trzeci parametr określa ilość koloru białego w całości.
-        HighlightColor = Color.Lerp(DefaultColor, Color.yellow, 0.3f);
-
         if(Stats.Dodge > 0) CanDodge = true;
         Stats.TempSz = Stats.Sz;
         Stats.TempHealth = Stats.MaxHealth;
+
+        CalculateStrengthAndToughness(); // Liczy siłę i wytrzymałość
+
         DisplayUnitHealthPoints();
 
         //Aktualizuje kolejkę inicjatywy
@@ -91,6 +91,9 @@ public class Unit : MonoBehaviour
             //Resetuje listę ekwipunku
             InventoryManager.Instance.HideInventory();
 
+            //Wyłącza panel edycji jednostki, jeśli był włączony
+            UnitsManager.Instance.EditUnitModeOff();
+
             SelectedUnit = null;
         }
         else
@@ -120,6 +123,9 @@ public class Unit : MonoBehaviour
     {
         Renderer renderer = unit.GetComponent<Renderer>();
 
+        //Ustawia wartość HighlightColor na jaśniejszą wersję DefaultColor. Trzeci parametr określa ilość koloru białego w całości.
+        HighlightColor = Color.Lerp(DefaultColor, Color.yellow, 0.3f);
+        
         renderer.material.color = IsSelected ? unit.GetComponent<Unit>().HighlightColor : unit.GetComponent<Unit>().DefaultColor;
     }
 
@@ -143,5 +149,11 @@ public class Unit : MonoBehaviour
         if (HealthDisplay == null) return;
 
         HealthDisplay.text = Stats.TempHealth + "/" + Stats.MaxHealth;
+    }
+
+    public void CalculateStrengthAndToughness()
+    {
+        Stats.S = Mathf.RoundToInt(Stats.K / 10);
+        Stats.Wt = Mathf.RoundToInt(Stats.Odp / 10);
     }
 }

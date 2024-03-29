@@ -29,11 +29,10 @@ public class DataManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-    //[SerializeField] private TMP_Dropdown _unitsDropdown;
+
     [SerializeField] private GameObject _buttonPrefab; // Przycisk odpowiadający każdej z broni
     [SerializeField] private Transform _weaponScrollViewContent; // Lista wszystkich dostępnych broni
     [SerializeField] private Transform _unitScrollViewContent; // Lista wszystkich dostępnych ras (jednostek)
-
 
     #region Loading units stats
     public void LoadAndUpdateStats(GameObject unitObject = null)
@@ -85,6 +84,8 @@ public class DataManager : MonoBehaviour
                     // Aktualizuje wyświetlaną nazwę postaci i jej punkty żywotności, jeśli ta postać jest aktualizowana, a nie tworzona po raz pierwszy
                     if (unit.Stats != null)
                     {
+                        unit.Stats.TempHealth = unit.Stats.MaxHealth;
+                        unit.Stats.TempSz = unit.Stats.Sz;
                         unit.DisplayUnitName();
                         unit.DisplayUnitHealthPoints();
                     }
@@ -257,6 +258,7 @@ public class StatsData
     public int Mag;
     public int MaxHealth;
     public int TempHealth;
+    public int PO;
     public int PP;
     public int PS;
     public int Armor_head;

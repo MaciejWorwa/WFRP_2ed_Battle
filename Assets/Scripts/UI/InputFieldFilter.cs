@@ -5,6 +5,7 @@ using TMPro;
 public class InputFieldFilter : MonoBehaviour
 {
     [SerializeField] private TMP_InputField _inputField;
+    [SerializeField] private bool _isAttributeInput;
 
     private void Start()
     {
@@ -14,14 +15,29 @@ public class InputFieldFilter : MonoBehaviour
 
     private char ValidateInput(string text, int charIndex, char addedChar)
     {
-        // Dozwolone znaki: cyfry, litery i spacje
-        if (char.IsLetterOrDigit(addedChar) || char.IsWhiteSpace(addedChar))
+        if (_isAttributeInput)
         {
-            return addedChar; // Zwr�� dodany znak
+            // Sprawdź, czy dodany znak jest cyfrą i czy wartość nie przekracza 99
+            if (char.IsDigit(addedChar) && (text.Length < 2 || text == "9" && addedChar <= '9'))
+            {
+                return addedChar;
+            }
+            else
+            {
+                return '\0'; // Blokuj dodanie nieprawidłowego znaku
+            }
         }
         else
         {
-            return '\0'; // Zablokuj dodanie nieprawid�owego znaku
+            // Dozwolone znaki: cyfry, litery i spacje
+            if (char.IsLetterOrDigit(addedChar) || char.IsWhiteSpace(addedChar))
+            {
+                return addedChar; // Zwróć dodany znak
+            }
+            else
+            {
+                return '\0'; // Zablokuj dodanie nieprawidłowego znaku
+            }
         }
     }
 }

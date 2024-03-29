@@ -28,7 +28,7 @@ public class GridManager : MonoBehaviour
     }
 
     [SerializeField] private Tile _tilePrefab;
-    private Tile[,] _tiles;
+    public Tile[,] Tiles;
     [SerializeField] private int _width;
     public int Width 
     {
@@ -49,7 +49,7 @@ public class GridManager : MonoBehaviour
 
     public void GenerateGrid()
     {
-        _tiles = new Tile[_width, _height];
+        Tiles = new Tile[_width, _height];
         bool isOffset;
         for (int x = 0; x < _width; x++)
         {
@@ -61,11 +61,11 @@ public class GridManager : MonoBehaviour
                 isOffset = (x % 2 == 0 && y % 2 != 0) || (x % 2 != 0 && y % 2 == 0);
                 spawnedTile.Init(isOffset);
 
-                _tiles[x, y] = spawnedTile;
+                Tiles[x, y] = spawnedTile;
             }
         }
 
-        foreach (Tile tile in _tiles)
+        foreach (Tile tile in Tiles)
         {
             tile.transform.parent = this.gameObject.transform;
         }
@@ -131,13 +131,13 @@ public class GridManager : MonoBehaviour
     public void ResetColorOfTilesInMovementRange()
     {
         // Resetuje wszystkie pola
-        foreach (Tile tile in _tiles)
+        foreach (Tile tile in Tiles)
             tile.GetComponent<Tile>().ResetRangeColor();
     }
 
     public void ResetTileOccupancy(Vector3 unitPosition)
     {
-        foreach (Tile tile in _tiles)
+        foreach (Tile tile in Tiles)
         {
             if(unitPosition.x == tile.transform.position.x && unitPosition.y == tile.transform.position.y)
                 tile.IsOccupied = false;

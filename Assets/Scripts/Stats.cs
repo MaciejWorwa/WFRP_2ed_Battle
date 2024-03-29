@@ -31,6 +31,7 @@ public class Stats : MonoBehaviour
     public int Mag;
     public int MaxHealth;
     public int TempHealth;
+    public int PO;
     public int PP;
     public int PS;
 

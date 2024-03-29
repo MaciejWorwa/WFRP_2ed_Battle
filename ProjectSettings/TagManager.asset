@@ -9,6 +9,7 @@ TagManager:
   - PlayerUnit
   - Panel
   - SidePanel
+  - Attribute
   layers:
   - Default
   - TransparentFX
