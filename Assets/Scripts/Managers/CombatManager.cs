@@ -36,15 +36,93 @@ public class CombatManager : MonoBehaviour
     private float _attackDistance;
     [SerializeField] private UnityEngine.UI.Button _aimButton;
     [SerializeField] private UnityEngine.UI.Button _defensivePositionButton;
+    [SerializeField] private UnityEngine.UI.Button _standardAttackButton;
+    [SerializeField] private UnityEngine.UI.Button _allOutAttackButton;
+    [SerializeField] private UnityEngine.UI.Button _guardedAttackButton;
+    [SerializeField] private UnityEngine.UI.Button _multipleAttackButton;
+    private Dictionary<string, bool> _attackTypes = new Dictionary<string, bool>();
+
+    // Metoda inicjalizująca słownik ataków
+    void Start()
+    {
+        InitializeAttackTypes();
+        UpdateAttackTypeButtonsColor();
+    }
+
+    #region Attack types
+    private void InitializeAttackTypes()
+    {
+        // Dodajemy typy ataków do słownika
+        _attackTypes.Add("StandardAttack", true);
+        _attackTypes.Add("ChargingAttack", false);
+        _attackTypes.Add("AllOutAttack", false);  // Szaleńczy atak
+        _attackTypes.Add("GuardedAttack", false);  // Ostrożny atak
+        _attackTypes.Add("MultipleAttack", false);  // Atak wielokrotny
+    }
+
+    // Metoda ustawiająca dany typ ataku
+    public void ChangeAttackType(GameObject button)
+    {
+        string attackTypeName = button.name.Replace("_button", "");;
+
+        // Sprawdzamy, czy słownik zawiera podany typ ataku
+        if (_attackTypes.ContainsKey(attackTypeName))
+        {
+            // Ustawiamy wszystkie typy ataków na false
+            List<string> keysToReset = new List<string>();
+
+            foreach (var key in _attackTypes.Keys)
+            {
+                if (key != attackTypeName)
+                {
+                    keysToReset.Add(key);
+                }
+            }
+
+            foreach (var key in keysToReset)
+            {
+                _attackTypes[key] = false;
+            }
+
+            // Zmieniamy wartość bool dla danego typu ataku na true, a jeśli już był true to zmieniamy na standardowy atak
+            if(!_attackTypes[attackTypeName])
+            {
+                _attackTypes[attackTypeName] = true;
+            }
+            else
+            {
+                _attackTypes[attackTypeName] = false;
+                _attackTypes["StandardAttack"] = true;
+            }
+        }
+
+        UpdateAttackTypeButtonsColor();
+    }
+
+    private void UpdateAttackTypeButtonsColor()
+    {
+        _standardAttackButton.GetComponent<UnityEngine.UI.Image>().color = _attackTypes["StandardAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
+        _allOutAttackButton.GetComponent<UnityEngine.UI.Image>().color = _attackTypes["AllOutAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
+        _guardedAttackButton.GetComponent<UnityEngine.UI.Image>().color = _attackTypes["GuardedAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
+        _multipleAttackButton.GetComponent<UnityEngine.UI.Image>().color = _attackTypes["MultipleAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;       
+    }
+
+    #endregion
 
     #region Attack function
     public void Attack(Unit attacker, Unit target, bool opportunityAttack) 
     {
-        //Sprawdza też, czy gra nie jest wstrzymana (np. poprzez otwarcie dodatkowych paneli)
+        //Sprawdza, czy gra nie jest wstrzymana (np. poprzez otwarcie dodatkowych paneli)
         if(GameManager.Instance.IsGamePaused)
         {
             Debug.Log("Gra została wstrzymana. Aby ją wznowić musisz wyłączyć okno znajdujące się na polu gry.");
             return; 
+        }
+
+        if(attacker.CanAttack == false && opportunityAttack == false)
+        {
+            Debug.Log("Wybrana jednostka nie może wykonać kolejnego ataku w tej rundzie.");
+            return;
         } 
 
         Stats attackerStats = attacker.Stats;
@@ -79,28 +157,45 @@ public class CombatManager : MonoBehaviour
                 return;
             }
 
-            //Wykonuje akcję (pomija szarżę, bo akcja została wykonaa na początku ruchu postaci, pomija też atak okazyjny)
+            //Wykonuje akcję (pomija tak okazyjny)
             bool canDoAction = true;
-            if(attacker.IsCharging !=true && opportunityAttack == false)
-            {
-                canDoAction = RoundsManager.Instance.DoHalfAction(attacker);
-            }
-            else if (attacker.IsCharging)
+            if (attacker.IsCharging) //Szarża
             {
                 //Zresetowanie szarży
                 MovementManager.Instance.UpdateMovementRange(1);
 
                 canDoAction = RoundsManager.Instance.DoFullAction(attacker);
             }
-            //DODAĆ OPCJE WIELOKROTNEGO, OSTROŻNEGO I SZALEŃCZEGO ATAKU
+            else if (_attackTypes["AllOutAttack"] == true || _attackTypes["GuardedAttack"] == true || _attackTypes["MultipleAttack"] == true ) //Specjalne ataki (szaleńczy, ostrożny i wielokrotny)
+            {
+                canDoAction = RoundsManager.Instance.DoFullAction(attacker);
+            }
+            else if(opportunityAttack == false) //Zwykły atak
+            {
+                canDoAction = RoundsManager.Instance.DoHalfAction(attacker);
+            }
 
             if(!canDoAction) return;
+
+            //Zaznacza, że jednostka wykonała już akcję ataku w tej rundzie. Uniemożliwia to wykonanie kolejnej. Nie dotyczy ataku okazyjnego
+            if(!opportunityAttack) attacker.CanAttack = false;
 
             //Resetuje pozycję obronną, jeśli była aktywna
             if (attacker.DefensiveBonus != 0)
             {
                 DefensivePosition();
             }  
+
+            //Uniemożliwia parowanie i unikanie do końca rundy w przypadku szaleńczego ataku, a w przypadku ostrożnego dodaje modyfikator do parowania i uników
+            if(_attackTypes["AllOutAttack"] == true)
+            {
+                attacker.CanParry = false;
+                attacker.CanDodge = false;
+            }
+            else if(_attackTypes["GuardedAttack"] == true)
+            {
+                attacker.GuardedAttackBonus += 10;
+            }
 
             //Aktualizuje modyfikator ataku o celowanie
             _attackModifier += attacker.AimingBonus;
@@ -207,6 +302,10 @@ public class CombatManager : MonoBehaviour
                 _attackModifier -= 20;
             }
         }
+
+        //Modyfikatory za szaleńczy lub ostrożny atak
+        if (_attackTypes["AllOutAttack"] == true) _attackModifier += 20;
+        else if (_attackTypes["GuardedAttack"] == true) _attackModifier -= 10;
 
         //Sprawdza, czy atak jest atakiem dystansowym
         if (attackerWeapon.Type.Contains("ranged"))
@@ -585,6 +684,7 @@ public class CombatManager : MonoBehaviour
             if (targetWeapon.Defensive) parryModifier += 10;
             if (attackerWeapon.Slow) parryModifier += 10;
             if (attackerWeapon.Fast) parryModifier -= 10;
+            if (targetUnit.GuardedAttackBonus != 0) parryModifier += targetUnit.GuardedAttackBonus;
 
             if (targetUnit.CanParry && targetUnit.CanDodge)
             {
@@ -623,11 +723,14 @@ public class CombatManager : MonoBehaviour
         bool isFirstWeaponShield = equippedWeapons[0] != null && equippedWeapons[0].Type.Contains("shield");
         bool hasTwoOneHandedWeaponsOrShield = (equippedWeapons[0] != null && equippedWeapons[1] != null && equippedWeapons[0].Name != equippedWeapons[1].Name) || isFirstWeaponShield;
 
-        Debug.Log("isFirstWeaponShield " + isFirstWeaponShield);
-        Debug.Log("hasTwoOneHandedWeaponsOrShield " + hasTwoOneHandedWeaponsOrShield);
         if(targetStats.LightningParry != true && hasTwoOneHandedWeaponsOrShield != true)
         {
-            RoundsManager.Instance.DoHalfAction(targetStats.GetComponent<Unit>());
+            Unit unit = targetStats.GetComponent<Unit>();
+            if (RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(unit) && RoundsManager.Instance.UnitsWithActionsLeft[unit] >= 1)
+            {
+                RoundsManager.Instance.DoHalfAction(targetStats.GetComponent<Unit>());
+            }
+            else return false;
         }
 
         //Sprawia, że atakowany nie będzie mógł więcej parować w tej rundzie
@@ -663,7 +766,9 @@ public class CombatManager : MonoBehaviour
 
         Debug.Log($"Rzut {targetStats.Name} na unik: {rollResult} Wartość cechy: {targetStats.Zr}");
 
-        if (rollResult <= targetStats.Zr + (targetStats.Dodge * 10) - 10)
+        Debug.Log("targetStats.GetComponent<Unit>().GuardedAttackBonus: " + targetStats.GetComponent<Unit>().GuardedAttackBonus);
+
+        if (rollResult <= targetStats.Zr + (targetStats.Dodge * 10) - 10 + targetStats.GetComponent<Unit>().GuardedAttackBonus)
         {
             return true;
         }      
@@ -680,6 +785,8 @@ public class CombatManager : MonoBehaviour
         if(Unit.SelectedUnit == null) return;
 
         Weapon weapon = Unit.SelectedUnit.GetComponent<Inventory>().EquippedWeapons[0];
+
+        if(weapon == null || !weapon.Type.Contains("ranged")) return;
 
         if(weapon.ReloadLeft > 0)
         {

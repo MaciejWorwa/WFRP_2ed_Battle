@@ -103,6 +103,7 @@ public class GameManager : MonoBehaviour
         return activePanels.Length;
     }
 
+    #region Game modes
     public void SetAutoDefenseMode()
     {
         IsAutoDefenseMode = !IsAutoDefenseMode;
@@ -166,6 +167,7 @@ public class GameManager : MonoBehaviour
             Debug.Log("Friendly fire został wyłączony.");
         }
     }
+    #endregion
 
     private void UpdateButtonColor(Button button, bool condition)
     {

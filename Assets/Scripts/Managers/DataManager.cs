@@ -275,6 +275,7 @@ public class StatsData
     public bool StrikeMightyBlow; // Silny cios
     public bool SureShot; // Strzał mierzony
     public bool QuickDraw; // Szybkie wyciągnięcie
+    public int Dodge;
 }
 
 [System.Serializable]

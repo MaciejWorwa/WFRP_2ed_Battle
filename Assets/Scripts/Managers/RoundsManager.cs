@@ -56,6 +56,9 @@ public class RoundsManager : MonoBehaviour
         {
             UnitsWithActionsLeft[key] = 2;
             key.CanParry = true;
+            key.CanDodge = true;
+            key.CanAttack = true;
+            key.GuardedAttackBonus = 0;
         }
 
         UpdateInitiativeQueue();
@@ -135,15 +138,12 @@ public class RoundsManager : MonoBehaviour
 
             Debug.Log($"<color=green> {unit.GetComponent<Stats>().Name} wykonał/a akcję pojedynczą. </color>");
 
+            //Zresetowanie szarży lub biegu, jeśli były aktywne (po zużyciu jednej akcji szarża i bieg nie mogą być możliwe)
+            MovementManager.Instance.UpdateMovementRange(1);
+
             //Aktualizuje aktywną postać na kolejce inicjatywy, gdy obecna postać wykona wszystkie akcje w tej rundzie
             if(UnitsWithActionsLeft[unit] == 0)
             {
-                // Uniemożliwia parowanie postaci, która zużyła wszystkie akcje (chyba, że ma zdolność byłskawicznego bloku)
-                if(!unit.Stats.LightningParry)
-                {
-                    unit.CanParry = false;
-                }
-
                 SelectUnitByQueue();
             }
             return true;
@@ -163,12 +163,6 @@ public class RoundsManager : MonoBehaviour
 
             Debug.Log($"<color=green> {unit.GetComponent<Stats>().Name} wykonał/a akcję podwójną. </color>");
             
-            // Uniemożliwia parowanie postaci, która zużyła wszystkie akcje (chyba, że ma zdolność byłskawicznego bloku)
-            if(!unit.Stats.LightningParry)
-            {
-                unit.CanParry = false;
-            }
-
             //Aktualizuje aktywną postać na kolejce inicjatywy, bo obecna postać wykonała wszystkie akcje w tej rundzie
             SelectUnitByQueue();
 

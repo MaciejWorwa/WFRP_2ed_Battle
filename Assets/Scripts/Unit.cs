@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using System.Reflection;
 
 public class Unit : MonoBehaviour
 {
@@ -10,13 +11,15 @@ public class Unit : MonoBehaviour
     public Color DefaultColor;
     public Color HighlightColor;
     public bool IsSelected { get; private set; } = false;
-    public bool IsCharging; // Szarżuje
     public bool IsRunning; // Biegnie
+    public bool IsCharging; // Szarżuje
     public bool IsHelpless; // Jest bezbronny
     public bool IsStunned; // Jest ogłuszony
     public bool IsTrapped; // Jest unieruchomiony
     public int AimingBonus;
     public int DefensiveBonus;
+    public int GuardedAttackBonus; //Modyfikator do uników i parowania za ostrożny atak
+    public bool CanAttack = true;
     public bool CanParry = true;
     public bool CanDodge = false;
     public Stats Stats;

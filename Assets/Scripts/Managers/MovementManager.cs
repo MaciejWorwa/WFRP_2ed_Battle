@@ -74,7 +74,6 @@ public class MovementManager : MonoBehaviour
             if (Unit.SelectedUnit.GetComponent<Unit>().AimingBonus != 0)
             {
                 CombatManager.Instance.SetAim();
-                CombatManager.Instance.DefensivePosition();
             }
             //Resetuje pozycję obronną, jeśli była aktywna
             if (Unit.SelectedUnit.GetComponent<Unit>().DefensiveBonus != 0)
