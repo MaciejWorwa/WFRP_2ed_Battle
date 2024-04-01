@@ -45,7 +45,9 @@ public class Unit : MonoBehaviour
         RoundsManager.Instance.UpdateInitiativeQueue();
     }
     private void OnMouseUp()
-    {
+    { 
+        if(GameManager.Instance.IsPointerOverPanel()) return;
+
         if(!UnitsManager.IsUnitRemoving)
         {
             SelectUnit();
@@ -83,6 +85,7 @@ public class Unit : MonoBehaviour
         }
         else if (SelectedUnit == this.gameObject)
         {
+            CombatManager.Instance.ChangeAttackType(); // Resetuje wybrany typ ataku
             MovementManager.Instance.UpdateMovementRange(1); //Resetuje szarżę lub bieg, jeśli były aktywne
 
             //Resetuje przycisk celowania i pozycji obronne jeśli były aktywne
@@ -101,6 +104,7 @@ public class Unit : MonoBehaviour
         }
         else
         {
+            CombatManager.Instance.ChangeAttackType(); // Resetuje wybrany typ ataku
             MovementManager.Instance.UpdateMovementRange(1); //Resetuje szarżę lub bieg, jeśli były aktywne       
             SelectedUnit.GetComponent<Unit>().IsSelected = false;
 

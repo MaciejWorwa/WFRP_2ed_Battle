@@ -32,6 +32,7 @@ public class UnitsManager : MonoBehaviour
     }
 
     [SerializeField] private GameObject _unitPanel;
+    [SerializeField] private GameObject _actionsPanel;
     [SerializeField] private TMP_Text _nameDisplay;
     [SerializeField] private TMP_Text _raceDisplay;
     [SerializeField] private TMP_Text _healthDisplay;
@@ -384,11 +385,13 @@ public class UnitsManager : MonoBehaviour
         if(unit == null)
         {
             _unitPanel.SetActive(false);
+            _actionsPanel.SetActive(false);
             return;
         }
         else
         {
             _unitPanel.SetActive(true);
+            _actionsPanel.SetActive(true);
         }
 
         Stats stats = unit.GetComponent<Stats>();

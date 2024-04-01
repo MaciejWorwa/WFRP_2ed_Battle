@@ -37,9 +37,11 @@ public class InventoryManager : MonoBehaviour
     public Transform InventoryScrollViewContent; // Lista ekwipunku postaci
     [SerializeField] private CustomDropdown _weaponsDropdown;
     [SerializeField] private GameObject _inventoryPanel;
-    private int _selectedHand;
-    [SerializeField] private UnityEngine.UI.Button _leftHandButton;
-    [SerializeField] private UnityEngine.UI.Button _rightHandButton;
+    public int SelectedHand;
+    [SerializeField] private UnityEngine.UI.Button _leftHandButtonInventory;
+    [SerializeField] private UnityEngine.UI.Button _leftHandButtonLowerBar;
+    [SerializeField] private UnityEngine.UI.Button _rightHandButtonInventory;
+        [SerializeField] private UnityEngine.UI.Button _rightHandButtonLowerBar;
 
     void Start()
     {
@@ -184,7 +186,7 @@ public class InventoryManager : MonoBehaviour
 
         //Wykonuje akcję, jeżeli obecnie wybrana broń jest inna niż ta trzymana w rękach
         bool containsSelectedWeapon = equippedWeapons.Contains(selectedWeapon);
-        bool selectedWeaponIsNotInSelectedHand = !containsSelectedWeapon || (_selectedHand != Array.IndexOf(equippedWeapons, selectedWeapon));
+        bool selectedWeaponIsNotInSelectedHand = !containsSelectedWeapon || (SelectedHand != Array.IndexOf(equippedWeapons, selectedWeapon));
         if (selectedWeaponIsNotInSelectedHand)
         {
             //Uwzględnia szybkie wyciągnięcie
@@ -206,12 +208,12 @@ public class InventoryManager : MonoBehaviour
         //Jeżeli postać trzymała wcześniej broń dwuręczną to "zdejmujemy" ją również z drugiej ręki
         if(equippedWeapons[0] != null && equippedWeapons[0].TwoHanded == true)
         {
-            int otherHand = _selectedHand == 0 ? 1 : 0;
+            int otherHand = SelectedHand == 0 ? 1 : 0;
             equippedWeapons[otherHand] = null;
         }
 
         //Ustala rękę, do której zostanie wzięta broń (0 oznacza rękę dominującą, 1 rękę niedominującą)
-        equippedWeapons[_selectedHand] = selectedWeapon;
+        equippedWeapons[SelectedHand] = selectedWeapon;
 
         //Jeśli broń jest dwuręczna to postać bierze ją także do drugiej ręki
         if(selectedWeapon.TwoHanded == true)
@@ -247,18 +249,35 @@ public class InventoryManager : MonoBehaviour
     }
     public void SelectHand(bool rightHand)
     {
-        _selectedHand = rightHand ? 0 : 1;
+        SelectedHand = rightHand ? 0 : 1;
 
-        // Wyróżnia wybrany przycisk
-        UnityEngine.UI.Button activeButton = rightHand ? _rightHandButton : _leftHandButton;
-        UnityEngine.UI.Button inactiveButton = rightHand ? _leftHandButton : _rightHandButton;
+        // Deklaracja tablic przycisków
+        UnityEngine.UI.Button[] activeButtons;
+        UnityEngine.UI.Button[] inactiveButtons;
 
-        // Ustawia kolor aktywnego przycisku na zielony, a nieaktywnego na domyślny
-        Color activeColor = new Color(0.15f, 1f, 0.45f);
-        Color inactiveColor = Color.white;
-
-        activeButton.GetComponent<UnityEngine.UI.Image>().color = activeColor;
-        inactiveButton.GetComponent<UnityEngine.UI.Image>().color = inactiveColor;
+        // Sprawdzenie wartości zmiennej rightHand
+        if (rightHand)
+        {
+            activeButtons = new UnityEngine.UI.Button[] { _rightHandButtonInventory, _rightHandButtonLowerBar };
+            inactiveButtons = new UnityEngine.UI.Button[] { _leftHandButtonInventory, _leftHandButtonLowerBar };
+        }
+        else
+        {
+            activeButtons = new UnityEngine.UI.Button[] { _leftHandButtonInventory, _leftHandButtonLowerBar };
+            inactiveButtons = new UnityEngine.UI.Button[] { _rightHandButtonInventory, _rightHandButtonLowerBar };
+        }
+        
+        // Ustawia kolor aktywnych przycisków na zielony, a nieaktywnych na domyślny
+        foreach(var activeButton in activeButtons)
+        {
+            Color activeColor = new Color(0.15f, 1f, 0.45f);
+            activeButton.GetComponent<UnityEngine.UI.Image>().color = activeColor;
+        }
+        foreach(var inactiveButton in inactiveButtons)
+        {
+            Color inactiveColor = Color.white;
+            inactiveButton.GetComponent<UnityEngine.UI.Image>().color = inactiveColor;
+        }
     }
 
     public void DisplayHandInfo(UnityEngine.UI.Button button)
@@ -360,8 +379,8 @@ public class InventoryManager : MonoBehaviour
         Inventory inventory = unit.GetComponent<Inventory>();
 
         //Gdy postać trzyma broń w ręce, która jest oznaczona jako aktywna to atakuje za jej pomocą, w przeciwnym razie używa drugiej ręki
-        int otherHand = _selectedHand == 0 ? 1 : 0;
-        Weapon weapon = inventory.EquippedWeapons[_selectedHand] != null ? inventory.EquippedWeapons[_selectedHand] : inventory.EquippedWeapons[otherHand];
+        int otherHand = SelectedHand == 0 ? 1 : 0;
+        Weapon weapon = inventory.EquippedWeapons[SelectedHand] != null ? inventory.EquippedWeapons[SelectedHand] : inventory.EquippedWeapons[otherHand];
 
         return weapon;
     }

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class GameManager : MonoBehaviour
 {
@@ -101,6 +102,26 @@ public class GameManager : MonoBehaviour
         activePanels = GameObject.FindGameObjectsWithTag("Panel");
 
         return activePanels.Length;
+    }
+     public bool IsPointerOverPanel()
+    {
+        // Tworzenie promienia od pozycji myszki
+        PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
+        eventDataCurrentPosition.position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+
+        List<RaycastResult> results = new List<RaycastResult>();
+         // Wykonywanie promieniowania i dodawanie wyników do listy
+        EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
+
+        foreach (RaycastResult result in results)
+        {
+            if (result.gameObject.CompareTag("Panel") || result.gameObject.CompareTag("SidePanel"))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     #region Game modes

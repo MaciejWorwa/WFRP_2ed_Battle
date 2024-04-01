@@ -163,8 +163,11 @@ public class RoundsManager : MonoBehaviour
 
             Debug.Log($"<color=green> {unit.GetComponent<Stats>().Name} wykonał/a akcję podwójną. </color>");
             
-            //Aktualizuje aktywną postać na kolejce inicjatywy, bo obecna postać wykonała wszystkie akcje w tej rundzie
-            SelectUnitByQueue();
+            //Aktualizuje aktywną postać na kolejce inicjatywy, bo obecna postać wykonała wszystkie akcje w tej rundzie. Wyjątkiem jest atak wielokrotny
+            if(!CombatManager.Instance.AttackTypes["MultipleAttack"])
+            {
+                SelectUnitByQueue();
+            }    
 
             return true;
         }
@@ -175,7 +178,7 @@ public class RoundsManager : MonoBehaviour
         }     
     }
 
-    private void SelectUnitByQueue()
+    public void SelectUnitByQueue()
     {
         StartCoroutine(InvokeSelectUnitCoroutine());
             

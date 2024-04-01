@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 public class MovementManager : MonoBehaviour
 {
-     // Prywatne statyczne pole przechowujące instancję
+    // Prywatne statyczne pole przechowujące instancję
     private static MovementManager instance;
 
     // Publiczny dostęp do instancji
@@ -283,6 +283,12 @@ public class MovementManager : MonoBehaviour
         //Aktualizuje obecny tryb poruszania postaci
         unit.IsCharging = modifier == 2; //operator trójargumentowegy. Jeśli modifier == 2 to wartość == true, jeśli nie to wartość == false
         unit.IsRunning = modifier == 3; //operator trójargumentowegy. Jeśli modifier == 3 to wartość == true, jeśli nie to wartość == false
+
+        //Zmienia typ ataku w menadżerze walki
+        if(unit.IsRunning)
+        {
+            CombatManager.Instance.ChangeAttackType("StandardAttack"); //Resetuje szarże jako obecny typ ataku i ustawia standardowy atak
+        }
 
         //Oblicza obecną szybkość
         stats.TempSz = stats.Sz * modifier;
