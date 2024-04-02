@@ -33,6 +33,7 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
+    [SerializeField] private UnityEngine.UI.Button _inventoryButton;
     [SerializeField] private GameObject _buttonPrefab; // Przycisk odpowiadający każdej z broni
     public Transform InventoryScrollViewContent; // Lista ekwipunku postaci
     [SerializeField] private CustomDropdown _weaponsDropdown;

@@ -35,6 +35,7 @@ public class UnitsManager : MonoBehaviour
     [SerializeField] private GameObject _actionsPanel;
     [SerializeField] private TMP_Text _nameDisplay;
     [SerializeField] private TMP_Text _raceDisplay;
+    [SerializeField] private TMP_Text _initiativeDisplay;
     [SerializeField] private TMP_Text _healthDisplay;
     [SerializeField] private GameObject _unitPrefab;
     [SerializeField] private CustomDropdown _unitsDropdown;
@@ -50,6 +51,7 @@ public class UnitsManager : MonoBehaviour
     public static bool IsTileSelecting;
     public static bool IsUnitRemoving;
     public static bool IsUnitEditing = false;
+    public List<Unit> AllUnits = new List<Unit>();
 
     void Start()
     {
@@ -113,12 +115,12 @@ public class UnitsManager : MonoBehaviour
         _createUnitButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;
     }
 
-    public void CreateUnit(int unitId, string unitName, Vector2 position)
+    public GameObject CreateUnit(int unitId, string unitName, Vector2 position)
     {
-        if(_unitsDropdown.SelectedButton == null)
+        if(_unitsDropdown.SelectedButton == null && SaveAndLoadManager.Instance.IsLoading != true)
         {
             Debug.Log("Wybierz jednostkę z listy.");
-            return;
+            return null;
         }
 
         //Resetuje input field z nazwą jednostki
@@ -171,7 +173,7 @@ public class UnitsManager : MonoBehaviour
                 {
                     Debug.Log("Wybrane pole jest zajęte. Nie można utworzyć nowej jednostki.");
                 }
-                return;
+                return null;
             }
         }
         while (selectedTile.GetComponent<Tile>().IsOccupied == true);
@@ -206,6 +208,7 @@ public class UnitsManager : MonoBehaviour
 
         // Aktualizuje liczbę wszystkich postaci
         _unitsAmount++;
+        AllUnits.Add(newUnit.GetComponent<Unit>());
 
         //Wczytuje statystyki dla danego typu jednostki
         DataManager.Instance.LoadAndUpdateStats(newUnit);
@@ -223,6 +226,8 @@ public class UnitsManager : MonoBehaviour
         //Ustala początkową inicjatywę i dodaje jednostkę do kolejki inicjatywy
         newUnit.GetComponent<Stats>().Initiative = newUnit.GetComponent<Stats>().Zr + Random.Range(1, 11);
         RoundsManager.Instance.AddUnitToInitiativeQueue(newUnit.GetComponent<Unit>());
+
+        return newUnit;
     }
     #endregion
 
@@ -252,6 +257,10 @@ public class UnitsManager : MonoBehaviour
         RoundsManager.Instance.RemoveUnitFromInitiativeQueue(unit.GetComponent<Unit>());
         //Aktualizuje kolejkę inicjatywy
         RoundsManager.Instance.UpdateInitiativeQueue();
+
+        //Usuwa jednostkę z listy wszystkich jednostek
+        _unitsAmount--;
+        AllUnits.Remove(unit.GetComponent<Unit>());
 
         Destroy(unit);
         IsUnitRemoving = false;
@@ -324,6 +333,11 @@ public class UnitsManager : MonoBehaviour
             //Resetuje input field z nazwą jednostki
             _unitNameInputField.text = null;
         }
+        else
+        {
+            unit.GetComponent<Stats>().Name = unit.GetComponent<Stats>().Race;
+            unit.GetComponent<Unit>().DisplayUnitName();
+        }
 
         //Ustala inicjatywę i aktualizuje kolejkę inicjatywy
         unit.GetComponent<Stats>().Initiative = unit.GetComponent<Stats>().Zr + Random.Range(1, 11);
@@ -332,6 +346,22 @@ public class UnitsManager : MonoBehaviour
         RoundsManager.Instance.UpdateInitiativeQueue();
 
         //Aktualizuje wyświetlany panel ze statystykami
+        UpdateUnitPanel(unit);
+    }
+
+    public void UpdateInitiative()
+    {
+        if (Unit.SelectedUnit == null) return;
+
+        GameObject unit = Unit.SelectedUnit;
+
+        //Ustala nową inicjatywę
+        unit.GetComponent<Stats>().Initiative = unit.GetComponent<Stats>().Zr + Random.Range(1, 11);
+
+        //Aktualizuje kolejkę inicjatywy
+        RoundsManager.Instance.InitiativeQueue[unit.GetComponent<Unit>()] = unit.GetComponent<Stats>().Initiative;
+        RoundsManager.Instance.UpdateInitiativeQueue();
+
         UpdateUnitPanel(unit);
     }
 
@@ -397,6 +427,7 @@ public class UnitsManager : MonoBehaviour
         Stats stats = unit.GetComponent<Stats>();
         _nameDisplay.text = stats.Name;
         _raceDisplay.text = stats.Race;
+        _initiativeDisplay.text = stats.Initiative.ToString();
         _healthDisplay.text = stats.TempHealth + "/" + stats.MaxHealth;
 
         LoadAttributes(unit);

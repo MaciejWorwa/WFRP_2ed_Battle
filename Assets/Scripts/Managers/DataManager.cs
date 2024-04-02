@@ -4,6 +4,9 @@ using UnityEngine.UI;
 using TMPro;
 using System.Reflection;
 using System.Linq;
+using UnityEngine.UIElements;
+using System.Collections.Generic;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
 
 public class DataManager : MonoBehaviour
 { 
@@ -102,7 +105,7 @@ public class DataManager : MonoBehaviour
                 //Ustala text buttona
                 buttonText.text = stats.Race;
 
-                Button button = buttonObj.GetComponent<Button>();
+                UnityEngine.UI.Button button = buttonObj.GetComponent<UnityEngine.UI.Button>();
 
                 //Dodaje opcję do CustomDropdowna ze wszystkimi jednostkami
                 _unitScrollViewContent.GetComponent<CustomDropdown>().Buttons.Add(button);
@@ -187,7 +190,7 @@ public class DataManager : MonoBehaviour
                 //Ustala text buttona
                 buttonText.text = weapon.Name;
 
-                Button button = buttonObj.GetComponent<Button>();
+                UnityEngine.UI.Button button = buttonObj.GetComponent<UnityEngine.UI.Button>();
                 
                 //Dodaje opcję do CustomDropdowna ze wszystkimi brońmi
                 _weaponScrollViewContent.GetComponent<CustomDropdown>().Buttons.Add(button);
@@ -235,7 +238,52 @@ public static class JsonHelper
     }
 }
 
-#region Equivalents for Stats i Weapon classes
+#region Equivalents for Unit, Stats, Weapon and Inventory classes
+[System.Serializable]
+public class UnitData
+{
+    public string Tag;
+    public float[] position;
+
+    public bool IsSelected;
+    public bool IsRunning; // Biegnie
+    public bool IsCharging; // Szarżuje
+    public bool IsHelpless; // Jest bezbronny
+    public bool IsStunned; // Jest ogłuszony
+    public bool IsTrapped; // Jest unieruchomiony
+    public int AimingBonus;
+    public int DefensiveBonus;
+    public int GuardedAttackBonus; //Modyfikator do uników i parowania za ostrożny atak
+    public bool CanAttack = true;
+    public bool CanParry = true;
+    public bool CanDodge = false;
+
+    public UnitData(Unit unit)
+    {
+        // Pobiera wszystkie pola (zmienne) z klasy Stats
+        var fields = unit.GetType().GetFields();
+        var thisFields = this.GetType().GetFields();
+
+        // Dla każdego pola z klasy stats odnajduje pole w klasie this (czyli UnitData) i ustawia mu wartość jego odpowiednika z klasy Unit
+        foreach (var thisField in thisFields)
+        {
+            var field = fields.FirstOrDefault(f => f.Name == thisField.Name); // Znajduje pierwsze pole o tej samej nazwie wśród pol z klasy Unit
+
+            if (field != null && field.GetValue(unit) != null)
+            {
+                thisField.SetValue(this, field.GetValue(unit));
+            }
+        }
+
+        Tag = unit.gameObject.tag;
+
+        position = new float[3];
+        position[0] = unit.gameObject.transform.position.x;
+        position[1] = unit.gameObject.transform.position.y;
+        position[2] = unit.gameObject.transform.position.z;
+    }
+}
+
 [System.Serializable]
 public class StatsData
 {
@@ -276,6 +324,24 @@ public class StatsData
     public bool SureShot; // Strzał mierzony
     public bool QuickDraw; // Szybkie wyciągnięcie
     public int Dodge;
+
+    public StatsData(Stats stats)
+    {
+        // Pobiera wszystkie pola (zmienne) z klasy Stats
+        var fields = stats.GetType().GetFields();
+        var thisFields = this.GetType().GetFields();
+
+        // Dla każdego pola z klasy stats odnajduje pole w klasie this (czyli StatsData) i ustawia mu wartość jego odpowiednika z klasy stats
+        foreach (var thisField in thisFields)
+        {
+            var field = fields.FirstOrDefault(f => f.Name == thisField.Name); // Znajduje pierwsze pole o tej samej nazwie wśród pol z klasy Stats
+
+            if (field != null && field.GetValue(stats) != null)
+            {
+                thisField.SetValue(this, field.GetValue(stats));
+            }
+        }
+    }
 }
 
 [System.Serializable]
@@ -295,6 +361,49 @@ public class WeaponData
     public bool Slow; // powolny
     public bool Tiring; // ciężki
     public bool ArmourPiercing; // przebijający zbroje
+
+    public WeaponData(Weapon weapons)
+    {
+        // Pobiera wszystkie pola (zmienne) z klasy Stats
+        var fields = weapons.GetType().GetFields();
+        var thisFields = this.GetType().GetFields();
+
+        // Dla każdego pola z klasy stats odnajduje pole w klasie this (czyli WeaponData) i ustawia mu wartość jego odpowiednika z klasy Weapon
+        foreach (var thisField in thisFields)
+        {
+            var field = fields.FirstOrDefault(f => f.Name == thisField.Name); // Znajduje pierwsze pole o tej samej nazwie wśród pol z klasy Weapon
+
+            if (field != null && field.GetValue(weapons) != null)
+            {
+                thisField.SetValue(this, field.GetValue(weapons));
+            }
+        }
+    }
+}
+
+[System.Serializable]
+public class InventoryData
+{
+    public List<int> AllWeaponsId = new List<int>(); // Lista identyfikatorów wszystkich posiadanych broni
+    public int[] EquippedWeaponsId = new int[2]; // Tablica identyfikatorów broni trzymanych w rękach
+
+    public InventoryData(Inventory inventory)
+    {
+        // Dodaj identyfikatory wszystkich broni do listy AllWeaponIds
+        foreach (var weapon in inventory.AllWeapons)
+        {
+            AllWeaponsId.Add(weapon.Id);
+        }
+
+        // Dodaj identyfikatory broni trzymanych w rękach do tablicy EquippedWeaponIds
+        for (int i = 0; i < inventory.EquippedWeapons.Length; i++)
+        {
+            if (inventory.EquippedWeapons[i] != null)
+            {
+                EquippedWeaponsId[i] = inventory.EquippedWeapons[i].Id;
+            }
+        }
+    }
 }
 #endregion
 

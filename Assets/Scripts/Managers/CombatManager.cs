@@ -6,6 +6,7 @@ using UnityEngine.TextCore.Text;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 using System.Linq;
+using UnityEditor.Experimental.GraphView;
 
 public class CombatManager : MonoBehaviour
 {
@@ -194,7 +195,6 @@ public class CombatManager : MonoBehaviour
             else if (AttackTypes["AllOutAttack"] == true || AttackTypes["GuardedAttack"] == true || (AttackTypes["MultipleAttack"] == true && _availableAttacks == attackerStats.A)) //Specjalne ataki (szaleńczy, ostrożny i wielokrotny)
             {
                 canDoAction = RoundsManager.Instance.DoFullAction(attacker);
-                Debug.Log("_availableAttacks podczas wykonania akcji" + _availableAttacks);
             }
             else if(AttackTypes["StandardAttack"] == true && opportunityAttack == false) //Zwykły atak
             {
@@ -224,7 +224,6 @@ public class CombatManager : MonoBehaviour
             }
             else if(AttackTypes["MultipleAttack"] == true)
             {
-                Debug.Log("_availableAttacks " + _availableAttacks);
                 if(_availableAttacks <= 0)
                 {
                     Debug.Log("Wybrana jednostka nie może wykonać kolejnego ataku w tej rundzie.");
@@ -235,8 +234,6 @@ public class CombatManager : MonoBehaviour
 
                 //Zmienia jednostkę wg kolejności inicjatywy
                 if(_availableAttacks <= 0) RoundsManager.Instance.SelectUnitByQueue();
-
-                Debug.Log("_availableAttacks " + _availableAttacks);
             }
 
             //Aktualizuje modyfikator ataku o celowanie
@@ -247,6 +244,9 @@ public class CombatManager : MonoBehaviour
 
             //Sprawdza, czy atak jest atakiem dystansowym, czy atakiem w zwarciu i ustala jego skuteczność
             bool isSuccessful = CheckAttackEffectiveness(rollResult, attackerStats, attackerWeapon, target);
+
+            //Niepowodzenie przy pechu
+            if(rollResult >= 96) isSuccessful = false;
 
             //Zresetowanie bonusu do trafienia
             _attackModifier = 0;
@@ -561,10 +561,16 @@ public class CombatManager : MonoBehaviour
             //Wykonuje akcję
             bool canDoAction;
             canDoAction = RoundsManager.Instance.DoHalfAction(Unit.SelectedUnit.GetComponent<Unit>());
-            if(!canDoAction) return;  
+            if(!canDoAction) return;
 
-            //Dodaje modyfikator do trafienia uzwględniając
-            unit.AimingBonus += Unit.SelectedUnit.GetComponent<Stats>().SureShot ? 20 : 10; 
+            Weapon attackerWeapon = InventoryManager.Instance.ChooseWeaponToAttack(unit.gameObject);
+            if (attackerWeapon == null)
+            {
+                attackerWeapon = unit.GetComponent<Weapon>();
+            }
+
+            //Dodaje modyfikator do trafienia uzwględniając strzał mierzony w przypadku ataków dystansowych
+            unit.AimingBonus += Unit.SelectedUnit.GetComponent<Stats>().SureShot && attackerWeapon.Type.Contains("ranged") ? 20 : 10; 
 
             Debug.Log("Przycelowanie");
         }
@@ -780,7 +786,7 @@ public class CombatManager : MonoBehaviour
         targetStats.GetComponent<Unit>().CanParry = false;
 
         int rollResult = Random.Range(1, 101);
-        
+
         if (parryModifier != 0)
         {
             Debug.Log($"Rzut {targetStats.Name} na parowanie: {rollResult} Wartość cechy: {targetStats.WW} Modyfikator do parowania: {parryModifier}");
@@ -790,7 +796,7 @@ public class CombatManager : MonoBehaviour
             Debug.Log($"Rzut {targetStats.Name} na parowanie: {rollResult} Wartość cechy: {targetStats.WW}");
         }
 
-        if (rollResult <= targetStats.WW + parryModifier)
+        if (rollResult <= targetStats.WW + parryModifier && rollResult < 96)
         {
             return true;
         }      
@@ -809,7 +815,7 @@ public class CombatManager : MonoBehaviour
 
         Debug.Log($"Rzut {targetStats.Name} na unik: {rollResult} Wartość cechy: {targetStats.Zr}");
 
-        if (rollResult <= targetStats.Zr + (targetStats.Dodge * 10) - 10 + targetStats.GetComponent<Unit>().GuardedAttackBonus)
+        if (rollResult <= targetStats.Zr + (targetStats.Dodge * 10) - 10 + targetStats.GetComponent<Unit>().GuardedAttackBonus && rollResult < 96)
         {
             return true;
         }      
