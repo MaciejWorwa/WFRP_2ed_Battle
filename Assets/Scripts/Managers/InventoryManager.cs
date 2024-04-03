@@ -42,7 +42,7 @@ public class InventoryManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button _leftHandButtonInventory;
     [SerializeField] private UnityEngine.UI.Button _leftHandButtonLowerBar;
     [SerializeField] private UnityEngine.UI.Button _rightHandButtonInventory;
-        [SerializeField] private UnityEngine.UI.Button _rightHandButtonLowerBar;
+    [SerializeField] private UnityEngine.UI.Button _rightHandButtonLowerBar;
 
     void Start()
     {
@@ -56,9 +56,10 @@ public class InventoryManager : MonoBehaviour
     #region Inventory panel managing
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.I) && Unit.SelectedUnit != null)
+        if(Input.GetKeyDown(KeyCode.I) && Unit.SelectedUnit != null && !GameManager.Instance.IsAnyInputFieldFocused())
         {
-            GameManager.Instance.ShowOrHidePanel(_inventoryPanel);
+            GameManager.Instance.HideActivePanels();
+            GameManager.Instance.ShowPanel(_inventoryPanel);
         }
     }
 
@@ -116,7 +117,10 @@ public class InventoryManager : MonoBehaviour
 
         UpdateInventoryDropdown(unit.GetComponent<Inventory>().AllWeapons);
 
-        Debug.Log($"Przedmiot {newWeapon.Name} został dodany do ekwipunku {unit.GetComponent<Stats>().Name}.");
+        if(!SaveAndLoadManager.Instance.IsLoading) //Zapobiega wypisywaniu wszystkich broni podczas wczytywania stanu gry
+        {
+            Debug.Log($"Przedmiot {newWeapon.Name} został dodany do ekwipunku {unit.GetComponent<Stats>().Name}.");
+        }
     }
     #endregion
 
@@ -348,7 +352,7 @@ public class InventoryManager : MonoBehaviour
         CheckForEquippedWeapons();
     }
 
-    private void CheckForEquippedWeapons()
+    public void CheckForEquippedWeapons()
     {
         if(Unit.SelectedUnit == null) return;
 

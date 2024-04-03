@@ -70,6 +70,7 @@ public class RoundsManager : MonoBehaviour
         }
     }
 
+    #region Initiative queue
     public void AddUnitToInitiativeQueue(Unit unit)
     {
         InitiativeQueue.Add(unit, unit.GetComponent<Stats>().Initiative);
@@ -129,7 +130,36 @@ public class RoundsManager : MonoBehaviour
         }
     }
 
+    public void SelectUnitByQueue()
+    {
+        StartCoroutine(InvokeSelectUnitCoroutine());
+            
+        IEnumerator InvokeSelectUnitCoroutine()
+        {
+            yield return new WaitForSeconds(0.1f);
 
+            //Czeka ze zmianą postaci, aż obecna postać zakończy ruch
+            while (MovementManager.Instance.IsMoving == true)
+            {
+                yield return null; // Czekaj na następną klatkę
+            }
+
+            DisplayInitiativeQueue();
+
+            //Gdy jest aktywny tryb automatycznego wybierania postaci na podstawie kolejki inicjatywy to taka postać jest wybierana. Jeżeli wszystkie wykonały akcje to następuje kolejna runda
+            if (GameManager.Instance.IsAutoSelectUnitMode && _activeUnit != null && _activeUnit.gameObject != Unit.SelectedUnit)
+            {
+                _activeUnit.SelectUnit();
+            }
+            else if (GameManager.Instance.IsAutoSelectUnitMode && _activeUnit == null)
+            {
+                NextRound();
+            }     
+        }
+    }
+    #endregion
+
+    #region Units actions
     public bool DoHalfAction(Unit unit)
     {
         if (UnitsWithActionsLeft.ContainsKey(unit) && UnitsWithActionsLeft[unit] >= 1)
@@ -177,33 +207,23 @@ public class RoundsManager : MonoBehaviour
             return false;
         }     
     }
+    #endregion
 
-    public void SelectUnitByQueue()
+    public void LoadRoundsManagerData(RoundsManagerData data)
     {
-        StartCoroutine(InvokeSelectUnitCoroutine());
-            
-        IEnumerator InvokeSelectUnitCoroutine()
+        RoundNumber = data.RoundNumber;
+        
+        UnitsWithActionsLeft.Clear(); // Czyści słownik przed uzupełnieniem nowymi danymi
+
+        foreach (var entry in data.Entries)
         {
-            yield return new WaitForSeconds(0.1f);
+            GameObject unitObject = GameObject.Find(entry.UnitName);
 
-            //Czeka ze zmianą postaci, aż obecna postać zakończy ruch
-            while (MovementManager.Instance.IsMoving == true)
+            if (unitObject != null)
             {
-                yield return null; // Czekaj na następną klatkę
+                Unit matchedUnit = unitObject.GetComponent<Unit>();
+                UnitsWithActionsLeft[matchedUnit] = entry.ActionsLeft;
             }
-
-            DisplayInitiativeQueue();
-
-            //Gdy jest aktywny tryb automatycznego wybierania postaci na podstawie kolejki inicjatywy to taka postać jest wybierana. Jeżeli wszystkie wykonały akcje to następuje kolejna runda
-            if (GameManager.Instance.IsAutoSelectUnitMode && _activeUnit != null && _activeUnit.gameObject != Unit.SelectedUnit)
-            {
-                _activeUnit.SelectUnit();
-            }
-            else if (GameManager.Instance.IsAutoSelectUnitMode && _activeUnit == null)
-            {
-                NextRound();
-            }     
         }
     }
-
 }

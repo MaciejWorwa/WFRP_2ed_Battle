@@ -9,15 +9,16 @@ using TMPro;
 using Unity.VisualScripting;
 using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.UIElements;
 using static UnityEngine.UI.CanvasScaler;
 
 public class SaveAndLoadManager : MonoBehaviour
 {
-    // Prywatne statyczne pole przechowuj�ce instancj�
+    // Prywatne statyczne pole przechowujące instancję
     private static SaveAndLoadManager instance;
 
-    // Publiczny dost�p do instancji
+    // Publiczny dostęp do instancji
     public static SaveAndLoadManager Instance
     {
         get { return instance; }
@@ -32,19 +33,20 @@ public class SaveAndLoadManager : MonoBehaviour
         }
         else if (instance != this)
         {
-            // Je�li instancja ju� istnieje, a pr�bujemy utworzy� kolejn�, niszczymy nadmiarow�
+            // Jeśli instancja już istnieje, a próbujemy utworzyć kolejną, niszczymy nadmiarową
             Destroy(gameObject);
         }
     }
 
     [SerializeField] private TMP_InputField _saveNameInput;
-    [SerializeField] private CustomDropdown _savesDropdown;
+    [SerializeField] private Transform _savesScrollViewContent;
+    [SerializeField] private GameObject _buttonPrefab; // Przycisk odpowiadający każdemu zapisowi na liście
 
     public bool IsLoading;
 
-    public void SaveAllUnits()
+    #region Saving methods
+    public void SaveAllUnits(GameObject saveGamePanel)
     {
-
         if (_saveNameInput.text.Length < 1)
         {
             Debug.Log($"<color=red>Zapis nieudany. Niepoprawna nazwa pliku.</color>");
@@ -55,18 +57,20 @@ public class SaveAndLoadManager : MonoBehaviour
 
         if (allUnits.Count < 1)
         {
-            Debug.Log($"<color=red>Zapis nieudany. Aby zapisa� gr�, musisz stworzy� chocia� jedn� posta�.</color>");
+            Debug.Log($"<color=red>Zapis nieudany. Aby zapisać grę, musisz stworzyć chociaż jedną postać.</color>");
             return;
         }
 
         SaveUnits(allUnits);
 
-        Debug.Log($"<color=green>Zapisano stan gry.</color>");
+        //Resetuje inpu fielda i zamyka panel
+        _saveNameInput.text = "";
+        saveGamePanel.SetActive(false);
     }
 
     private void SaveUnits(List<Unit> allUnits)
     {
-        //BinaryFormatter formatter = new BinaryFormatter(); // ZAKOMENTOWANY KOD TO SPOS�B SZYFROWANIA DANYCH. W PRZYPADKU KORZYSTANIA Z NIEGO ZMIENIC FORMAT PLIK�W Z .JSON NA .FUN
+        //BinaryFormatter formatter = new BinaryFormatter(); // ZAKOMENTOWANY KOD TO SPOSÓB SZYFROWANIA DANYCH. W PRZYPADKU KORZYSTANIA Z NIEGO ZMIENIC FORMAT PLIKÓW Z .JSON NA .FUN
 
         // Utworzenie listy nazw wszystkich jednostek
         List<string> unitNames = new List<string>();
@@ -77,15 +81,14 @@ public class SaveAndLoadManager : MonoBehaviour
 
         string savesFolderName;
 
-        // Stworzenie folderu dla zapis�w
+        // Stworzenie folderu dla zapisów
         savesFolderName = _saveNameInput.text;
-
         Directory.CreateDirectory(Application.persistentDataPath + "/" + savesFolderName);
 
-        // Pobranie listy zapisanych plik�w
+        // Pobranie listy zapisanych plików
         string[] files = Directory.GetFiles(Application.persistentDataPath + "/" + savesFolderName, "*.json");
 
-        // Sprawdzenie, czy w li�cie znajduj� si� pliki, kt�rych nazwa nie pasuje do nazw postaci w 'unitNames' i usuni�cie ich
+        // Sprawdzenie, czy w liście znajdują się pliki, których nazwa nie pasuje do nazw postaci w 'unitNames' i usunięcie ich
         foreach (string file in files)
         {
             string fileName = Path.GetFileNameWithoutExtension(file);
@@ -95,6 +98,9 @@ public class SaveAndLoadManager : MonoBehaviour
                 File.Delete(file);
             }
         }
+
+        //Zapisuje numer rundy i dostępne akcje wszystkich jednostek
+        SaveRoundsManager(savesFolderName, allUnits);
 
         //Zapis statystyk wszystkich postaci
         foreach (var unit in allUnits)
@@ -130,11 +136,47 @@ public class SaveAndLoadManager : MonoBehaviour
 
             //stream.Close();
         }
+
+        Debug.Log($"<color=green>Zapisano stan gry.</color>");
     }
 
-    public void LoadAllUnits()
+    private void SaveRoundsManager(string savesFolderName, List<Unit> allUnits)
     {
-        if (_saveNameInput.text.Length < 1) return;
+        string roundsManagerPath = Path.Combine(Application.persistentDataPath, savesFolderName, "RoundsManager.json");
+
+        RoundsManagerData roundsManagerData = new RoundsManagerData(allUnits);
+
+        // Serializacja do JSON
+        foreach (var pair in RoundsManager.Instance.UnitsWithActionsLeft)
+        {
+            roundsManagerData.Entries.Add(new UnitNameAndActionsLeft() { UnitName = pair.Key.gameObject.name, ActionsLeft = pair.Value });
+        }
+        string roundsManagerJsonData = JsonUtility.ToJson(roundsManagerData, true);
+
+        // Zapisanie danych do pliku
+        File.WriteAllText(roundsManagerPath, roundsManagerJsonData);
+    }
+    #endregion
+
+    #region Loading methods
+    public void LoadAllUnits(GameObject loadGamePanel)
+    {
+        CustomDropdown dropdown = _savesScrollViewContent.GetComponent<CustomDropdown>();
+        if(dropdown == null || dropdown.SelectedButton == null)
+        {
+            Debug.Log($"<color=red>Aby wczytać grę musisz wybrać plik z listy.</color>");
+            return;
+        }
+
+        string saveName = dropdown.SelectedButton.GetComponentInChildren<TextMeshProUGUI>().text;
+
+        string saveFolderPath = Path.Combine(Application.persistentDataPath, saveName);
+
+        if(!Directory.Exists(saveFolderPath))
+        {
+            Debug.Log("Nie znaleziono pliku o podanej nazwie.");
+            return;
+        }
 
         IsLoading = true;
 
@@ -144,7 +186,7 @@ public class SaveAndLoadManager : MonoBehaviour
             Unit.SelectedUnit.GetComponent<Unit>().SelectUnit();
         }
 
-        // Kopiuje list� jednostek do nowej listy, aby m�c bezpiecznie modyfikowa� oryginaln� list�
+        // Kopiuje listę jednostek do nowej listy, aby móc bezpiecznie modyfikować oryginalną listę
         List<Unit> unitsToRemove = new List<Unit>(UnitsManager.Instance.AllUnits);
 
         // Usuwa wszystkie obecne na polu bitwy jednostki
@@ -156,39 +198,91 @@ public class SaveAndLoadManager : MonoBehaviour
             }
         }
 
-        StartCoroutine(LoadAllUnitsWithDelay(_saveNameInput.text));
+        StartCoroutine(LoadAllUnitsWithDelay(saveFolderPath));
+
+        loadGamePanel.SetActive(false);
     }
 
-    private IEnumerator LoadAllUnitsWithDelay(string saveName)
+    private IEnumerator LoadAllUnitsWithDelay(string saveFolderPath)
     {
-        string saveFolder = Path.Combine(Application.persistentDataPath, saveName);
-        var statsFiles = Directory.GetFiles(saveFolder, "*_stats.json");
-        foreach (string statsFile in statsFiles)
+        var unitFiles = Directory.GetFiles(saveFolderPath, "*_unit.json");
+
+        if(unitFiles == null)
         {
-            string baseFileName = Path.GetFileNameWithoutExtension(statsFile).Replace("_stats", "");
+            IsLoading = false;
+            yield break;
+        }
+
+        foreach (string unitFile in unitFiles)
+        {
+            //Pobieramy nazwę jednostki, usuwając końcówkę nazwy pliku
+            string baseFileName = Path.GetFileNameWithoutExtension(unitFile).Replace("_unit", "");
+
+            //Ścieżki do konkretnych plików z danymi
+            string unitFilePath = Path.Combine(saveFolderPath, baseFileName + "_unit.json");
+            string statsFilePath = Path.Combine(saveFolderPath, baseFileName + "_stats.json");
+            string weaponFilePath = Path.Combine(saveFolderPath, baseFileName + "_weapon.json");
+            string inventoryFilePath = Path.Combine(saveFolderPath, baseFileName + "_inventory.json");
 
             // Wczytanie i deserializacja StatsData
-            StatsData statsData = JsonUtility.FromJson<StatsData>(File.ReadAllText(statsFile));
+            StatsData statsData = JsonUtility.FromJson<StatsData>(File.ReadAllText(statsFilePath));
 
             // Wczytanie i deserializacja UnitData
-            string unitFilePath = Path.Combine(saveFolder, baseFileName + "_unit.json");
             UnitData unitData = JsonUtility.FromJson<UnitData>(File.ReadAllText(unitFilePath));
 
             //Ustalenie pozycji jednostki
             Vector3 position = new Vector3(unitData.position[0], unitData.position[1], unitData.position[2]);
 
+            //Stworzenie jednostki o konkretnym Id, nazwie i na ustalonej pozycji
             GameObject unitGameObject = UnitsManager.Instance.CreateUnit(statsData.Id, baseFileName, position);
 
-            yield return new WaitForSeconds(0.1f); // Oczekiwanie na zainicjowanie komponent�w
+            //Wczytanie taga i koloru jednostki
+            if (unitData.Tag == "PlayerUnit")
+            {
+                unitGameObject.GetComponent<Unit>().DefaultColor = new Color(0f, 0.54f, 0.17f, 1.0f);
+            }
+            else if (unitData.Tag == "EnemyUnit")
+            {
+                unitGameObject.GetComponent<Unit>().DefaultColor = new Color(0.72f, 0.15f, 0.17f, 1.0f);
+            }
+            unitGameObject.tag = unitData.Tag;
+            unitGameObject.GetComponent<Unit>().ChangeUnitColor(unitGameObject);
 
-            // Kontynuacja wczytywania i aktualizacji pozosta�ych danych jednostki
-            LoadComponentDataWithReflection<StatsData, Stats>(unitGameObject, Path.Combine(saveFolder, baseFileName + "_stats.json"));
-            LoadComponentDataWithReflection<UnitData, Unit>(unitGameObject, Path.Combine(saveFolder, baseFileName + "_unit.json"));
-            LoadComponentDataWithReflection<WeaponData, Weapon>(unitGameObject, Path.Combine(saveFolder, baseFileName + "_weapon.json"));
-            //LoadComponentDataWithReflection<InventoryData, Inventory>(unitGameObject, Path.Combine(saveFolder, baseFileName + "_inventory.json"));
+            yield return new WaitForSeconds(0.1f); // Oczekiwanie na zainicjowanie komponentów
+
+            // Kontynuacja wczytywania i aktualizacji pozostałych danych jednostki
+            LoadComponentDataWithReflection<StatsData, Stats>(unitGameObject, statsFilePath);
+            LoadComponentDataWithReflection<UnitData, Unit>(unitGameObject, unitFilePath);
+            LoadComponentDataWithReflection<WeaponData, Weapon>(unitGameObject, weaponFilePath);
+
+            //Wczytanie ekwipunku jednostki
+            InventoryData inventoryData = JsonUtility.FromJson<InventoryData>(File.ReadAllText(inventoryFilePath));
+            Unit.SelectedUnit = unitGameObject;
+            foreach(var weaponId in inventoryData.AllWeaponsId)
+            {
+                Unit.SelectedUnit.GetComponent<Weapon>().Id = weaponId;
+                DataManager.Instance.LoadAndUpdateWeapons();
+            }
+            //Wczytanie aktualnie dobytych broni
+            foreach(var weapon in Unit.SelectedUnit.GetComponent<Inventory>().AllWeapons)
+            {
+                if(weapon.Id == inventoryData.EquippedWeaponsId[0])
+                {
+                    Unit.SelectedUnit.GetComponent<Inventory>().EquippedWeapons[0] = weapon;
+                }
+                if(weapon.Id == inventoryData.EquippedWeaponsId[1])
+                {
+                    Unit.SelectedUnit.GetComponent<Inventory>().EquippedWeapons[1] = weapon;
+                }
+            }
+            InventoryManager.Instance.CheckForEquippedWeapons();
         }
 
+        LoadRoundsManager(saveFolderPath);
+
+        Unit.SelectedUnit = null;
         IsLoading = false;
+        Debug.Log($"<color=green>Wczytano stan gry.</color>");
     }
 
     private void LoadComponentDataWithReflection<TData, TComponent>(GameObject gameObject, string filePath)
@@ -205,7 +299,7 @@ public class SaveAndLoadManager : MonoBehaviour
         TComponent component = gameObject.GetComponent<TComponent>();
         if (component == null) return;
 
-        // Uzyskanie dost�pu do p�l w komponencie i aktualizacja ich warto�ci
+        // Uzyskanie dostępu do pól w komponencie i aktualizacja ich wartości
         FieldInfo[] componentFields = component.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         FieldInfo[] dataFields = typeof(TData).GetFields(BindingFlags.Public | BindingFlags.Instance);
 
@@ -219,7 +313,111 @@ public class SaveAndLoadManager : MonoBehaviour
             }
         }
     }
+ 
+    private void LoadRoundsManager(string savesFolderPath)
+    {
+        string filePath = Path.Combine(savesFolderPath, "RoundsManager.json");
 
+        // Sprawdź, czy plik istnieje
+        if (File.Exists(filePath))
+        {
+            // Deserializuj dane z pliku JSON do obiektu RoundsManagerData
+            string jsonData = File.ReadAllText(filePath);
+            RoundsManagerData data = JsonUtility.FromJson<RoundsManagerData>(jsonData);
 
+            // Załaduj wczytane dane do istniejącego obiektu RoundsManager
+            RoundsManager.Instance.LoadRoundsManagerData(data);
+        }
+        else
+        {
+            Debug.LogError("Pliku nie znaleziono.");
+        }
+    }
+    #endregion
+
+    #region Managing saves dropdown
+    public void LoadSavesDropdown()
+    {
+        CustomDropdown dropdown = _savesScrollViewContent.GetComponent<CustomDropdown>();
+
+        // Wczytanie wszystkich zapisanych folderów w Application.persistentDataPath
+        string[] saveFolders = Directory.GetDirectories(Application.persistentDataPath);
+
+        // Pobranie wszystkich istniejących buttonów na wyświetlanej liście zapisanych plików
+        List<UnityEngine.UI.Button> existingButtons = dropdown.Buttons;
+
+        // Przygotowanie listy do przechowywania istniejących nazw zapisów
+        List<string> existingButtonNames = existingButtons.Select(button => button.GetComponentInChildren<TextMeshProUGUI>().text).ToList();
+
+        foreach (var folderPath in saveFolders)
+        {
+            // Uzyskanie nazwy folderu do wyświetlenia
+            string folderName = new DirectoryInfo(folderPath).Name;
+
+            // Sprawdź, czy przycisk z tą nazwą zapisu już istnieje
+            if (existingButtonNames.Contains(folderName)) continue;
+
+            //Dodaje nazwę pliku do ScrollViewContent w postaci buttona
+            GameObject buttonObj = Instantiate(_buttonPrefab, _savesScrollViewContent);
+            TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
+            //Ustala text buttona
+            buttonText.text = folderName;
+
+            UnityEngine.UI.Button button = buttonObj.GetComponent<UnityEngine.UI.Button>();
+            
+            //Dodaje opcję do CustomDropdowna ze wszystkimi zapisami
+            dropdown.Buttons.Add(button);
+
+            int currentIndex = dropdown.Buttons.Count; // Pobiera indeks nowego przycisku
+
+            // Zdarzenie po kliknięciu na konkretny zapis z listy
+            button.onClick.AddListener(() =>
+            {
+                dropdown.SetSelectedIndex(currentIndex); // Wybiera element i aktualizuje jego wygląd
+            });
+        }
+    }
+
+    public void RemoveSaveFile()
+    {
+        CustomDropdown dropdown = _savesScrollViewContent.GetComponent<CustomDropdown>();
+        if(dropdown == null || dropdown.SelectedButton == null)
+        {
+            Debug.Log($"<color=red>Aby usunąć zapis musisz wybrać plik z listy.</color>");
+            return;
+        }
+
+        string saveName = dropdown.SelectedButton.GetComponentInChildren<TextMeshProUGUI>().text;
+
+        string saveFolderPath = Path.Combine(Application.persistentDataPath, saveName);
+
+        // Usunięcie folderu zapisu
+        if (Directory.Exists(saveFolderPath))
+        {
+            Directory.Delete(saveFolderPath, true); // Drugi argument 'true' pozwala na usunięcie niepustych folderów
+            Debug.Log($"Plik '{saveName}' został usunięty.");
+        }
+        else
+        {
+            Debug.LogWarning($"Plik '{saveName}' nie istnieje.");
+            return;
+        }
+
+        // Usunięcie przycisku z UI
+        foreach (var button in dropdown.Buttons)
+        {
+            var buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
+            if (buttonText != null && buttonText.text == saveName)
+            {
+                dropdown.Buttons.Remove(button);
+                Destroy(button.gameObject); // Usuwa przycisk z hierarchii sceny
+                break; // Zakładamy, że jest tylko jeden przycisk z tą nazwą
+            }
+        }
+
+        // Opcjonalnie: odśwież UI, jeśli to konieczne
+        //LoadSavesDropdown();
+    }
+    #endregion
 }
 

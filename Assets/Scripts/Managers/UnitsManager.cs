@@ -144,7 +144,7 @@ public class UnitsManager : MonoBehaviour
 
         do
         {
-            if(_randomPositionToggle.isOn)
+            if(_randomPositionToggle.isOn && !SaveAndLoadManager.Instance.IsLoading)
             {
                 // Generowanie losowej pozycji na mapie
                 int x = xEven ? Random.Range(-width / 2, width / 2) : Random.Range(-width / 2, width / 2 + 1);
@@ -312,11 +312,13 @@ public class UnitsManager : MonoBehaviour
         //Ustawia tag postaci, który definiuje, czy jest to sojusznik, czy przeciwnik, a także jej domyślny kolor.
         if (_unitTagToggle.isOn)
         {
+            Debug.Log("player");
             unit.tag = "PlayerUnit";
             unit.GetComponent<Unit>().DefaultColor = new Color(0f, 0.54f, 0.17f, 1.0f);
         }
         else
         {
+            Debug.Log("enemy");
             unit.tag = "EnemyUnit";
             unit.GetComponent<Unit>().DefaultColor = new Color(0.72f, 0.15f, 0.17f, 1.0f);
         }

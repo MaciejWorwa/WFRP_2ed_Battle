@@ -238,7 +238,7 @@ public static class JsonHelper
     }
 }
 
-#region Equivalents for Unit, Stats, Weapon and Inventory classes
+#region Data classes
 [System.Serializable]
 public class UnitData
 {
@@ -404,6 +404,25 @@ public class InventoryData
             }
         }
     }
+}
+
+[System.Serializable]
+public class RoundsManagerData
+{
+    public int RoundNumber;
+    public List<UnitNameAndActionsLeft> Entries = new List<UnitNameAndActionsLeft>();
+
+    public RoundsManagerData(List<Unit> units)
+    {
+        RoundNumber = RoundsManager.RoundNumber;
+    }
+}
+
+[System.Serializable]
+public class UnitNameAndActionsLeft
+{
+    public string UnitName;
+    public int ActionsLeft;
 }
 #endregion
 

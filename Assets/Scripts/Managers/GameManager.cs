@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -43,7 +44,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Panele")]
     public GameObject[] activePanels;
-    [SerializeField] private GameObject _quitGamePanel;
+    [SerializeField] private GameObject _mainMenuPanel;
 
     private void Start()
     {
@@ -74,19 +75,16 @@ public class GameManager : MonoBehaviour
 
             if(activePanelsLength == 0) //Otwiera panel wyjścia z gry
             {
-                ShowPanel(_quitGamePanel);
+                ShowPanel(_mainMenuPanel);
             }
             else //Zamyka aktywne panele
             {
-                foreach (GameObject panel in activePanels)
-                {
-                    panel.SetActive(false);
-                }
+                HideActivePanels();
             }
         }
     }
 
-    private void ShowPanel(GameObject panel)
+    public void ShowPanel(GameObject panel)
     {
         panel.SetActive(true);
     }
@@ -103,7 +101,14 @@ public class GameManager : MonoBehaviour
 
         return activePanels.Length;
     }
-     public bool IsPointerOverPanel()
+    public void HideActivePanels()
+    {
+        foreach (GameObject panel in activePanels)
+        {
+            panel.SetActive(false);
+        }
+    }
+    public bool IsPointerOverPanel()
     {
         // Tworzenie promienia od pozycji myszki
         PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
@@ -200,6 +205,19 @@ public class GameManager : MonoBehaviour
         {
             button.GetComponent<Image>().color = Color.white;
         }
+    }
+
+    public bool IsAnyInputFieldFocused()
+    {
+        TMP_InputField[] inputFields = FindObjectsByType<TMP_InputField>(FindObjectsSortMode.None);
+
+        if(inputFields.Length < 1) return false;
+
+        foreach (TMP_InputField inputField in inputFields)
+        {
+            if (inputField.isFocused) return true; // Zwraca true, jeśli którykolwiek z input fields ma focus
+        }
+        return false; // Zwraca false, jeśli żaden z input fields nie ma focus
     }
 
     public void QuitGame()
