@@ -4,10 +4,12 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using System.Reflection;
+using System.IO;
 
 public class Unit : MonoBehaviour
 {
     public static GameObject SelectedUnit;
+    public string TokenFilePath;
     public Color DefaultColor;
     public Color HighlightColor;
     public bool IsSelected { get; private set; } = false;
@@ -63,7 +65,7 @@ public class Unit : MonoBehaviour
         if(Input.GetMouseButtonDown(1) && SelectedUnit != null && SelectedUnit != this.gameObject)
         {
             //Sprawdza, czy atakowanym jest nasz sojusznik i czy tryb Friendly Fire jest aktywny
-            if(GameManager.Instance.IsFriendlyFire == false && this.gameObject.CompareTag(SelectedUnit.tag))
+            if(GameManager.IsFriendlyFire == false && this.gameObject.CompareTag(SelectedUnit.tag))
             {
                 Debug.Log("Nie możesz atakować swoich sojuszników. Jest to możliwe tylko w trybie Friendly Fire.");
                 return;
@@ -134,6 +136,12 @@ public class Unit : MonoBehaviour
         HighlightColor = Color.Lerp(DefaultColor, Color.yellow, 0.3f);
         
         renderer.material.color = IsSelected ? unit.GetComponent<Unit>().HighlightColor : unit.GetComponent<Unit>().DefaultColor;
+
+        //Aktualizuje kolor tokena, jeśli nie jest wgrany żaden obraz
+        if(TokenFilePath.Length < 1)
+        {
+            transform.Find("Token").GetComponent<SpriteRenderer>().material.color = IsSelected ? unit.GetComponent<Unit>().HighlightColor : unit.GetComponent<Unit>().DefaultColor;
+        }
     }
 
     public void DisplayUnitName()

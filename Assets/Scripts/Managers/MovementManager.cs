@@ -37,7 +37,7 @@ public class MovementManager : MonoBehaviour
     public void MoveSelectedUnit(GameObject selectedTile, GameObject unit)
     {
         // Nie pozwala wykonać akcji ruchu, dopóki poprzedni ruch nie zostanie zakończony. Sprawdza też, czy gra nie jest wstrzymana (np. poprzez otwarcie dodatkowych paneli)
-        if( IsMoving == true || GameManager.Instance.IsGamePaused) return;    
+        if( IsMoving == true || GameManager.IsGamePaused) return;    
 
         // Sprawdza zasięg ruchu postaci
         int movementRange = unit.GetComponent<Stats>().TempSz;

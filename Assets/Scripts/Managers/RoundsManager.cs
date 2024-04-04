@@ -64,7 +64,7 @@ public class RoundsManager : MonoBehaviour
         UpdateInitiativeQueue();
 
         //Wybiera jednostkę zgodnie z kolejką inicjatywy, jeśli ten tryb jest włączony
-        if (GameManager.Instance.IsAutoSelectUnitMode && _activeUnit != null)
+        if (GameManager.IsAutoSelectUnitMode && _activeUnit != null)
         {
             SelectUnitByQueue();
         }
@@ -147,11 +147,11 @@ public class RoundsManager : MonoBehaviour
             DisplayInitiativeQueue();
 
             //Gdy jest aktywny tryb automatycznego wybierania postaci na podstawie kolejki inicjatywy to taka postać jest wybierana. Jeżeli wszystkie wykonały akcje to następuje kolejna runda
-            if (GameManager.Instance.IsAutoSelectUnitMode && _activeUnit != null && _activeUnit.gameObject != Unit.SelectedUnit)
+            if (GameManager.IsAutoSelectUnitMode && _activeUnit != null && _activeUnit.gameObject != Unit.SelectedUnit)
             {
                 _activeUnit.SelectUnit();
             }
-            else if (GameManager.Instance.IsAutoSelectUnitMode && _activeUnit == null)
+            else if (GameManager.IsAutoSelectUnitMode && _activeUnit == null)
             {
                 NextRound();
             }     

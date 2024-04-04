@@ -8,6 +8,7 @@ using UnityEngine.UIElements;
 using System.Collections.Generic;
 using Unity.VisualScripting.Antlr3.Runtime.Misc;
 
+
 public class DataManager : MonoBehaviour
 { 
     // Prywatne statyczne pole przechowujące instancję
@@ -36,6 +37,8 @@ public class DataManager : MonoBehaviour
     [SerializeField] private GameObject _buttonPrefab; // Przycisk odpowiadający każdej z broni
     [SerializeField] private Transform _weaponScrollViewContent; // Lista wszystkich dostępnych broni
     [SerializeField] private Transform _unitScrollViewContent; // Lista wszystkich dostępnych ras (jednostek)
+
+    public List<string> TokensPaths = new List<string>();
 
     #region Loading units stats
     public void LoadAndUpdateStats(GameObject unitObject = null)
@@ -205,8 +208,8 @@ public class DataManager : MonoBehaviour
             }
         }
     }
+    #endregion
 }
-#endregion
 
 public static class JsonHelper
 {
@@ -240,9 +243,15 @@ public static class JsonHelper
 
 #region Data classes
 [System.Serializable]
+public class TokenData
+{
+    public string filePath;
+}
+[System.Serializable]
 public class UnitData
 {
     public string Tag;
+    public string TokenFilePath;
     public float[] position;
 
     public bool IsSelected;

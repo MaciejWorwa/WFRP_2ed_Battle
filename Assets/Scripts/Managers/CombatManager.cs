@@ -6,7 +6,6 @@ using UnityEngine.TextCore.Text;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 using System.Linq;
-using UnityEditor.Experimental.GraphView;
 
 public class CombatManager : MonoBehaviour
 {
@@ -142,7 +141,7 @@ public class CombatManager : MonoBehaviour
     public void Attack(Unit attacker, Unit target, bool opportunityAttack) 
     {
         //Sprawdza, czy gra nie jest wstrzymana (np. poprzez otwarcie dodatkowych paneli)
-        if(GameManager.Instance.IsGamePaused)
+        if(GameManager.IsGamePaused)
         {
             Debug.Log("Gra została wstrzymana. Aby ją wznowić musisz wyłączyć okno znajdujące się na polu gry.");
             return; 
@@ -289,7 +288,7 @@ public class CombatManager : MonoBehaviour
                 }
 
                 //Śmierć
-                if (targetStats.TempHealth < 0 && GameManager.Instance.IsAutoKillMode)
+                if (targetStats.TempHealth < 0 && GameManager.IsAutoKillMode)
                 {
                     UnitsManager.Instance.DestroyUnit(target.gameObject);
 
@@ -726,7 +725,7 @@ public class CombatManager : MonoBehaviour
         bool targetIsDefended = false;
 
         //Sprawdzenie, czy jest aktywny tryb automatycznej obrony
-        if(GameManager.Instance.IsAutoDefenseMode)
+        if(GameManager.IsAutoDefenseMode)
         {
             //Sprawdza, czy atakowany ma jakieś modifykatory do parowania
             int parryModifier = 0;

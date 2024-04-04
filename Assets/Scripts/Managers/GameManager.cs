@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
+using SimpleFileBrowser;
 
 public class GameManager : MonoBehaviour
 {
@@ -31,16 +32,16 @@ public class GameManager : MonoBehaviour
     }
 
     [Header("Tryby gry")]
-    public bool IsAutoDefenseMode;
+    public static bool IsAutoDefenseMode;
     [SerializeField] private Button _autoDefenseButton;
-    public bool IsAutoKillMode;
+    public static bool IsAutoKillMode;
     [SerializeField] private Button _autoKillButton;
-    public bool IsAutoSelectUnitMode;
+    public static bool IsAutoSelectUnitMode;
     [SerializeField] private Button _autoSelectUnitButton;
-    public bool IsFriendlyFire;
+    public static bool IsFriendlyFire;
     [SerializeField] private Button _friendlyFireButton;
     private Dictionary<Button, bool> allModes;
-    public bool IsGamePaused;
+    public static bool IsGamePaused;
 
     [Header("Panele")]
     public GameObject[] activePanels;
@@ -67,7 +68,7 @@ public class GameManager : MonoBehaviour
     private void Update()
     {
         //Pauzuje grę (możliwość ruchu jednostek), gdy któryś z paneli konkretnej jednostki jest otwarty
-        IsGamePaused = CountActivePanels() > 0 ? true : false;
+        IsGamePaused = CountActivePanels() > 0 || FileBrowser.IsOpen? true : false;
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {

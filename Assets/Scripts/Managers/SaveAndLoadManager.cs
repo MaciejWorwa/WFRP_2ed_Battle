@@ -12,6 +12,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 using static UnityEngine.UI.CanvasScaler;
+using SimpleFileBrowser;
 
 public class SaveAndLoadManager : MonoBehaviour
 {
@@ -111,6 +112,7 @@ public class SaveAndLoadManager : MonoBehaviour
             string statsPath = Path.Combine(Application.persistentDataPath, savesFolderName, unitName + "_stats.json");
             string weaponPath = Path.Combine(Application.persistentDataPath, savesFolderName, unitName + "_weapon.json");
             string inventoryPath = Path.Combine(Application.persistentDataPath, savesFolderName, unitName + "_inventory.json");
+            string tokenJsonPath = Path.Combine(Application.persistentDataPath, savesFolderName, unitName + "_token.json");
 
             //FileStream stream = new FileStream(path, FileMode.Create);
 
@@ -118,18 +120,21 @@ public class SaveAndLoadManager : MonoBehaviour
             StatsData statsData = new StatsData(unit.GetComponent<Stats>());
             WeaponData weaponData = new WeaponData(unit.GetComponent<Weapon>());
             InventoryData inventoryData = new InventoryData(unit.GetComponent<Inventory>());
+            TokenData tokenData = new TokenData { filePath = unit.TokenFilePath};
 
             // Serializacja danych do JSON
             string unitJsonData = JsonUtility.ToJson(unitData, true);
             string statsJsonData = JsonUtility.ToJson(statsData, true);
             string weaponJsonData = JsonUtility.ToJson(weaponData, true);
             string inventoryJsonData = JsonUtility.ToJson(inventoryData, true);
+            string tokenJsonData = JsonUtility.ToJson(tokenData, true);
 
             // Zapisanie danych do pliku
             File.WriteAllText(unitPath, unitJsonData);
             File.WriteAllText(statsPath, statsJsonData);
             File.WriteAllText(weaponPath, weaponJsonData);
             File.WriteAllText(inventoryPath, inventoryJsonData);
+            File.WriteAllText(tokenJsonPath, tokenJsonData);
 
             //// Serializacja weaponData
             //formatter.Serialize(stream, weaponData);
@@ -156,6 +161,7 @@ public class SaveAndLoadManager : MonoBehaviour
         // Zapisanie danych do pliku
         File.WriteAllText(roundsManagerPath, roundsManagerJsonData);
     }
+
     #endregion
 
     #region Loading methods
@@ -223,6 +229,7 @@ public class SaveAndLoadManager : MonoBehaviour
             string statsFilePath = Path.Combine(saveFolderPath, baseFileName + "_stats.json");
             string weaponFilePath = Path.Combine(saveFolderPath, baseFileName + "_weapon.json");
             string inventoryFilePath = Path.Combine(saveFolderPath, baseFileName + "_inventory.json");
+            string tokenJsonPath = Path.Combine(saveFolderPath, baseFileName + "_token.json");
 
             // Wczytanie i deserializacja StatsData
             StatsData statsData = JsonUtility.FromJson<StatsData>(File.ReadAllText(statsFilePath));
@@ -276,6 +283,14 @@ public class SaveAndLoadManager : MonoBehaviour
                 }
             }
             InventoryManager.Instance.CheckForEquippedWeapons();
+
+            // Wczytanie tokena, jeśli istnieje
+            if (File.Exists(tokenJsonPath))
+            {
+                string tokenJson = File.ReadAllText(tokenJsonPath);
+                TokenData tokenData = JsonUtility.FromJson<TokenData>(tokenJson);
+                StartCoroutine(TokensManager.Instance.LoadTokenImage(tokenData.filePath, Unit.SelectedUnit));
+            }
         }
 
         LoadRoundsManager(saveFolderPath);
