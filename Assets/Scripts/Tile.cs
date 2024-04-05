@@ -25,7 +25,7 @@ public class Tile : MonoBehaviour
     {
         HighlightTile();
 
-        if(Unit.SelectedUnit != null)
+        if(Unit.SelectedUnit != null && !MovementManager.Instance.IsMoving)
         {
             MovementManager.Instance.HighlightPath(Unit.SelectedUnit, this.gameObject);
         }      

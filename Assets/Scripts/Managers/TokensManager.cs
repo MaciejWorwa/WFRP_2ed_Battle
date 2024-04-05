@@ -58,7 +58,10 @@ public class TokensManager : MonoBehaviour
 
     public IEnumerator LoadTokenImage(string filePath, GameObject unitObject)
     {
-        if(unitObject == null) yield break;
+        if(unitObject == null || filePath.Length < 1) yield break;
+
+        //Aktywuje token
+        unitObject.transform.Find("Token").gameObject.SetActive(true);
 
         SpriteRenderer imageRenderer = unitObject.transform.Find("Token").GetComponent<SpriteRenderer>();
 
@@ -76,23 +79,30 @@ public class TokensManager : MonoBehaviour
             }
             else
             {
-                float spriteWidth = imageRenderer.size.x; // Szerokość SpriteRenderer w jednostkach Unity
-                float spriteHeight = imageRenderer.size.y; // Wysokość SpriteRenderer w jednostkach Unity
+                // Obliczanie nowego Rect, aby zachować proporcje 1:1
+                int minSize = Mathf.Min(texture.width, texture.height);
+                float offsetX = (texture.width - minSize) / 2f;
+                float offsetY = (texture.height - minSize) / 2f;
+                Rect rect = new Rect(offsetX, offsetY, minSize, minSize);
 
-                // Oblicza pixelsPerUnit dla nowego sprite'a, biorąc pod uwagę rozmiar jednostki
-                float pixelsPerUnitX = texture.width / spriteWidth;
-                float pixelsPerUnitY = texture.height / spriteHeight;
-                float pixelsPerUnit = Mathf.Max(pixelsPerUnitX, pixelsPerUnitY); // Wybierz większą wartość, aby zapewnić pełne pokrycie
+                // Obliczenie pixelsPerUnit, zachowując dopasowanie do wielkości sprite'a
+                float spriteSize = Mathf.Min(imageRenderer.size.x, imageRenderer.size.y);
+                float pixelsPerUnit = minSize / spriteSize;
 
-                Sprite newSprite = Sprite.Create(texture, new Rect(0.0f, 0.0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), pixelsPerUnit);
+                // Używanie nowego Rect i pixelsPerUnit do stworzenia sprite'a
+                Sprite newSprite = Sprite.Create(texture, rect, new Vector2(0.5f, 0.5f), pixelsPerUnit);
                 imageRenderer.sprite = newSprite;
 
-                //Aktualizacja ścieżki do tokena jednostki
-                Unit.SelectedUnit.GetComponent<Unit>().TokenFilePath = filePath;
+                // Aktualizacja ścieżki do tokena jednostki
+                unitObject.GetComponent<Unit>().TokenFilePath = filePath;
+
+                UnitsManager.Instance.UpdateUnitPanel(unitObject);
             }
         }
         else
         {
+            //Dezatywuje token
+            unitObject.transform.Find("Token").gameObject.SetActive(false);
             Debug.LogError("Nie udało się załadować obrazu.");
         }
 

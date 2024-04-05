@@ -324,13 +324,16 @@ public class StatsData
     public int Armor_legs;
     public int Initiative;
     public bool Ambidextrous; // Oburęczność
+    public bool Frightening; // Straszny
     public bool LightningParry; // Błyskawiczny blok
     public bool MasterGunner; // Artylerzysta
     public bool MightyShot; // Strzał precyzyjny
+    public bool PowerfulBlow; // Potężny cios (parowanie -30)
     public bool RapidReload; // Błyskawiczne przeładowanie
     public bool StreetFighting; // Bijatyka
     public bool StrikeMightyBlow; // Silny cios
     public bool SureShot; // Strzał mierzony
+    public bool Terryfying; // Przerażający
     public bool QuickDraw; // Szybkie wyciągnięcie
     public int Dodge;
 

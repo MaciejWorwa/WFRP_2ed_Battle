@@ -419,19 +419,15 @@ public class SaveAndLoadManager : MonoBehaviour
         }
 
         // Usunięcie przycisku z UI
-        foreach (var button in dropdown.Buttons)
-        {
-            var buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
-            if (buttonText != null && buttonText.text == saveName)
-            {
-                dropdown.Buttons.Remove(button);
-                Destroy(button.gameObject); // Usuwa przycisk z hierarchii sceny
-                break; // Zakładamy, że jest tylko jeden przycisk z tą nazwą
-            }
-        }
+        int indexToRemove = dropdown.Buttons.IndexOf(dropdown.SelectedButton);
 
-        // Opcjonalnie: odśwież UI, jeśli to konieczne
-        //LoadSavesDropdown();
+        Destroy(dropdown.Buttons[indexToRemove].gameObject);
+        dropdown.Buttons.RemoveAt(indexToRemove);
+        
+        // Aktualizuje SelectedIndex i zaznaczenie
+        dropdown.SelectedIndex = 0;
+        dropdown.SelectedButton = null;
+        dropdown.InitializeButtons();
     }
     #endregion
 }

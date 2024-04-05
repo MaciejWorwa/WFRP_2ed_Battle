@@ -140,7 +140,7 @@ public class Unit : MonoBehaviour
         //Aktualizuje kolor tokena, jeśli nie jest wgrany żaden obraz
         if(TokenFilePath.Length < 1)
         {
-            transform.Find("Token").GetComponent<SpriteRenderer>().material.color = IsSelected ? unit.GetComponent<Unit>().HighlightColor : unit.GetComponent<Unit>().DefaultColor;
+            transform.Find("Token").gameObject.SetActive(false);
         }
     }
 

@@ -238,14 +238,31 @@ public class CombatManager : MonoBehaviour
             //Aktualizuje modyfikator ataku o celowanie
             _attackModifier += attacker.AimingBonus;
 
-            //Rzut na trafienie
-            int rollResult = Random.Range(1, 101);
+            //Skuteczność ataku
+            bool isSuccessful;
 
-            //Sprawdza, czy atak jest atakiem dystansowym, czy atakiem w zwarciu i ustala jego skuteczność
-            bool isSuccessful = CheckAttackEffectiveness(rollResult, attackerStats, attackerWeapon, target);
+            //W przypadku, gdy atak następuje po udanym rzucie na trafienie rzeczywistymi kośćmi to nie sprawdzamy rzutu na trafienie. W przeciwnym razie sprawdzamy
+            if(attacker.CompareTag("PlayerUnit") && GameManager.IsAutoDiceRollingMode == false)
+            {
+                isSuccessful = true;
+                
+                //Sprawia, że po ataku należy przeładować broń. Uwzględnia błyskawiczne przeładowanie
+                if (attackerWeapon.Type.Contains("ranged"))
+                {
+                    ResetWeaponLoad(attackerWeapon, attackerStats);
+                }
+            }
+            else
+            {
+                //Rzut na trafienie
+                int rollResult = Random.Range(1, 101);
 
-            //Niepowodzenie przy pechu
-            if(rollResult >= 96) isSuccessful = false;
+                //Sprawdza, czy atak jest atakiem dystansowym, czy atakiem w zwarciu i ustala jego skuteczność
+                isSuccessful = CheckAttackEffectiveness(rollResult, attackerStats, attackerWeapon, target);
+
+                //Niepowodzenie przy pechu
+                if(rollResult >= 96) isSuccessful = false;
+            }         
 
             //Zresetowanie bonusu do trafienia
             _attackModifier = 0;
@@ -380,15 +397,8 @@ public class CombatManager : MonoBehaviour
                 Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na US: {rollResult} Wartość cechy: {attackerStats.US}");
             }
 
-            //Sprawia, że po ataku należy przeładować broń
-            attackerWeapon.ReloadLeft = attackerWeapon.ReloadTime;
-            attackerWeapon.WeaponsWithReloadLeft[attackerWeapon.Id] = attackerWeapon.ReloadLeft;
-
-            //Uwzględnia zdolność Błyskawicznego Przeładowania
-            if (attackerStats.RapidReload == true)
-            {
-                attackerWeapon.ReloadLeft--;   
-            }
+            //Sprawia, że po ataku należy przeładować broń. Uwzględnia błyskawiczne przeładowanie
+            ResetWeaponLoad(attackerWeapon, attackerStats);
         }
 
         //Sprawdza czy atak jest atakiem w zwarciu
@@ -732,6 +742,7 @@ public class CombatManager : MonoBehaviour
             if (targetWeapon.Defensive) parryModifier += 10;
             if (attackerWeapon.Slow) parryModifier += 10;
             if (attackerWeapon.Fast) parryModifier -= 10;
+            if (attackerWeapon.GetComponent<Stats>().PowerfulBlow) parryModifier -= 30;
             if (targetUnit.GuardedAttackBonus != 0) parryModifier += targetUnit.GuardedAttackBonus;
 
             if (targetUnit.CanParry && targetUnit.CanDodge)
@@ -853,7 +864,18 @@ public class CombatManager : MonoBehaviour
             Debug.Log($"Ładowanie broni {Unit.SelectedUnit.GetComponent<Stats>().Name}. Pozostała/y {weapon.ReloadLeft} akcja/e do końca.");
         }      
     }
+
+    private void ResetWeaponLoad(Weapon attackerWeapon, Stats attackerStats)
+    {
+        //Sprawia, że po ataku należy przeładować broń
+        attackerWeapon.ReloadLeft = attackerWeapon.ReloadTime;
+        attackerWeapon.WeaponsWithReloadLeft[attackerWeapon.Id] = attackerWeapon.ReloadLeft;
+
+        //Uwzględnia zdolność Błyskawicznego Przeładowania
+        if (attackerStats.RapidReload == true)
+        {
+            attackerWeapon.ReloadLeft--;   
+        }
+    }
     #endregion
-
-
 }

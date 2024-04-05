@@ -37,6 +37,7 @@ public class UnitsManager : MonoBehaviour
     [SerializeField] private TMP_Text _raceDisplay;
     [SerializeField] private TMP_Text _initiativeDisplay;
     [SerializeField] private TMP_Text _healthDisplay;
+    [SerializeField] private UnityEngine.UI.Image _tokenDisplay;
     [SerializeField] private GameObject _unitPrefab;
     [SerializeField] private CustomDropdown _unitsDropdown;
     [SerializeField] private TMP_InputField _unitNameInputField;
@@ -431,6 +432,7 @@ public class UnitsManager : MonoBehaviour
         _raceDisplay.text = stats.Race;
         _initiativeDisplay.text = stats.Initiative.ToString();
         _healthDisplay.text = stats.TempHealth + "/" + stats.MaxHealth;
+        _tokenDisplay.sprite = unit.transform.Find("Token").GetComponent<SpriteRenderer>().sprite;
 
         LoadAttributes(unit);
     }
@@ -468,6 +470,16 @@ public class UnitsManager : MonoBehaviour
                 inputField.GetComponent<UnityEngine.UI.Toggle>().isOn = value;
             }
         }
+    }
+
+    public void ChangeTemporaryHealthPoints(int amount)
+    {
+        if(Unit.SelectedUnit == null) return;
+        
+        Unit.SelectedUnit.GetComponent<Stats>().TempHealth += amount;
+
+        Unit.SelectedUnit.GetComponent<Unit>().DisplayUnitHealthPoints();
+        UpdateUnitPanel(Unit.SelectedUnit);
     }
     #endregion
 }

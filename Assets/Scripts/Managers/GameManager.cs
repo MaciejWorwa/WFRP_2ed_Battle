@@ -32,6 +32,8 @@ public class GameManager : MonoBehaviour
     }
 
     [Header("Tryby gry")]
+    public static bool IsAutoDiceRollingMode;
+    [SerializeField] private Button _autoDiceRollingButton;
     public static bool IsAutoDefenseMode;
     [SerializeField] private Button _autoDefenseButton;
     public static bool IsAutoKillMode;
@@ -56,6 +58,7 @@ public class GameManager : MonoBehaviour
             {_autoSelectUnitButton, IsAutoSelectUnitMode = true},
             {_autoKillButton, IsAutoKillMode = true},
             {_friendlyFireButton, IsFriendlyFire = false},
+            {_autoDiceRollingButton, IsAutoDiceRollingMode = true},
         };
 
         // Ustawia kolory przycisków na podstawie początkowych wartości trybów
@@ -131,6 +134,21 @@ public class GameManager : MonoBehaviour
     }
 
     #region Game modes
+    public void SetAutoRollingDiceMode()
+    {
+        IsAutoDiceRollingMode = !IsAutoDiceRollingMode;
+
+        UpdateButtonColor(_autoDiceRollingButton, IsAutoDiceRollingMode);
+
+        if (IsAutoDiceRollingMode)
+        {
+            Debug.Log("Tryb automatycznego rzutu koścmi został włączony. Wszystkie rzuty będą wykonywane automatycznie.");
+        }
+        else
+        {
+            Debug.Log("Tryb automatycznego rzutu koścmi został wyłączony. Rzuty koścmi wykonywane przez graczy są rozstrzygane poza aplikacją.");
+        }
+    }
     public void SetAutoDefenseMode()
     {
         IsAutoDefenseMode = !IsAutoDefenseMode;
