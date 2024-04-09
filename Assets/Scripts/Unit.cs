@@ -134,13 +134,13 @@ public class Unit : MonoBehaviour
 
         //Ustawia wartość HighlightColor na jaśniejszą wersję DefaultColor. Trzeci parametr określa ilość koloru białego w całości.
         HighlightColor = Color.Lerp(DefaultColor, Color.yellow, 0.3f);
-        
+
         renderer.material.color = IsSelected ? unit.GetComponent<Unit>().HighlightColor : unit.GetComponent<Unit>().DefaultColor;
 
         //Aktualizuje kolor tokena, jeśli nie jest wgrany żaden obraz
-        if(TokenFilePath.Length < 1)
+        if (TokenFilePath.Length < 1)
         {
-            transform.Find("Token").gameObject.SetActive(false);
+            transform.Find("Token").GetComponent<SpriteRenderer>().material.color = IsSelected ? unit.GetComponent<Unit>().HighlightColor : unit.GetComponent<Unit>().DefaultColor;
         }
     }
 

@@ -36,6 +36,7 @@ public class DataManager : MonoBehaviour
 
     [SerializeField] private GameObject _buttonPrefab; // Przycisk odpowiadający każdej z broni
     [SerializeField] private Transform _weaponScrollViewContent; // Lista wszystkich dostępnych broni
+    [SerializeField] private TMP_Dropdown _weaponQualityDropdown; // Lista jakości broni
     [SerializeField] private Transform _unitScrollViewContent; // Lista wszystkich dostępnych ras (jednostek)
 
     public List<string> TokensPaths = new List<string>();
@@ -153,6 +154,9 @@ public class DataManager : MonoBehaviour
 
         foreach (var weapon in weaponsArray)
         {
+            //Ustala jakość wykonania broni
+            weapon.Quality = _weaponQualityDropdown.options[_weaponQualityDropdown.value].text;
+
             if (weaponToUpdate != null && weapon.Id == weaponToUpdate.Id)
             {
                 // Używanie refleksji do aktualizacji wartości wszystkich pól w klasie Weapon
@@ -362,6 +366,7 @@ public class WeaponData
     public int Id;
     public string Name;
     public string[] Type;
+    public string Quality;
     public bool TwoHanded;
     public float AttackRange;
     public int S;

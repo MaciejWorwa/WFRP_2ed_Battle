@@ -379,11 +379,17 @@ public class UnitsManager : MonoBehaviour
         if(field == null) return;
 
         // Zmienia wartść cechy
-        if (field.FieldType == typeof(int))
+        if (field.FieldType == typeof(int) && textInput.GetComponent<UnityEngine.UI.Slider>() == null) // to działa dla cech opisywanych wartościami int (pomija umiejętności, które nie są ustawiane przy użyciu slidera)
         {
             // Pobiera wartość inputa, starając się przekonwertować ją na int
             int value = int.TryParse(textInput.GetComponent<TMP_InputField>().text, out int inputValue) ? inputValue : 0;
 
+            field.SetValue(unit.GetComponent<Stats>(), value);
+            Debug.Log($"Atrybut {field.Name} zmieniony na {value}");
+        }
+        else if (field.FieldType == typeof(int) && textInput.GetComponent<UnityEngine.UI.Slider>() != null) // to działa dla umiejętnościami
+        {
+            int value = (int)textInput.GetComponent<UnityEngine.UI.Slider>().value;
             field.SetValue(unit.GetComponent<Stats>(), value);
             Debug.Log($"Atrybut {field.Name} zmieniony na {value}");
         }
@@ -451,7 +457,7 @@ public class UnitsManager : MonoBehaviour
             if(field == null) continue;
 
             // Jeśli znajdzie takie pole, to zmienia wartość wyświetlanego tekstu na wartość tej cechy
-            if (field.FieldType == typeof(int)) // to działa dla cech opisywanych wartościami int
+            if (field.FieldType == typeof(int) && inputField.GetComponent<UnityEngine.UI.Slider>() == null) // to działa dla cech opisywanych wartościami int (pomija umiejętności, które nie są ustawiane przy użyciu slidera)
             {
                 int value = (int)field.GetValue(unit.GetComponent<Stats>());
 
@@ -463,6 +469,11 @@ public class UnitsManager : MonoBehaviour
                 {
                     inputField.GetComponent<UnityEngine.UI.Slider>().value = value;
                 }
+            }
+            else if (field.FieldType == typeof(int) && inputField.GetComponent<UnityEngine.UI.Slider>() != null) // to działa dla umiejętnościami
+            {
+                int value = (int)field.GetValue(unit.GetComponent<Stats>());
+                inputField.GetComponent<UnityEngine.UI.Slider>().value = value;
             }
             else if (field.FieldType == typeof(bool)) // to działa dla cech opisywanych wartościami bool
             {

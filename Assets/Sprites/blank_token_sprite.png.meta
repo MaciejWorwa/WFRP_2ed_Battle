@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 215791743c9d0f54795c6c0a52a895b4
+guid: 1b6a44d91f98c8843bc8978d088fe1fb
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2818429873437999771
-    second: minus_icon_0
+      213: -4983722546507322681
+    second: blank_token_sprite_0
   externalObjects: {}
   serializedVersion: 12
   mipmaps:
@@ -46,12 +46,12 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 400
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -72,7 +72,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 512
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -98,13 +98,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: minus_icon_0
+      name: blank_token_sprite_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 200
-        height: 200
+        width: 400
+        height: 400
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -112,8 +112,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 56df06976fce2e8d0800000000000000
-      internalID: -2818429873437999771
+      spriteID: 7ca6354bfb246dab0800000000000000
+      internalID: -4983722546507322681
       vertices: []
       indices: 
       edges: []
@@ -121,7 +121,7 @@ TextureImporter:
     outline: []
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -129,7 +129,7 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      minus_icon_0: -2818429873437999771
+      blank_token_sprite_0: -4983722546507322681
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

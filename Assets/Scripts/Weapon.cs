@@ -14,6 +14,9 @@ public class Weapon : MonoBehaviour
     public string[] Type;
     public bool TwoHanded;
 
+    [Header("Jakość")]
+    public string Quality;
+
     [Header("Siła")]
     public int S;
 
@@ -39,6 +42,7 @@ public class Weapon : MonoBehaviour
         Name = "Pięści";
         Type[0] = "melee";
         TwoHanded = false;
+        Quality = "Zwykła";
         S = -4;
         AttackRange = 1.5f;
         ReloadTime = 0;

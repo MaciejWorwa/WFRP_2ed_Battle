@@ -196,13 +196,16 @@ MonoBehaviour:
   Armor_legs: 0
   Initiative: 0
   Ambidextrous: 0
+  Frightening: 0
   LightningParry: 0
   MasterGunner: 0
   MightyShot: 0
+  PowerfulBlow: 0
   RapidReload: 0
   StreetFighting: 0
   StrikeMightyBlow: 0
   SureShot: 0
+  Terryfying: 0
   QuickDraw: 0
   Dodge: 0
 --- !u!114 &6267734093322851998
@@ -222,6 +225,7 @@ MonoBehaviour:
   Type:
   - melee
   TwoHanded: 0
+  Quality: "Zwyk\u0142a"
   S: -4
   AttackRange: 1.5
   ReloadTime: 0
@@ -643,7 +647,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 1b6a44d91f98c8843bc8978d088fe1fb, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

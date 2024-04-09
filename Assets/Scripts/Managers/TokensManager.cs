@@ -65,9 +65,6 @@ public class TokensManager : MonoBehaviour
 
         SpriteRenderer imageRenderer = unitObject.transform.Find("Token").GetComponent<SpriteRenderer>();
 
-        //Ustawienie koloru na biały, żeby nie było overlaya koloru na tokenie
-        imageRenderer.material.color = Color.white;
-
         byte[] byteTexture = File.ReadAllBytes(filePath);
         Texture2D texture = new Texture2D(2, 2);
         if (texture.LoadImage(byteTexture))
@@ -79,6 +76,9 @@ public class TokensManager : MonoBehaviour
             }
             else
             {
+                //Ustawienie koloru na biały, żeby nie było overlaya koloru na tokenie
+                imageRenderer.material.color = Color.white;
+
                 // Obliczanie nowego Rect, aby zachować proporcje 1:1
                 int minSize = Mathf.Min(texture.width, texture.height);
                 float offsetX = (texture.width - minSize) / 2f;

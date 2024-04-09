@@ -365,6 +365,10 @@ public class CombatManager : MonoBehaviour
         if (AttackTypes["AllOutAttack"] == true) _attackModifier += 20;
         else if (AttackTypes["GuardedAttack"] == true) _attackModifier -= 10;
 
+        //Modyfikator za jakość wykonania broni
+        if(attackerWeapon.Quality == "Kiepska") _attackModifier -= 5;
+        else if(attackerWeapon.Quality == "Najlepsza") _attackModifier += 5;
+
         //Sprawdza, czy atak jest atakiem dystansowym
         if (attackerWeapon.Type.Contains("ranged"))
         {
@@ -742,7 +746,7 @@ public class CombatManager : MonoBehaviour
             if (targetWeapon.Defensive) parryModifier += 10;
             if (attackerWeapon.Slow) parryModifier += 10;
             if (attackerWeapon.Fast) parryModifier -= 10;
-            if (attackerWeapon.GetComponent<Stats>().PowerfulBlow) parryModifier -= 30;
+            if (Unit.SelectedUnit.GetComponent<Stats>().PowerfulBlow) parryModifier -= 30;
             if (targetUnit.GuardedAttackBonus != 0) parryModifier += targetUnit.GuardedAttackBonus;
 
             if (targetUnit.CanParry && targetUnit.CanDodge)
