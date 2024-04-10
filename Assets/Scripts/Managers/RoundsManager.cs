@@ -61,6 +61,9 @@ public class RoundsManager : MonoBehaviour
             key.GuardedAttackBonus = 0;
         }
 
+        //Wykonuje testy grozy i strachu jeśli na polu bitwy są jednostki straszne lub przerażające
+        UnitsManager.Instance.LookForScaryUnits();
+
         UpdateInitiativeQueue();
 
         //Wybiera jednostkę zgodnie z kolejką inicjatywy, jeśli ten tryb jest włączony

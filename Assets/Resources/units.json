@@ -119,6 +119,48 @@
       "Armor_arms": 0,
       "Armor_torso": 0,
       "Armor_legs": 0
+    },
+    {
+      "Id": 7,
+      "Race": "Troll",
+      "WW": 40,
+      "US": 0,
+      "K": 50,
+      "Odp": 50,
+      "Zr": 20,
+      "Int": 10,
+      "SW": 20,
+      "Ogd": 10,
+      "A": 3,
+      "Sz": 6,
+      "MaxHealth": 30,
+      "Armor_head": 0,
+      "Armor_arms": 0,
+      "Armor_torso": 0,
+      "Armor_legs": 0,
+      "Frightening": true,
+      "PowerfulBlow": true
+    },
+    {
+      "Id": 8,
+      "Race": "Smok",
+      "WW": 90,
+      "US": 0,
+      "K": 60,
+      "Odp": 60,
+      "Zr": 60,
+      "Int": 80,
+      "SW": 90,
+      "Ogd": 60,
+      "A": 5,
+      "Sz": 6,
+      "MaxHealth": 60,
+      "Armor_head": 3,
+      "Armor_arms": 3,
+      "Armor_torso": 3,
+      "Armor_legs": 3,
+      "PowerfulBlow": true,
+      "Terryfying": true
     }
   ]
 }

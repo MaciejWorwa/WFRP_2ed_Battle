@@ -179,7 +179,7 @@ public class CombatManager : MonoBehaviour
             }
 
             //Sprawdza, czy cel nie znajduje się zbyt blisko (w przypadku ataku dystansowego)
-            if (_attackDistance <= 1.5f && attackerWeapon.Type[0] == "ranged")
+            if (_attackDistance <= 1.5f && attackerWeapon.Type.Contains("ranged"))
             {
                 Debug.Log($"Stoisz zbyt blisko celu aby wykonać atak dystansowy.");
                 return;
@@ -285,6 +285,9 @@ public class CombatManager : MonoBehaviour
                 int damageRollResult = DamageRoll(attackerStats, attackerWeapon);
                 int damage = CalculateDamage(damageRollResult, attackerStats, attackerWeapon);
                 int armor = CalculateArmor(targetStats, attackerWeapon);
+
+                //Uwzględnienie strzału przebijającego zbroję (zdolność)
+                if(attackerStats.SureShot && _attackDistance <= 1.5f && attackerWeapon.Type.Contains("ranged") && armor > 0) armor --;
             
                 Debug.Log($"{attackerStats.Name} wyrzucił {damageRollResult} i zadał {damage} obrażeń.");
 
@@ -583,7 +586,7 @@ public class CombatManager : MonoBehaviour
             }
 
             //Dodaje modyfikator do trafienia uzwględniając strzał mierzony w przypadku ataków dystansowych
-            unit.AimingBonus += Unit.SelectedUnit.GetComponent<Stats>().SureShot && attackerWeapon.Type.Contains("ranged") ? 20 : 10; 
+            unit.AimingBonus += Unit.SelectedUnit.GetComponent<Stats>().Sharpshooter && attackerWeapon.Type.Contains("ranged") ? 20 : 10; 
 
             Debug.Log("Przycelowanie");
         }

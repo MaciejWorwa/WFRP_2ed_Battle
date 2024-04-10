@@ -16,6 +16,8 @@ public class Unit : MonoBehaviour
     public bool IsRunning; // Biegnie
     public bool IsCharging; // Szarżuje
     public bool IsHelpless; // Jest bezbronny
+    public bool IsScared; // Jest przestraszony
+    public bool IsFearTestPassed; // Zdał test strachu
     public bool IsStunned; // Jest ogłuszony
     public bool IsTrapped; // Jest unieruchomiony
     public int AimingBonus;
@@ -96,8 +98,8 @@ public class Unit : MonoBehaviour
             DefensiveBonus = 0;
             CombatManager.Instance.UpdateDefensivePositionButtonColor(); 
 
-            //Resetuje listę ekwipunku
-            InventoryManager.Instance.HideInventory();
+            //Zamyka aktywne panele
+            GameManager.Instance.HideActivePanels(); 
 
             //Wyłącza panel edycji jednostki, jeśli był włączony
             UnitsManager.Instance.EditUnitModeOff();
@@ -129,7 +131,7 @@ public class Unit : MonoBehaviour
     }
 
     public void ChangeUnitColor(GameObject unit)
-    {
+    {  
         Renderer renderer = unit.GetComponent<Renderer>();
 
         //Ustawia wartość HighlightColor na jaśniejszą wersję DefaultColor. Trzeci parametr określa ilość koloru białego w całości.
@@ -138,9 +140,9 @@ public class Unit : MonoBehaviour
         renderer.material.color = IsSelected ? unit.GetComponent<Unit>().HighlightColor : unit.GetComponent<Unit>().DefaultColor;
 
         //Aktualizuje kolor tokena, jeśli nie jest wgrany żaden obraz
-        if (TokenFilePath.Length < 1)
+        if (unit.GetComponent<Unit>().TokenFilePath.Length < 1)
         {
-            transform.Find("Token").GetComponent<SpriteRenderer>().material.color = IsSelected ? unit.GetComponent<Unit>().HighlightColor : unit.GetComponent<Unit>().DefaultColor;
+            unit.transform.Find("Token").GetComponent<SpriteRenderer>().material.color = IsSelected ? unit.GetComponent<Unit>().HighlightColor : unit.GetComponent<Unit>().DefaultColor;
         }
     }
 

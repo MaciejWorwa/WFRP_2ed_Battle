@@ -263,6 +263,10 @@ public class UnitsManager : MonoBehaviour
         _unitsAmount--;
         AllUnits.Remove(unit.GetComponent<Unit>());
 
+        //Wyłącza panel górny i dolny, a także wszystkie aktywne panele
+        UpdateUnitPanel(null);
+        GameManager.Instance.HideActivePanels();   
+
         Destroy(unit);
         IsUnitRemoving = false;
 
@@ -443,6 +447,14 @@ public class UnitsManager : MonoBehaviour
         LoadAttributes(unit);
     }
 
+    public void LoadAttributesByButtonClick()
+    {
+        if(Unit.SelectedUnit == null) return;
+
+        GameObject unit = Unit.SelectedUnit;
+        LoadAttributes(unit);
+    }
+
     private void LoadAttributes(GameObject unit)
     {
         // Wyszukuje wszystkie pola tekstowe i przyciski do ustalania statystyk postaci wewnatrz gry
@@ -479,6 +491,9 @@ public class UnitsManager : MonoBehaviour
             {
                 bool value = (bool)field.GetValue(unit.GetComponent<Stats>());
                 inputField.GetComponent<UnityEngine.UI.Toggle>().isOn = value;
+
+                Debug.Log(field);
+                Debug.Log(value);
             }
         }
     }
@@ -491,6 +506,125 @@ public class UnitsManager : MonoBehaviour
 
         Unit.SelectedUnit.GetComponent<Unit>().DisplayUnitHealthPoints();
         UpdateUnitPanel(Unit.SelectedUnit);
+    }
+    #endregion
+
+    #region Fear and terror mechanics
+    public void LookForScaryUnits()
+    {
+        bool frighteningEnemyExist = false;
+        bool terryfyingEnemyExist = false;
+        bool frighteningPlayerExist = false;
+        bool terryfyingPlayerExist = false;
+
+        foreach (var unit in AllUnits)
+        {
+            Stats unitStats = unit.GetComponent<Stats>();
+
+            if(unitStats.Terryfying)
+            {
+                if(unit.CompareTag("EnemyUnit")) terryfyingEnemyExist = true;
+                else if (unit.CompareTag("PlayerUnit")) terryfyingPlayerExist = true;
+            }
+            else if(unitStats.Frightening)
+            {
+                if(unit.CompareTag("EnemyUnit")) frighteningEnemyExist = true;
+                else if (unit.CompareTag("PlayerUnit"))frighteningPlayerExist = true;
+            }
+        }
+
+        if(terryfyingEnemyExist)
+        {
+            AllUnitsTerrorRoll("PlayerUnit");
+        }
+        else if(frighteningEnemyExist)
+        {
+            AllUnitsFearRoll("PlayerUnit");
+        }
+
+        if(terryfyingPlayerExist)
+        {
+            AllUnitsTerrorRoll("EnemyUnit");
+        }
+        else if(frighteningPlayerExist)
+        {
+            AllUnitsFearRoll("EnemyUnit");
+        }
+    }
+
+    private void AllUnitsFearRoll(string unitTag)
+    {
+        foreach (var unit in AllUnits)
+        {
+            //Pomija jednostki, których nie dotyczy ten rzut (czyli sojusznicy strasznej jednostki, postacie ze zdolnością nieustraszony lub jednostki, które wcześniej zdały test)
+            if(unit.CompareTag(unitTag) == false || unit.GetComponent<Stats>().Fearless == true || unit.IsFearTestPassed) continue;
+
+            FearRoll(unit);
+        }
+    }
+
+    private void FearRoll(Unit unit)
+    {
+        Stats unitStats = unit.GetComponent<Stats>();
+
+        //Uwzględnia zdolność Odwaga
+        int rollModifier = unitStats.StoutHearted ? 10 : 0;
+
+        int rollResult = UnityEngine.Random.Range(1, 101);
+
+        if (rollResult <= (unitStats.SW + rollModifier))
+        {
+            unit.IsScared = false;
+            unit.IsFearTestPassed = true;
+            Debug.Log($"{unitStats.Name} zdał test strachu. Wynik rzutu: {rollResult}");
+        }
+        else
+        {
+            RoundsManager.Instance.UnitsWithActionsLeft[unit] = 0;
+            unit.IsScared = true;
+
+            Debug.Log($"{unitStats.Name} nie zdał testu strachu. Wynik rzutu: {rollResult}");
+        }
+
+    }
+
+    private void AllUnitsTerrorRoll(string unitTag)
+    {
+        foreach (var unit in AllUnits)
+        {
+            //Pomija jednostki, których nie dotyczy ten rzut (czyli sojusznicy strasznej jednostki, postacie ze zdolnością nieustraszony lub jednostki, które wcześniej zdały test)
+            if(unit.CompareTag(unitTag) == false || unit.IsFearTestPassed) continue;
+
+            if(unit.GetComponent<Stats>().Fearless == true) 
+            {
+                FearRoll(unit);
+                continue;
+            }
+
+            TerrorRoll(unit);
+        }
+    }
+
+    private void TerrorRoll(Unit unit)
+    {
+        Stats unitStats = unit.GetComponent<Stats>();
+
+        int rollResult = UnityEngine.Random.Range(1, 101);
+
+        if (rollResult <= unitStats.SW)
+        {
+            unit.IsScared = false;
+            unit.IsFearTestPassed = true;
+            Debug.Log($"{unitStats.Name} zdał test grozy. Wynik rzutu: {rollResult}");
+        }
+        else
+        {
+            RoundsManager.Instance.UnitsWithActionsLeft[unit] = 0;
+            unit.IsScared = true;
+            unitStats.PO ++;
+
+            Debug.Log($"{unitStats.Name} nie zdał testu grozy. Wynik rzutu: {rollResult}");
+        }
     }
     #endregion
 }

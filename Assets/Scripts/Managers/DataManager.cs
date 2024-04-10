@@ -262,6 +262,8 @@ public class UnitData
     public bool IsRunning; // Biegnie
     public bool IsCharging; // Szarżuje
     public bool IsHelpless; // Jest bezbronny
+    public bool IsScared; // Jest przestraszony
+    public bool IsFearTestPassed; // Zdał test strachu
     public bool IsStunned; // Jest ogłuszony
     public bool IsTrapped; // Jest unieruchomiony
     public int AimingBonus;
@@ -328,18 +330,24 @@ public class StatsData
     public int Armor_legs;
     public int Initiative;
     public bool Ambidextrous; // Oburęczność
-    public bool Frightening; // Straszny
+    public bool Disarm; // Rozbrojenie
+    public bool Fearless; // Nieustraszony
+    public bool Frightening; // Straszny (test Fear)
     public bool LightningParry; // Błyskawiczny blok
     public bool MasterGunner; // Artylerzysta
     public bool MightyShot; // Strzał precyzyjny
     public bool PowerfulBlow; // Potężny cios (parowanie -30)
     public bool RapidReload; // Błyskawiczne przeładowanie
+    public bool Sharpshooter; // Strzał przebijający
+    public bool StoutHearted; // Odwaga
     public bool StreetFighting; // Bijatyka
     public bool StrikeMightyBlow; // Silny cios
-    public bool SureShot; // Strzał mierzony
-    public bool Terryfying; // Przerażający
+    public bool StrikeToStun; // Ogłuszanie
+    public bool SureShot; // Strzał przebijający
+    public bool Terryfying; // Przerażający (test Terror)
     public bool QuickDraw; // Szybkie wyciągnięcie
-    public int Dodge;
+    public int Channeling; // Splatanie magii
+    public int Dodge; // Unik
 
     public StatsData(Stats stats)
     {

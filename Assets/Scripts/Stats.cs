@@ -46,19 +46,25 @@ public class Stats : MonoBehaviour
 
     [Header("Zdolności")]
     public bool Ambidextrous; // Oburęczność
+    public bool Disarm; // Rozbrojenie
+    public bool Fearless; // Nieustraszony
     public bool Frightening; // Straszny (test Fear)
     public bool LightningParry; // Błyskawiczny blok
     public bool MasterGunner; // Artylerzysta
     public bool MightyShot; // Strzał precyzyjny
     public bool PowerfulBlow; // Potężny cios (parowanie -30)
     public bool RapidReload; // Błyskawiczne przeładowanie
+    public bool Sharpshooter; // Strzał przebijający
+    public bool StoutHearted; // Odwaga
     public bool StreetFighting; // Bijatyka
     public bool StrikeMightyBlow; // Silny cios
-    public bool SureShot; // Strzał mierzony
+    public bool StrikeToStun; // Ogłuszanie
+    public bool SureShot; // Strzał przebijający
     public bool Terryfying; // Przerażający (test Terror)
     public bool QuickDraw; // Szybkie wyciągnięcie
 
     [Header("Umiejętności")]
-    public int Dodge;
+    public int Channeling; // Splatanie magii
+    public int Dodge; // Unik
 }
 
