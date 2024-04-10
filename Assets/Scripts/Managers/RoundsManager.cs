@@ -50,6 +50,8 @@ public class RoundsManager : MonoBehaviour
         RoundNumber++;
         _roundNumberDisplay.text = "Runda: " + RoundNumber;
         _nextRoundButtonText.text = "Następna runda";
+ 
+        Debug.Log($"<color=#4dd2ff>--------------------------------------------- RUNDA {RoundNumber} ---------------------------------------------</color>");
 
         //Resetuje ilość dostępnych akcji dla wszystkich jednostek
         foreach (var key in UnitsWithActionsLeft.Keys.ToList())

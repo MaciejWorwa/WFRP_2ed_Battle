@@ -1,64 +1,79 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
-namespace DebugStuff
+public class ConsoleView : MonoBehaviour
 {
-    public class ConsoleView : MonoBehaviour
+    private List<string> _myLogs = new List<string>();
+    private Vector2 _scrollPosition = Vector2.zero;
+    private bool _doShow = false;
+    [SerializeField] private Slider _slider;
+
+    private void OnEnable()
     {
-        //#if !UNITY_EDITOR
-        static string _myLog = "";
-        private string _output;
+        Application.logMessageReceived += HandleLog;
+    }
 
-        private bool _doShow;
+    private void OnDisable()
+    {
+        Application.logMessageReceived -= HandleLog;
+    }
 
-        [SerializeField] private Slider _slider;
-
-        void Start()
+    private void HandleLog(string logString, string stackTrace, LogType type)
+    {
+        _myLogs.Add(logString);
+        // Ogranicz do 100 wiadomości i usuń najstarsze
+        if (_myLogs.Count > 100)
         {
-            _doShow = false;
+            _myLogs.RemoveAt(0);
+        }
+        // Zapewnij automatyczne przewijanie do najnowszej wiadomości
+        _scrollPosition.y = Mathf.Infinity;
+    }
+
+    void OnGUI()
+    {
+        if (!_doShow) return;
+
+        float consoleWidth = Screen.width * 0.42f;
+        float consoleHeight = Screen.height * _slider.value;
+        Rect consoleRect = new Rect(Screen.width - consoleWidth, 0, consoleWidth, consoleHeight);
+
+        GUIStyle style = new GUIStyle(GUI.skin.box)
+        {
+            fontSize = (int)(Screen.width * 0.008f),
+            alignment = TextAnchor.UpperLeft,
+            wordWrap = true,
+            padding = new RectOffset(5, 5, 5, 5)
+        };
+        
+        // Usuń tło dla różnych stanów
+        style.normal.background = null;
+        style.hover.background = null;
+        style.active.background = null;
+        style.focused.background = null;
+
+        // Ustaw ten sam kolor tekstu dla różnych stanów, aby zapobiec zmianie koloru
+        Color textColor = Color.white;
+        style.normal.textColor = textColor;
+        style.hover.textColor = textColor;
+        style.active.textColor = textColor;
+        style.focused.textColor = textColor;
+
+        GUILayout.BeginArea(consoleRect);
+        _scrollPosition = GUILayout.BeginScrollView(_scrollPosition, false, true);
+
+        foreach (string log in _myLogs)
+        {
+            GUILayout.Label(log, style);
         }
 
-        void OnEnable()
-        {
-            Application.logMessageReceived += Log;
-        }
+        GUILayout.EndScrollView();
+        GUILayout.EndArea();
+    }
 
-        void OnDisable()
-        {
-            Application.logMessageReceived -= Log;
-        }
-
-        public void Log(string logString, string stackTrace, LogType type)
-        {
-            _output = logString;
-            _myLog = _output + "\n" + _myLog;
-            if (_myLog.Length > 5000)
-            {
-                _myLog = _myLog.Substring(0, 4000);
-            }
-        }
-
-        void OnGUI()
-        {
-            if (!_doShow) { return; }
-
-            float consoleWidth = Screen.width * 0.42f; // szerokość okna konsoli
-            float consoleHeight = Screen.height * (_slider.value); // wysokość okna konsoli rozwijająca się z góry na dół
-            float consolePosX = Screen.width - consoleWidth; // pozycja X okna konsoli, w prawym górnym rogu
-            float consolePosY = 0; // pozycja Y okna konsoli, zaczyna się od góry ekranu
-
-            Rect consoleRect = new Rect(consolePosX, consolePosY, consoleWidth, consoleHeight);
-
-            GUIStyle style = GUI.skin.GetStyle("Box"); // Wybranie stylu okna konsoli
-            style.fontSize = (int)(Screen.width * 0.008f); // Wielkość czcionki
-            style.alignment = TextAnchor.UpperLeft; // Wyrównanie tekstu do lewej górnej krawędzi okna konsoli
-
-            _myLog = GUI.TextArea(consoleRect, _myLog, style);
-        }
-
-        public void ShowOrHideConsole()
-        {
-            _doShow = !_doShow;
-        }
+    public void ShowOrHideConsole()
+    {
+        _doShow = !_doShow;
     }
 }
