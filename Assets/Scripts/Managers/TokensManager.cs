@@ -33,7 +33,15 @@ public class TokensManager : MonoBehaviour
 
     void Start()
     {
-        // Konfiguracja SimpleFileBrowser
+        StartCoroutine(ConfigureFileBrowser());
+    }
+
+    IEnumerator ConfigureFileBrowser()
+    {
+        // Opóźnienie w sekundach
+        yield return new WaitForSeconds(0.1f);
+
+        // Konfiguracja SimpleFileBrowser po opóźnieniu
         FileBrowser.SetFilters(true, new FileBrowser.Filter("Images", ".jpg", ".png"));
         FileBrowser.SetDefaultFilter(".jpg");
     }
@@ -59,6 +67,13 @@ public class TokensManager : MonoBehaviour
     public IEnumerator LoadTokenImage(string filePath, GameObject unitObject)
     {
         if(unitObject == null || filePath.Length < 1) yield break;
+
+        // Sprawdza, czy plik istnieje
+        if (!File.Exists(filePath))
+        {
+            Debug.LogError($"<color=red>Plik graficzny z tokenem nie został znaleziony: {filePath}</color>");
+            yield break;
+        }
 
         //Aktywuje token
         unitObject.transform.Find("Token").gameObject.SetActive(true);

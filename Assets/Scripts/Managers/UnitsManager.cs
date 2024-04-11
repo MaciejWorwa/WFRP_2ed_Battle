@@ -576,14 +576,14 @@ public class UnitsManager : MonoBehaviour
         {
             unit.IsScared = false;
             unit.IsFearTestPassed = true;
-            Debug.Log($"{unitStats.Name} zdał test strachu. Wynik rzutu: {rollResult}");
+            Debug.Log($"<color=green>{unitStats.Name} zdał test strachu. Wynik rzutu: {rollResult} </color>");
         }
         else
         {
             RoundsManager.Instance.UnitsWithActionsLeft[unit] = 0;
             unit.IsScared = true;
 
-            Debug.Log($"{unitStats.Name} nie zdał testu strachu. Wynik rzutu: {rollResult}");
+            Debug.Log($"<color=red>{unitStats.Name} nie zdał testu strachu. Wynik rzutu: {rollResult} </color>");
         }
 
     }
@@ -615,7 +615,7 @@ public class UnitsManager : MonoBehaviour
         {
             unit.IsScared = false;
             unit.IsFearTestPassed = true;
-            Debug.Log($"{unitStats.Name} zdał test grozy. Wynik rzutu: {rollResult}");
+            Debug.Log($"<color=green> {unitStats.Name} zdał test grozy. Wynik rzutu: {rollResult} </color>");
         }
         else
         {
@@ -623,7 +623,7 @@ public class UnitsManager : MonoBehaviour
             unit.IsScared = true;
             unitStats.PO ++;
 
-            Debug.Log($"{unitStats.Name} nie zdał testu grozy. Wynik rzutu: {rollResult}");
+            Debug.Log($"<color=red> {unitStats.Name} nie zdał testu grozy. Wynik rzutu: {rollResult} </color>");
         }
     }
     #endregion

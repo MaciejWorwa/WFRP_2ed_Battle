@@ -35,7 +35,7 @@ public class RoundsManager : MonoBehaviour
     public Dictionary <Unit, int> UnitsWithActionsLeft = new Dictionary<Unit, int>();
     public Dictionary <Unit, int> InitiativeQueue = new Dictionary<Unit, int>();
     private Unit _activeUnit;
-    public Transform InitiativeScrollViewContent; // Lista ekwipunku postaci
+    public Transform InitiativeScrollViewContent;
     [SerializeField] private GameObject _initiativeOptionPrefab; // Prefab odpowiadający każdej jednostce na liście inicjatywy
 
     private void Start()
@@ -96,7 +96,7 @@ public class RoundsManager : MonoBehaviour
         DisplayInitiativeQueue();
     }
 
-   private void DisplayInitiativeQueue()
+    private void DisplayInitiativeQueue()
     {
         // Resetuje wyświetlaną kolejkę, usuwając wszystkie obiekty "dzieci"
         Transform contentTransform = InitiativeScrollViewContent.transform;
@@ -160,6 +160,17 @@ public class RoundsManager : MonoBehaviour
             {
                 NextRound();
             }     
+        }
+    }
+
+    public void UnselectAllOptionsInInitiativeQueue()
+    {
+        Transform initiativeQueue = RoundsManager.Instance.InitiativeScrollViewContent;
+
+        //Odznaczenie wszystkich pozostałych opcji
+        for (int i = 0; i < initiativeQueue.childCount; i++)
+        {
+            initiativeQueue.GetChild(i).transform.Find("selected_option_background").gameObject.SetActive(false);
         }
     }
     #endregion

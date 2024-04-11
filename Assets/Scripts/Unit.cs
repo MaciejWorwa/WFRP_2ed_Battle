@@ -55,6 +55,7 @@ public class Unit : MonoBehaviour
         if(!UnitsManager.IsUnitRemoving)
         {
             SelectUnit();
+            RoundsManager.Instance.UnselectAllOptionsInInitiativeQueue();
         }
         else
         {
