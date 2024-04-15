@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
 
 public class GridManager : MonoBehaviour
 {
@@ -42,6 +44,11 @@ public class GridManager : MonoBehaviour
         set { _height = value; }
     }
 
+    [SerializeField] private TMP_Text _widthDisplay;
+    [SerializeField] private TMP_Text _heightDisplay;
+    [SerializeField] private Slider _sliderX;
+    [SerializeField] private Slider _sliderY;
+
     void Start()
     {
         GenerateGrid();
@@ -49,12 +56,19 @@ public class GridManager : MonoBehaviour
 
     public void GenerateGrid()
     {
+        //Usuwa poprzednią siatkę
+        for (int i = transform.childCount - 1; i >= 0; i--)
+        {
+            GameObject child = transform.GetChild(i).gameObject;
+            Destroy(child);
+        }
+
         Tiles = new Tile[_width, _height];
         bool isOffset;
         for (int x = 0; x < _width; x++)
         {
             for (int y = 0; y < _height; y++)
-            { 
+            {
                 Tile spawnedTile = Instantiate(_tilePrefab, new Vector3(x, y, 1), Quaternion.identity);
                 spawnedTile.name = $"Tile {x} {y}";
 
@@ -62,15 +76,30 @@ public class GridManager : MonoBehaviour
                 spawnedTile.Init(isOffset);
 
                 Tiles[x, y] = spawnedTile;
+                spawnedTile.transform.SetParent(this.transform, false); // Ustawianie rodzica bez zmiany lokalej pozycji
             }
         }
 
-        foreach (Tile tile in Tiles)
-        {
-            tile.transform.parent = this.gameObject.transform;
-        }
-
+        // Przesunięcie rodzica do centrum generowanej siatki
         transform.position = new Vector3(-(_width / 2), -(_height / 2), 1);
+
+        if (_widthDisplay != null && _heightDisplay != null)
+        {
+            _widthDisplay.text = _width.ToString();
+            _heightDisplay.text = _height.ToString();
+        }
+    }
+
+    public void ChangeGridSize()
+    {
+        _width = (int)_sliderX.value;
+        _height = (int)_sliderY.value;
+
+        // Generuje nową siatkę ze zmienionymi wartościami
+        GenerateGrid();
+
+        // Usuwa przeszkody poza obszarem siatki
+        //RemoveObstacle();
     }
 
     public void HighlightTilesInMovementRange(Stats unitStats)
