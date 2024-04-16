@@ -31,18 +31,8 @@ public class GridManager : MonoBehaviour
 
     [SerializeField] private Tile _tilePrefab;
     public Tile[,] Tiles;
-    [SerializeField] private int _width;
-    public int Width 
-    {
-        get { return _width; }
-        set { _width = value; }
-    }
-    [SerializeField] private int _height;
-    public int Height
-    {
-        get { return _height; }
-        set { _height = value; }
-    }
+    public static int Width = 16;
+    public static int Height = 9;
 
     [SerializeField] private TMP_Text _widthDisplay;
     [SerializeField] private TMP_Text _heightDisplay;
@@ -52,6 +42,8 @@ public class GridManager : MonoBehaviour
     void Start()
     {
         GenerateGrid();
+
+        CheckTileOccupancy();
     }
 
     public void GenerateGrid()
@@ -63,11 +55,11 @@ public class GridManager : MonoBehaviour
             Destroy(child);
         }
 
-        Tiles = new Tile[_width, _height];
+        Tiles = new Tile[Width, Height];
         bool isOffset;
-        for (int x = 0; x < _width; x++)
+        for (int x = 0; x < Width; x++)
         {
-            for (int y = 0; y < _height; y++)
+            for (int y = 0; y < Height; y++)
             {
                 Tile spawnedTile = Instantiate(_tilePrefab, new Vector3(x, y, 1), Quaternion.identity);
                 spawnedTile.name = $"Tile {x} {y}";
@@ -81,25 +73,30 @@ public class GridManager : MonoBehaviour
         }
 
         // Przesunięcie rodzica do centrum generowanej siatki
-        transform.position = new Vector3(-(_width / 2), -(_height / 2), 1);
+        transform.position = new Vector3(-(Width / 2), -(Height / 2), 1);
 
         if (_widthDisplay != null && _heightDisplay != null)
         {
-            _widthDisplay.text = _width.ToString();
-            _heightDisplay.text = _height.ToString();
+            _widthDisplay.text = Width.ToString();
+            _heightDisplay.text = Height.ToString();
+
+            int width = Width;
+            int height = Height;
+            _sliderX.value = width;
+            _sliderY.value = height;
         }
     }
 
     public void ChangeGridSize()
     {
-        _width = (int)_sliderX.value;
-        _height = (int)_sliderY.value;
+        Width = (int)_sliderX.value;
+        Height = (int)_sliderY.value;
 
         // Generuje nową siatkę ze zmienionymi wartościami
         GenerateGrid();
 
         // Usuwa przeszkody poza obszarem siatki
-        //RemoveObstacle();
+        MapEditor.Instance.RemoveElementsOutsideTheGrid();
     }
 
     public void HighlightTilesInMovementRange(Stats unitStats)
@@ -162,6 +159,24 @@ public class GridManager : MonoBehaviour
         // Resetuje wszystkie pola
         foreach (Tile tile in Tiles)
             tile.GetComponent<Tile>().ResetRangeColor();
+    }
+
+    public void CheckTileOccupancy()
+    {
+        foreach (Tile tile in Tiles)
+        {
+            Vector2 tilePosition = new Vector2(tile.transform.position.x, tile.transform.position.y);
+            Collider2D hitCollider = Physics2D.OverlapCircle(tilePosition, 0.1f);
+
+            if (hitCollider != null && !hitCollider.CompareTag("Tile"))
+            {
+                tile.IsOccupied = true;
+            }
+            else
+            {
+                tile.IsOccupied = false;
+            }
+        }
     }
 
     public void ResetTileOccupancy(Vector3 unitPosition)

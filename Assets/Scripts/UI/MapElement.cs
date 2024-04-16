@@ -1,29 +1,39 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
-public class MapElement : MonoBehaviour, IPointerClickHandler
+public class MapElement : MonoBehaviour
 {
-    public void OnPointerClick(PointerEventData eventData)
+    public bool IsHighObstacle;
+    public bool IsLowObstacle;
+
+    void Awake()
     {
-        // Za³aduj prefab
-        GameObject elementPrefab = Resources.Load<GameObject>(this.gameObject.name);
+        DontDestroyOnLoad(gameObject);
+    }
+    private void OnMouseOver()
+    {
+        // Je¿eli nie jesteœmy w kreatorze pola bitwy to funkcja usuwania przeszkód jest wy³¹czona. Tak samo nie wywo³ujemy jej, gdy lewy przycisk myszy nie jest wciœniêty
+        if (SceneManager.GetActiveScene().buildIndex != 0 || GameManager.IsMousePressed == false) return;
 
-        //TO JEST TYLKO TYMCZASOWO. DOCELOWO MA TO WYWOLYWAC FUNKCJE W MAP EDITOR, KTÓRA W ZALE¯NOŒCI OD LOSOWEJ POZYCJI LUB KLIKNIÊCIA MYSZY TWORZY OBIEKT SPRAWDZAJ¥C, CZY POLE JEST WOLNE. JEDNOCZEŒNIE USTAWIA WYBRANYTILE NA ZAJÊTY
-        if (elementPrefab != null)
+        DestroyElement();
+    }
+
+    private void DestroyElement()
+    {
+        if (MapEditor.IsElementRemoving)
         {
-            int x = Random.Range(0, GridManager.Instance.Width);
-            int y = Random.Range(0, GridManager.Instance.Height);
+            Destroy(gameObject);
 
-            Vector3 randomPosition = new Vector3(x + GridManager.Instance.gameObject.transform.position.x, y + GridManager.Instance.gameObject.transform.position.y, 1);
+            Collider2D collider = Physics2D.OverlapCircle(transform.position, 0.1f);
 
-            Instantiate(elementPrefab, randomPosition, Quaternion.identity);
-        }
-        else
-        {
-            Debug.LogError($"Nie znaleziono elementu {this.gameObject.name}");
+            if (collider != null && collider.gameObject.CompareTag("Tile"))
+            {
+                collider.GetComponent<Tile>().IsOccupied = false;
+            }
+
         }
     }
 }

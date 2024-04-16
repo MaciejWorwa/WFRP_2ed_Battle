@@ -13,6 +13,7 @@ using UnityEngine.UI;
 using UnityEngine.UIElements;
 using static UnityEngine.UI.CanvasScaler;
 using SimpleFileBrowser;
+using System.Xml.Linq;
 
 public class SaveAndLoadManager : MonoBehaviour
 {
@@ -142,6 +143,9 @@ public class SaveAndLoadManager : MonoBehaviour
             //stream.Close();
         }
 
+        //Zapisanie wszystkich elementów mapy
+        SaveMap(savesFolderName);
+
         Debug.Log($"<color=green>Zapisano stan gry.</color>");
     }
 
@@ -160,6 +164,31 @@ public class SaveAndLoadManager : MonoBehaviour
 
         // Zapisanie danych do pliku
         File.WriteAllText(roundsManagerPath, roundsManagerJsonData);
+    }
+
+    private void SaveMap(string savesFolderName)
+    {
+        MapElementsContainer container = new MapElementsContainer();
+
+        // Zbieranie danych z każdego elementu
+        foreach (var element in MapEditor.Instance.AllElements)
+        {
+            MapElement mapElement = element.GetComponent<MapElement>();
+            if (mapElement != null)
+            {
+                MapElementsData data = new MapElementsData(mapElement);
+                container.Elements.Add(data);
+            }
+        }
+
+        // Ścieżka do pliku JSON
+        string mapElementsPath = Path.Combine(Application.persistentDataPath, savesFolderName, "MapElements.json");
+
+        // Konwersja kontenera z listą danych do JSON
+        string mapElementsJsonData = JsonUtility.ToJson(container, true);
+
+        // Zapis do pliku
+        File.WriteAllText(mapElementsPath, mapElementsJsonData);
     }
 
     #endregion
@@ -203,6 +232,9 @@ public class SaveAndLoadManager : MonoBehaviour
                 UnitsManager.Instance.DestroyUnit(unit.gameObject);
             }
         }
+
+        //Wczytanie mapy
+        LoadMap(saveFolderPath);
 
         StartCoroutine(LoadAllUnitsWithDelay(saveFolderPath));
 
@@ -342,6 +374,26 @@ public class SaveAndLoadManager : MonoBehaviour
 
             // Załaduj wczytane dane do istniejącego obiektu RoundsManager
             RoundsManager.Instance.LoadRoundsManagerData(data);
+        }
+        else
+        {
+            Debug.LogError("Pliku nie znaleziono.");
+        }
+    }
+
+    private void LoadMap(string savesFolderPath)
+    {
+        string filePath = Path.Combine(savesFolderPath, "MapElements.json");
+
+        // Sprawdź, czy plik istnieje
+        if (File.Exists(filePath))
+        {
+            // Deserializuj dane z pliku JSON do obiektu RoundsManagerData
+            string jsonData = File.ReadAllText(filePath);
+            MapElementsContainer data = JsonUtility.FromJson<MapElementsContainer>(jsonData);
+
+            // Załaduj wczytane dane do istniejącego obiektu RoundsManager
+            MapEditor.Instance.LoadMapData(data);
         }
         else
         {

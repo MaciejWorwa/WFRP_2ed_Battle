@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 3586573248583200038}
   - component: {fileID: 7784136455191548445}
   - component: {fileID: 4029424974726431615}
+  - component: {fileID: -4559157055742906140}
   m_Layer: 0
   m_Name: water
   m_TagString: Untagged
@@ -131,3 +132,15 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &-4559157055742906140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6667953325391612225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e9ef3f28ebc0ec428c86d809488b953, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
