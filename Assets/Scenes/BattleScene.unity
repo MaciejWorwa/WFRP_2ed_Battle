@@ -2009,6 +2009,7 @@ Transform:
   - {fileID: 144223338}
   - {fileID: 1084021500}
   - {fileID: 874418760}
+  - {fileID: 1126655791}
   - {fileID: 423764381}
   - {fileID: 2717589}
   - {fileID: 840049989}
@@ -18813,8 +18814,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _roundNumberDisplay: {fileID: 1302686472}
   _nextRoundButtonText: {fileID: 1176158797}
-  InitiativeScrollViewContent: {fileID: 1809063769}
-  _initiativeOptionPrefab: {fileID: 8247737554674687790, guid: 84654f9ac05c09143b83b3e319a1544b, type: 3}
 --- !u!1 &844592434
 GameObject:
   m_ObjectHideFlags: 0
@@ -24385,6 +24384,53 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _inputField: {fileID: 0}
   _isAttributeInput: 1
+--- !u!1 &1126655790
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1126655791}
+  - component: {fileID: 1126655792}
+  m_Layer: 0
+  m_Name: InitiativeQueueManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1126655791
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1126655790}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 59686646}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1126655792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1126655790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c6e808c802bd7045b267d4d82c43b7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ActiveUnit: {fileID: 0}
+  InitiativeScrollViewContent: {fileID: 1809063769}
+  _initiativeOptionPrefab: {fileID: 8247737554674687790, guid: 84654f9ac05c09143b83b3e319a1544b, type: 3}
 --- !u!1 &1127453720
 GameObject:
   m_ObjectHideFlags: 0
@@ -36041,7 +36087,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99990f6a7c82bba4ab7a2bbc59585163, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weaponPrefab: {fileID: 7938855646076567153, guid: 3687a25b7d3870a499dfbd214d97d6f3, type: 3}
+  _weaponPrefab: {fileID: 7938855646076567153, guid: 3687a25b7d3870a499dfbd214d97d6f3, type: 3}
 --- !u!1 &1578129245
 GameObject:
   m_ObjectHideFlags: 0

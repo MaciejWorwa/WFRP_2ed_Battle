@@ -224,9 +224,12 @@ public class UnitsManager : MonoBehaviour
             newUnit.name = unitName;
         }
 
-        //Ustala początkową inicjatywę i dodaje jednostkę do kolejki inicjatywy
-        newUnit.GetComponent<Stats>().Initiative = newUnit.GetComponent<Stats>().Zr + Random.Range(1, 11);
-        RoundsManager.Instance.AddUnitToInitiativeQueue(newUnit.GetComponent<Unit>());
+        if(SaveAndLoadManager.Instance.IsLoading != true)
+        {
+            //Ustala początkową inicjatywę i dodaje jednostkę do kolejki inicjatywy
+            newUnit.GetComponent<Stats>().Initiative = newUnit.GetComponent<Stats>().Zr + Random.Range(1, 11);
+            InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(newUnit.GetComponent<Unit>());
+        }
 
         return newUnit;
     }
@@ -255,9 +258,9 @@ public class UnitsManager : MonoBehaviour
         }
 
         //Usunięcie jednostki z kolejki inicjatywy
-        RoundsManager.Instance.RemoveUnitFromInitiativeQueue(unit.GetComponent<Unit>());
+        InitiativeQueueManager.Instance.RemoveUnitFromInitiativeQueue(unit.GetComponent<Unit>());
         //Aktualizuje kolejkę inicjatywy
-        RoundsManager.Instance.UpdateInitiativeQueue();
+        InitiativeQueueManager.Instance.UpdateInitiativeQueue();
 
         //Usuwa jednostkę z listy wszystkich jednostek
         _unitsAmount--;
@@ -348,9 +351,9 @@ public class UnitsManager : MonoBehaviour
 
         //Ustala inicjatywę i aktualizuje kolejkę inicjatywy
         unit.GetComponent<Stats>().Initiative = unit.GetComponent<Stats>().Zr + Random.Range(1, 11);
-        RoundsManager.Instance.RemoveUnitFromInitiativeQueue(unit.GetComponent<Unit>());
-        RoundsManager.Instance.AddUnitToInitiativeQueue(unit.GetComponent<Unit>());
-        RoundsManager.Instance.UpdateInitiativeQueue();
+        InitiativeQueueManager.Instance.RemoveUnitFromInitiativeQueue(unit.GetComponent<Unit>());
+        InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(unit.GetComponent<Unit>());
+        InitiativeQueueManager.Instance.UpdateInitiativeQueue();
 
         //Aktualizuje wyświetlany panel ze statystykami
         UpdateUnitPanel(unit);
@@ -366,18 +369,21 @@ public class UnitsManager : MonoBehaviour
         unit.GetComponent<Stats>().Initiative = unit.GetComponent<Stats>().Zr + Random.Range(1, 11);
 
         //Aktualizuje kolejkę inicjatywy
-        RoundsManager.Instance.InitiativeQueue[unit.GetComponent<Unit>()] = unit.GetComponent<Stats>().Initiative;
-        RoundsManager.Instance.UpdateInitiativeQueue();
+        InitiativeQueueManager.Instance.InitiativeQueue[unit.GetComponent<Unit>()] = unit.GetComponent<Stats>().Initiative;
+        InitiativeQueueManager.Instance.UpdateInitiativeQueue();
 
         UpdateUnitPanel(unit);
     }
 
     public void EditAttribute(GameObject textInput)
     {
+        if (Unit.SelectedUnit == null) return;
+
         GameObject unit = Unit.SelectedUnit;
 
         // Pobiera pole ze statystyk postaci o nazwie takiej samej jak nazwa textInputa (z wyłączeniem słowa "input")
         string attributeName = textInput.name.Replace("_input", "");
+
         FieldInfo field = unit.GetComponent<Stats>().GetType().GetField(attributeName);
 
         if(field == null) return;

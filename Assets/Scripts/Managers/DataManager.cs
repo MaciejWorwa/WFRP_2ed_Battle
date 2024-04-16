@@ -127,7 +127,7 @@ public class DataManager : MonoBehaviour
     #endregion
 
     #region Loading weapons stats
-    public void LoadAndUpdateWeapons()
+    public void LoadAndUpdateWeapons(WeaponData weaponData = null)
     {
         // Ładowanie danych JSON
         TextAsset jsonFile = Resources.Load<TextAsset>("weapons");
@@ -138,7 +138,16 @@ public class DataManager : MonoBehaviour
         }
 
         // Deserializacja danych JSON
-        WeaponData[] weaponsArray = JsonHelper.FromJson<WeaponData>(jsonFile.text);
+        WeaponData[] weaponsArray = null;
+        if(weaponData == null)
+        {
+            weaponsArray = JsonHelper.FromJson<WeaponData>(jsonFile.text);
+        }
+        else
+        {
+            weaponsArray = new WeaponData[] { weaponData };
+        }
+
         if (weaponsArray == null)
         {
             Debug.LogError("Deserializacja JSON nie powiodła się. Sprawdź strukturę JSON.");
@@ -154,8 +163,11 @@ public class DataManager : MonoBehaviour
 
         foreach (var weapon in weaponsArray)
         {
-            //Ustala jakość wykonania broni
-            weapon.Quality = _weaponQualityDropdown.options[_weaponQualityDropdown.value].text;
+            if(_weaponQualityDropdown.transform.parent.gameObject.activeSelf) //Sprawdza, czy jest otwarte okno wyboru broni. W innym wypadku oznacza to, że bronie są wczytywane z pliku i nie chcemy zmieniać ich jakości
+            {
+                //Ustala jakość wykonania broni
+                weapon.Quality = _weaponQualityDropdown.options[_weaponQualityDropdown.value].text;
+            }
 
             if (weaponToUpdate != null && weapon.Id == weaponToUpdate.Id)
             {
@@ -173,7 +185,7 @@ public class DataManager : MonoBehaviour
                             continue;
                         }
 
-                        targetField.SetValue(weaponToUpdate, field.GetValue(weapon));
+                        targetField.SetValue(weaponToUpdate, field.GetValue(weapon));             
                     }
                 }
 
@@ -409,15 +421,15 @@ public class WeaponData
 [System.Serializable]
 public class InventoryData
 {
-    public List<int> AllWeaponsId = new List<int>(); // Lista identyfikatorów wszystkich posiadanych broni
+    public List<WeaponData> AllWeapons = new List<WeaponData>(); //Wszystkie posiadane przez postać przedmioty
     public int[] EquippedWeaponsId = new int[2]; // Tablica identyfikatorów broni trzymanych w rękach
 
     public InventoryData(Inventory inventory)
     {
-        // Dodaj identyfikatory wszystkich broni do listy AllWeaponIds
         foreach (var weapon in inventory.AllWeapons)
         {
-            AllWeaponsId.Add(weapon.Id);
+            WeaponData weaponData = new WeaponData(weapon);
+            AllWeapons.Add(weaponData);
         }
 
         // Dodaj identyfikatory broni trzymanych w rękach do tablicy EquippedWeaponIds

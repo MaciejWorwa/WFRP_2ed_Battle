@@ -232,7 +232,7 @@ public class CombatManager : MonoBehaviour
                 _availableAttacks --; 
 
                 //Zmienia jednostkę wg kolejności inicjatywy
-                if(_availableAttacks <= 0) RoundsManager.Instance.SelectUnitByQueue();
+                if(_availableAttacks <= 0) InitiativeQueueManager.Instance.SelectUnitByQueue();
             }
 
             //Aktualizuje modyfikator ataku o celowanie
@@ -695,7 +695,14 @@ public class CombatManager : MonoBehaviour
             }  
         }
 
-        return targetTile;
+        if(path.Count > attacker.GetComponent<Stats>().TempSz)
+        {
+            return null;
+        }
+        else
+        {
+            return targetTile;
+        }      
     }
     #endregion
 

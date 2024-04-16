@@ -218,7 +218,7 @@ public class SaveAndLoadManager : MonoBehaviour
             IsLoading = false;
             yield break;
         }
-
+        
         foreach (string unitFile in unitFiles)
         {
             //Pobieramy nazwę jednostki, usuwając końcówkę nazwy pliku
@@ -255,7 +255,7 @@ public class SaveAndLoadManager : MonoBehaviour
             unitGameObject.tag = unitData.Tag;
             unitGameObject.GetComponent<Unit>().ChangeUnitColor(unitGameObject);
 
-            yield return new WaitForSeconds(0.1f); // Oczekiwanie na zainicjowanie komponentów
+            yield return new WaitForSeconds(0.05f); // Oczekiwanie na zainicjowanie komponentów
 
             // Kontynuacja wczytywania i aktualizacji pozostałych danych jednostki
             LoadComponentDataWithReflection<StatsData, Stats>(unitGameObject, statsFilePath);
@@ -265,10 +265,27 @@ public class SaveAndLoadManager : MonoBehaviour
             //Wczytanie ekwipunku jednostki
             InventoryData inventoryData = JsonUtility.FromJson<InventoryData>(File.ReadAllText(inventoryFilePath));
             Unit.SelectedUnit = unitGameObject;
-            foreach(var weaponId in inventoryData.AllWeaponsId)
+            foreach(var weapon in inventoryData.AllWeapons)
             {
-                Unit.SelectedUnit.GetComponent<Weapon>().Id = weaponId;
-                DataManager.Instance.LoadAndUpdateWeapons();
+                Weapon unitWeapon = Unit.SelectedUnit.GetComponent<Weapon>();
+
+                var fields = typeof(Weapon).GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+                var thisFields = weapon.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+
+                foreach (var field in fields)
+                {
+                    var thisField = thisFields.FirstOrDefault(f => f.Name == field.Name);
+                    if (thisField != null)
+                    {
+                        var value = thisField.GetValue(weapon); // Pobieranie wartości z obiektu źródłowego
+                        if (value != null)
+                        {
+                            field.SetValue(unitWeapon, value); // Ustawianie wartości na obiekt docelowy
+                        }
+                    }
+                }
+
+                DataManager.Instance.LoadAndUpdateWeapons(weapon);
             }
             //Wczytanie aktualnie dobytych broni
             foreach(var weapon in Unit.SelectedUnit.GetComponent<Inventory>().AllWeapons)
@@ -291,11 +308,14 @@ public class SaveAndLoadManager : MonoBehaviour
                 TokenData tokenData = JsonUtility.FromJson<TokenData>(tokenJson);
                 StartCoroutine(TokensManager.Instance.LoadTokenImage(tokenData.filePath, Unit.SelectedUnit));
             }
+
+            //Dodaje jednostkę do kolejki inicjatywy
+            InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(unitGameObject.GetComponent<Unit>());
         }
 
         LoadRoundsManager(saveFolderPath);
 
-        Unit.SelectedUnit = null;
+        Unit.SelectedUnit.GetComponent<Unit>().SelectUnit(); //Odznaczenie postaci
         IsLoading = false;
         Debug.Log($"<color=green>Wczytano stan gry.</color>");
     }

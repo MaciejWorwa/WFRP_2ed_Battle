@@ -46,7 +46,7 @@ public class Unit : MonoBehaviour
         DisplayUnitHealthPoints();
 
         //Aktualizuje kolejkę inicjatywy
-        RoundsManager.Instance.UpdateInitiativeQueue();
+        InitiativeQueueManager.Instance.UpdateInitiativeQueue();
     }
     private void OnMouseUp()
     { 
@@ -55,7 +55,6 @@ public class Unit : MonoBehaviour
         if(!UnitsManager.IsUnitRemoving)
         {
             SelectUnit();
-            RoundsManager.Instance.UnselectAllOptionsInInitiativeQueue();
         }
         else
         {
@@ -129,6 +128,9 @@ public class Unit : MonoBehaviour
 
         //Aktualizuje panel ze statystykami postaci na górze ekranu
         UnitsManager.Instance.UpdateUnitPanel(SelectedUnit);
+
+        //Zaznacza lub odznacza jednostkę na kolejce inicjatywy
+        InitiativeQueueManager.Instance.UpdateInitiativeQueue();
     }
 
     public void ChangeUnitColor(GameObject unit)

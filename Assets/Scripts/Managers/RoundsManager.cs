@@ -33,10 +33,6 @@ public class RoundsManager : MonoBehaviour
     [SerializeField] private TMP_Text _roundNumberDisplay;
     [SerializeField] private TMP_Text _nextRoundButtonText;
     public Dictionary <Unit, int> UnitsWithActionsLeft = new Dictionary<Unit, int>();
-    public Dictionary <Unit, int> InitiativeQueue = new Dictionary<Unit, int>();
-    private Unit _activeUnit;
-    public Transform InitiativeScrollViewContent;
-    [SerializeField] private GameObject _initiativeOptionPrefab; // Prefab odpowiadający każdej jednostce na liście inicjatywy
 
     private void Start()
     {
@@ -66,114 +62,112 @@ public class RoundsManager : MonoBehaviour
         //Wykonuje testy grozy i strachu jeśli na polu bitwy są jednostki straszne lub przerażające
         UnitsManager.Instance.LookForScaryUnits();
 
-        UpdateInitiativeQueue();
+        InitiativeQueueManager.Instance.UpdateInitiativeQueue();
 
         //Wybiera jednostkę zgodnie z kolejką inicjatywy, jeśli ten tryb jest włączony
-        if (GameManager.IsAutoSelectUnitMode && _activeUnit != null)
+        if (GameManager.IsAutoSelectUnitMode && InitiativeQueueManager.Instance.ActiveUnit != null)
         {
-            SelectUnitByQueue();
+            InitiativeQueueManager.Instance.SelectUnitByQueue();
         }
     }
 
-    #region Initiative queue
-    public void AddUnitToInitiativeQueue(Unit unit)
-    {
-        InitiativeQueue.Add(unit, unit.GetComponent<Stats>().Initiative);
-        UnitsWithActionsLeft.Add(unit, 2);
-    }
+    // #region Initiative queue
+    // public void AddUnitToInitiativeQueue(Unit unit)
+    // {
+    //     InitiativeQueue.Add(unit, unit.GetComponent<Stats>().Initiative);
+    //     UnitsWithActionsLeft.Add(unit, 2);
+    // }
 
-    public void RemoveUnitFromInitiativeQueue(Unit unit)
-    {
-        InitiativeQueue.Remove(unit);
-        UnitsWithActionsLeft.Remove(unit);
-    }
+    // public void RemoveUnitFromInitiativeQueue(Unit unit)
+    // {
+    //     InitiativeQueue.Remove(unit);
+    //     UnitsWithActionsLeft.Remove(unit);
+    // }
 
-    public void UpdateInitiativeQueue()
-    {
-        //Sortowanie malejąco według wartości inicjatywy
-        InitiativeQueue = InitiativeQueue.OrderByDescending(pair => pair.Value).ToDictionary(pair => pair.Key, pair => pair.Value);
+    // public void UpdateInitiativeQueue()
+    // {
+    //     //Sortowanie malejąco według wartości inicjatywy
+    //     InitiativeQueue = InitiativeQueue.OrderByDescending(pair => pair.Value).ToDictionary(pair => pair.Key, pair => pair.Value);
 
-        DisplayInitiativeQueue();
-    }
+    //     DisplayInitiativeQueue();
+    // }
 
-    private void DisplayInitiativeQueue()
-    {
-        // Resetuje wyświetlaną kolejkę, usuwając wszystkie obiekty "dzieci"
-        Transform contentTransform = InitiativeScrollViewContent.transform;
-        for (int i = contentTransform.childCount - 1; i >= 0; i--)
-        {
-            Transform child = contentTransform.GetChild(i);
-            Destroy(child.gameObject);
-        }
+    // private void DisplayInitiativeQueue()
+    // {
+    //     // Resetuje wyświetlaną kolejkę, usuwając wszystkie obiekty "dzieci"
+    //     Transform contentTransform = InitiativeScrollViewContent.transform;
+    //     for (int i = contentTransform.childCount - 1; i >= 0; i--)
+    //     {
+    //         Transform child = contentTransform.GetChild(i);
+    //         Destroy(child.gameObject);
+    //     }
 
-        _activeUnit = null;
+    //     _activeUnit = null;
 
-        // Ustala wyświetlaną kolejkę inicjatywy
-        foreach (var pair in InitiativeQueue)
-        {
-            // Dodaje jednostkę do ScrollViewContent w postaci gameObjectu jako opcja CustomDropdowna
-            GameObject optionObj = Instantiate(_initiativeOptionPrefab, InitiativeScrollViewContent);
+    //     // Ustala wyświetlaną kolejkę inicjatywy
+    //     foreach (var pair in InitiativeQueue)
+    //     {
+    //         // Dodaje jednostkę do ScrollViewContent w postaci gameObjectu jako opcja CustomDropdowna
+    //         GameObject optionObj = Instantiate(_initiativeOptionPrefab, InitiativeScrollViewContent);
 
-            // Odniesienie do nazwy postaci
-            TextMeshProUGUI nameText = optionObj.transform.Find("Name_Text").GetComponent<TextMeshProUGUI>();
-            nameText.text = pair.Key.GetComponent<Stats>().Name;
+    //         // Odniesienie do nazwy postaci
+    //         TextMeshProUGUI nameText = optionObj.transform.Find("Name_Text").GetComponent<TextMeshProUGUI>();
+    //         nameText.text = pair.Key.GetComponent<Stats>().Name;
 
-            // Odniesienie do wartości inicjatywy
-            TextMeshProUGUI initiativeText = optionObj.transform.Find("Initiative_Text").GetComponent<TextMeshProUGUI>();
-            initiativeText.text = pair.Value.ToString();
+    //         // Odniesienie do wartości inicjatywy
+    //         TextMeshProUGUI initiativeText = optionObj.transform.Find("Initiative_Text").GetComponent<TextMeshProUGUI>();
+    //         initiativeText.text = pair.Value.ToString();
 
-            //Wyróżnia postać, która obecnie wykonuje turę. Sprawdza, czy postać ma jeszcze dostępne akcje, jeśli tak to jest jej tura (po zakończeniu tury liczba dostępnych akcji spada do 0)
-            if(UnitsWithActionsLeft[pair.Key] > 0 && _activeUnit == null)
-            {
-                _activeUnit = pair.Key;
-                optionObj.GetComponent<Image>().color = new Color(0.15f, 1f, 0.45f, 0.2f);
-            }
-            else
-            {
-                optionObj.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
-            }
-        }
-    }
+    //         //Wyróżnia postać, która obecnie wykonuje turę. Sprawdza, czy postać ma jeszcze dostępne akcje, jeśli tak to jest jej tura (po zakończeniu tury liczba dostępnych akcji spada do 0)
+    //         if(UnitsWithActionsLeft[pair.Key] > 0 && _activeUnit == null)
+    //         {
+    //             _activeUnit = pair.Key;
+    //             optionObj.GetComponent<Image>().color = new Color(0.15f, 1f, 0.45f, 0.2f);
+    //         }
+    //         else
+    //         {
+    //             optionObj.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
+    //         }
+    //     }
+    // }
 
-    public void SelectUnitByQueue()
-    {
-        StartCoroutine(InvokeSelectUnitCoroutine());
+    // public void SelectUnitByQueue()
+    // {
+    //     StartCoroutine(InvokeSelectUnitCoroutine());
             
-        IEnumerator InvokeSelectUnitCoroutine()
-        {
-            yield return new WaitForSeconds(0.1f);
+    //     IEnumerator InvokeSelectUnitCoroutine()
+    //     {
+    //         yield return new WaitForSeconds(0.1f);
 
-            //Czeka ze zmianą postaci, aż obecna postać zakończy ruch
-            while (MovementManager.Instance.IsMoving == true)
-            {
-                yield return null; // Czekaj na następną klatkę
-            }
+    //         //Czeka ze zmianą postaci, aż obecna postać zakończy ruch
+    //         while (MovementManager.Instance.IsMoving == true)
+    //         {
+    //             yield return null; // Czekaj na następną klatkę
+    //         }
 
-            DisplayInitiativeQueue();
+    //         DisplayInitiativeQueue();
 
-            //Gdy jest aktywny tryb automatycznego wybierania postaci na podstawie kolejki inicjatywy to taka postać jest wybierana. Jeżeli wszystkie wykonały akcje to następuje kolejna runda
-            if (GameManager.IsAutoSelectUnitMode && _activeUnit != null && _activeUnit.gameObject != Unit.SelectedUnit)
-            {
-                _activeUnit.SelectUnit();
-            }
-            else if (GameManager.IsAutoSelectUnitMode && _activeUnit == null)
-            {
-                NextRound();
-            }     
-        }
-    }
+    //         //Gdy jest aktywny tryb automatycznego wybierania postaci na podstawie kolejki inicjatywy to taka postać jest wybierana. Jeżeli wszystkie wykonały akcje to następuje kolejna runda
+    //         if (GameManager.IsAutoSelectUnitMode && _activeUnit != null && _activeUnit.gameObject != Unit.SelectedUnit)
+    //         {
+    //             _activeUnit.SelectUnit();
+    //         }
+    //         else if (GameManager.IsAutoSelectUnitMode && _activeUnit == null)
+    //         {
+    //             NextRound();
+    //         }     
+    //     }
+    // }
 
-    public void UnselectAllOptionsInInitiativeQueue()
-    {
-        Transform initiativeQueue = RoundsManager.Instance.InitiativeScrollViewContent;
-
-        //Odznaczenie wszystkich pozostałych opcji
-        for (int i = 0; i < initiativeQueue.childCount; i++)
-        {
-            initiativeQueue.GetChild(i).transform.Find("selected_option_background").gameObject.SetActive(false);
-        }
-    }
-    #endregion
+    // public void UnselectAllOptionsInInitiativeQueue()
+    // {
+    //     //Odznaczenie wszystkich pozostałych opcji
+    //     for (int i = 0; i < InitiativeScrollViewContent.childCount; i++)
+    //     {
+    //         InitiativeScrollViewContent.GetChild(i).transform.Find("selected_option_background").gameObject.SetActive(false);
+    //     }
+    // }
+    // #endregion
 
     #region Units actions
     public bool DoHalfAction(Unit unit)
@@ -190,7 +184,7 @@ public class RoundsManager : MonoBehaviour
             //Aktualizuje aktywną postać na kolejce inicjatywy, gdy obecna postać wykona wszystkie akcje w tej rundzie
             if(UnitsWithActionsLeft[unit] == 0)
             {
-                SelectUnitByQueue();
+                InitiativeQueueManager.Instance.SelectUnitByQueue();
             }
             return true;
         }
@@ -212,7 +206,7 @@ public class RoundsManager : MonoBehaviour
             //Aktualizuje aktywną postać na kolejce inicjatywy, bo obecna postać wykonała wszystkie akcje w tej rundzie. Wyjątkiem jest atak wielokrotny
             if(!CombatManager.Instance.AttackTypes["MultipleAttack"])
             {
-                SelectUnitByQueue();
+                InitiativeQueueManager.Instance.SelectUnitByQueue();
             }    
 
             return true;

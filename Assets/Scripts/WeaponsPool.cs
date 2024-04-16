@@ -3,8 +3,11 @@ using UnityEngine;
 
 public class WeaponsPool : MonoBehaviour
 {
-    public GameObject weaponPrefab; // Prefab broni
-    private Queue<GameObject> weaponsQueue = new Queue<GameObject>(); // Kolejka dla puli broni
+    [SerializeField] private GameObject _weaponPrefab; // Prefab broni
+    private Queue<GameObject> _weaponsQueue = new Queue<GameObject>(); // Kolejka dla puli broni
+
+    private List<GameObject> _weapons = new List<GameObject>();
+    private int _weaponsAmount = 0;
 
     public static WeaponsPool Instance; // Singleton dla łatwego dostępu
 
@@ -19,21 +22,26 @@ public class WeaponsPool : MonoBehaviour
     {
         for (int i = 0; i < initialCount; i++)
         {
-            GameObject weaponObj = Instantiate(weaponPrefab, this.transform);
+            GameObject weaponObj = Instantiate(_weaponPrefab, this.transform);
+
+            _weapons.Add(weaponObj);
+            _weaponsAmount ++;
+            weaponObj.name = "Weapon " + _weaponsAmount.ToString();
+
             weaponObj.SetActive(false);
-            weaponsQueue.Enqueue(weaponObj);
+            _weaponsQueue.Enqueue(weaponObj);
         }
     }
 
     // Pobieranie broni z puli
     public GameObject GetWeapon()
     {
-        if (weaponsQueue.Count == 0)
+        if (_weaponsQueue.Count == 0)
         {
             InitializePool(1); // Jeśli pula jest pusta, dodaj nowy element
         }
 
-        GameObject weapon = weaponsQueue.Dequeue();
+        GameObject weapon = _weaponsQueue.Dequeue();
         weapon.SetActive(true);
         return weapon;
     }
@@ -42,6 +50,6 @@ public class WeaponsPool : MonoBehaviour
     public void ReturnWeaponToPool(GameObject weapon)
     {
         weapon.SetActive(false);
-        weaponsQueue.Enqueue(weapon);
+        _weaponsQueue.Enqueue(weapon);
     }
 }

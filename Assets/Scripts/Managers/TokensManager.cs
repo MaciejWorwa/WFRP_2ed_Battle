@@ -33,14 +33,6 @@ public class TokensManager : MonoBehaviour
 
     void Start()
     {
-        StartCoroutine(ConfigureFileBrowser());
-    }
-
-    IEnumerator ConfigureFileBrowser()
-    {
-        // Opóźnienie w sekundach
-        yield return new WaitForSeconds(0.1f);
-
         // Konfiguracja SimpleFileBrowser po opóźnieniu
         FileBrowser.SetFilters(true, new FileBrowser.Filter("Images", ".jpg", ".png"));
         FileBrowser.SetDefaultFilter(".jpg");
