@@ -25,12 +25,12 @@ public class MapElementUI : MonoBehaviour, IPointerClickHandler
         // Odniesienie do prefabu wybranego elementu
         SelectedElement = Resources.Load<GameObject>(this.gameObject.name);
 
-        //Zmieñ kolor nowo wybranego elementu
+        //ZmieÅ„ kolor nowo wybranego elementu
         HighlightElement(SelectedElementImage);
 
         GameManager.IsMapElementPlacing = true;
 
-        Debug.Log("Wybierz pole, na którym chcesz umieœciæ wybrany element otoczenia. Przytrzymuj¹c lewy przycisk myszy i przesuwaj¹c po mapie, mo¿esz umieszczaæ wiele elementów naraz.");
+        Debug.Log("Wybierz pole, na ktÃ³rym chcesz umieÅ›ciÄ‡ wybrany element otoczenia. PrzytrzymujÄ…c lewy przycisk myszy i przesuwajÄ…c po mapie, moÅ¼esz umieszczaÄ‡ wiele elementÃ³w naraz.");
     }
 
     public void ResetColor(Image image)

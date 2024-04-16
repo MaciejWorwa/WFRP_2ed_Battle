@@ -55,7 +55,7 @@ public class WeaponsPool : MonoBehaviour
 
     public void ResetPool()
     {
-        weaponsQueue.Clear();
+        _weaponsQueue.Clear();
 
         for (int i = transform.childCount - 1; i >= 0; i--)
         {

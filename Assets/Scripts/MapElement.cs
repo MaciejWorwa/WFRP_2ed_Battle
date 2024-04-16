@@ -15,7 +15,7 @@ public class MapElement : MonoBehaviour
     }
     private void OnMouseOver()
     {
-        // Jeøeli nie jesteúmy w kreatorze pola bitwy to funkcja usuwania przeszkÛd jest wy≥πczona. Tak samo nie wywo≥ujemy jej, gdy lewy przycisk myszy nie jest wciúniÍty
+        // Je≈ºeli nie jeste≈õmy w kreatorze pola bitwy to funkcja usuwania przeszk√≥d jest wy≈ÇƒÖczona. Tak samo nie wywo≈Çujemy jej, gdy lewy przycisk myszy nie jest wci≈õniƒôty
         if (SceneManager.GetActiveScene().buildIndex != 0 || GameManager.IsMousePressed == false) return;
 
         DestroyElement();
@@ -25,6 +25,7 @@ public class MapElement : MonoBehaviour
     {
         if (MapEditor.IsElementRemoving)
         {
+            MapEditor.Instance.AllElements.Remove(gameObject);
             Destroy(gameObject);
 
             Collider2D collider = Physics2D.OverlapCircle(transform.position, 0.1f);

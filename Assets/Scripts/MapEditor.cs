@@ -7,10 +7,10 @@ using UnityEngine.UIElements;
 
 public class MapEditor : MonoBehaviour
 {
-    // Prywatne statyczne pole przechowuj¹ce instancjê
+    // Prywatne statyczne pole przechowujÄ…ce instancjÄ™
     private static MapEditor instance;
 
-    // Publiczny dostêp do instancji
+    // Publiczny dostÄ™p do instancji
     public static MapEditor Instance
     {
         get { return instance; }
@@ -25,7 +25,7 @@ public class MapEditor : MonoBehaviour
         }
         else if (instance != this)
         {
-            // Jeœli instancja ju¿ istnieje, a próbujemy utworzyæ kolejn¹, niszczymy nadmiarow¹
+            // JeÅ›li instancja juÅ¼ istnieje, a prÃ³bujemy utworzyÄ‡ kolejnÄ…, niszczymy nadmiarowÄ…
             Destroy(gameObject);
         }
     }
@@ -54,7 +54,7 @@ public class MapEditor : MonoBehaviour
 
     public void PlaceElementOnSelectedTile(Vector3 position)
     {
-        // Sprawdza, czy wskaŸnik znajduje siê nad GUI, lub nie wybrano ¿adnego obiektu
+        // Sprawdza, czy wskaÅºnik znajduje siÄ™ nad GUI, lub nie wybrano Å¼adnego obiektu
         if (/*EventSystem.current.IsPointerOverGameObject() ||*/ MapElementUI.SelectedElement == null) return;
 
         Collider2D collider = Physics2D.OverlapCircle(position, 0.1f);
@@ -63,7 +63,7 @@ public class MapEditor : MonoBehaviour
         {
             GameObject newElement = Instantiate(MapElementUI.SelectedElement, position, Quaternion.identity);
 
-            //Dodanie elementu do listy wszystkich obecnych na mapie elementów
+            //Dodanie elementu do listy wszystkich obecnych na mapie elementÃ³w
             AllElements.Add(newElement);
 
             newElement.tag = "MapElement";
@@ -89,13 +89,13 @@ public class MapEditor : MonoBehaviour
     {
         IsElementRemoving = isOn;
 
-        //Zmienia kolor przycisku usuwania jednostek na aktywny lub nieaktywny w zale¿noœci od stanu
+        //Zmienia kolor przycisku usuwania jednostek na aktywny lub nieaktywny w zaleÅ¼noÅ›ci od stanu
         _removeElementButton.GetComponent<UnityEngine.UI.Image>().color = isOn ? Color.green : Color.white;
 
         if(isOn)
         {
             ResetAllSelectedElements();
-            Debug.Log("Wybierz element otoczenia, który chcesz usun¹æ. Przytrzymuj¹c lewy przycisk myszy i przesuwaj¹c po mapie, mo¿esz usuwaæ wiele elementów naraz.");
+            Debug.Log("Wybierz element otoczenia, ktÃ³ry chcesz usunÄ…Ä‡. PrzytrzymujÄ…c lewy przycisk myszy i przesuwajÄ…c po mapie, moÅ¼esz usuwaÄ‡ wiele elementÃ³w naraz.");
         }
     }
 
@@ -103,7 +103,7 @@ public class MapEditor : MonoBehaviour
     {
         Collider2D[] colliders = Physics2D.OverlapCircleAll(position, 0.1f);
 
-        // Usuwa przeszkody z klikniêtego miejsca
+        // Usuwa przeszkody z klikniÄ™tego miejsca
         for (int i = 0; i < colliders.Length; i++)
         {
             //if (colliders[i].CompareTag("Tile")) continue;
@@ -114,7 +114,7 @@ public class MapEditor : MonoBehaviour
 
     public void RemoveElementsOutsideTheGrid()
     {
-        // Usuwa wszystkie przeszkody poza siatk¹ bitewn¹
+        // Usuwa wszystkie przeszkody poza siatkÄ… bitewnÄ…
         for (int i = AllElements.Count - 1; i >= 0; i--)
         {
             int rightBound = GridManager.Width / 2;
