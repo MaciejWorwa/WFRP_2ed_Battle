@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class Tile : MonoBehaviour
 {
@@ -57,6 +60,19 @@ public class Tile : MonoBehaviour
             //Wykonuje ruch na kliknięte pole
             MovementManager.Instance.MoveSelectedUnit(this.gameObject, Unit.SelectedUnit);
         }
+    }
+
+    private void OnMouseOver()
+    {
+        // Jeżeli nie jesteśmy w kreatorze pola bitwy to funkcja stawiania przeszkód jest wyłączona. Tak samo nie wywołujemy jej, gdy lewy przycisk myszy nie jest wciśnięty
+        if (SceneManager.GetActiveScene().buildIndex != 0 ||  GameManager.IsMousePressed == false) return;
+
+        //Sprawdzamy, czy jest aktywny tryb usuwania elementów 
+        if (MapEditor.IsElementRemoving) return;
+
+        Vector3 position = new Vector3(transform.position.x, transform.position.y, 1);
+
+        MapEditor.Instance.PlaceElementOnSelectedTile(position);
     }
 
     public void HighlightTile()

@@ -5,6 +5,8 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
 using SimpleFileBrowser;
+using static UnityEditor.Experimental.GraphView.GraphView;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -32,18 +34,22 @@ public class GameManager : MonoBehaviour
     }
 
     [Header("Tryby gry")]
-    public static bool IsAutoDiceRollingMode;
+    public static bool IsAutoDiceRollingMode = true;
     [SerializeField] private Button _autoDiceRollingButton;
-    public static bool IsAutoDefenseMode;
+    public static bool IsAutoDefenseMode = true;
     [SerializeField] private Button _autoDefenseButton;
-    public static bool IsAutoKillMode;
+    public static bool IsAutoKillMode = true;
     [SerializeField] private Button _autoKillButton;
-    public static bool IsAutoSelectUnitMode;
+    public static bool IsAutoSelectUnitMode = true;
     [SerializeField] private Button _autoSelectUnitButton;
-    public static bool IsFriendlyFire;
+    public static bool IsFriendlyFire = false;
     [SerializeField] private Button _friendlyFireButton;
     private Dictionary<Button, bool> allModes;
     public static bool IsGamePaused;
+
+    [Header("Edytor map")]
+    public static bool IsMapElementPlacing;
+    public static bool IsMousePressed;
 
     [Header("Panele")]
     public GameObject[] activePanels;
@@ -54,11 +60,11 @@ public class GameManager : MonoBehaviour
         // Inicjalizacja słownika z wszystkimi trybami i przyciskami. Ustawienie ich początkowych wartości
         allModes = new Dictionary<Button, bool>()
         {
-            {_autoDefenseButton, IsAutoDefenseMode = true},
-            {_autoSelectUnitButton, IsAutoSelectUnitMode = true},
-            {_autoKillButton, IsAutoKillMode = true},
-            {_friendlyFireButton, IsFriendlyFire = false},
-            {_autoDiceRollingButton, IsAutoDiceRollingMode = true},
+            {_autoDefenseButton, IsAutoDefenseMode},
+            {_autoSelectUnitButton, IsAutoSelectUnitMode},
+            {_autoKillButton, IsAutoKillMode},
+            {_friendlyFireButton, IsFriendlyFire},
+            {_autoDiceRollingButton, IsAutoDiceRollingMode},
         };
 
         // Ustawia kolory przycisków na podstawie początkowych wartości trybów
@@ -86,8 +92,25 @@ public class GameManager : MonoBehaviour
                 HideActivePanels();
             }
         }
+
+        // Sprawdza, czy lewy przycisk myszy jest przytrzymany
+        if (Input.GetMouseButtonDown(0))
+        {
+            IsMousePressed = true;
+        }
+        else if (Input.GetMouseButtonUp(0))
+        {
+            IsMousePressed = false;
+        }
+
     }
 
+    public void ChangeScene(int index)
+    {
+        SceneManager.LoadScene(index, LoadSceneMode.Single);
+    }
+
+    #region UI panels
     public void ShowPanel(GameObject panel)
     {
         panel.SetActive(true);
@@ -132,6 +155,7 @@ public class GameManager : MonoBehaviour
 
         return false;
     }
+    #endregion
 
     #region Game modes
     public void SetAutoRollingDiceMode()

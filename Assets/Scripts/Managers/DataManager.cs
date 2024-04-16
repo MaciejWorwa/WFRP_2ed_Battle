@@ -7,7 +7,7 @@ using System.Linq;
 using UnityEngine.UIElements;
 using System.Collections.Generic;
 using Unity.VisualScripting.Antlr3.Runtime.Misc;
-
+using Unity.VisualScripting;
 
 public class DataManager : MonoBehaviour
 { 
@@ -461,5 +461,40 @@ public class UnitNameAndActionsLeft
     public string UnitName;
     public int ActionsLeft;
 }
+
+[System.Serializable]
+public class MapElementsData
+{
+    public int GridWidth;
+    public int GridHeight;
+    public string Name;
+    public string Tag;
+    public bool IsHighObstacle;
+    public bool IsLowObstacle;
+    public float[] position;
+
+    public MapElementsData(MapElement mapElement)
+    {
+        GridWidth = GridManager.Width; 
+        GridHeight = GridManager.Height;
+
+        Name = mapElement.gameObject.name.Replace("(Clone)", "");
+        Tag = mapElement.gameObject.tag;
+        IsHighObstacle= mapElement.IsHighObstacle;
+        IsLowObstacle= mapElement.IsLowObstacle;
+
+        position = new float[3];
+        position[0] = mapElement.gameObject.transform.position.x;
+        position[1] = mapElement.gameObject.transform.position.y;
+        position[2] = mapElement.gameObject.transform.position.z;
+    }
+}
+
+[System.Serializable]
+public class MapElementsContainer
+{
+    public List<MapElementsData> Elements = new List<MapElementsData>();
+}
+
 #endregion
 

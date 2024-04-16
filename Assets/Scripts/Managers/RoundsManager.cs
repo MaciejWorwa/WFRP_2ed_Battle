@@ -222,7 +222,9 @@ public class RoundsManager : MonoBehaviour
     public void LoadRoundsManagerData(RoundsManagerData data)
     {
         RoundNumber = data.RoundNumber;
-        
+        _roundNumberDisplay.text = "Runda: " + RoundNumber;
+        _nextRoundButtonText.text = "Następna runda";
+
         UnitsWithActionsLeft.Clear(); // Czyści słownik przed uzupełnieniem nowymi danymi
 
         foreach (var entry in data.Entries)

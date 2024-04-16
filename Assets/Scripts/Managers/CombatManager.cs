@@ -171,18 +171,42 @@ public class CombatManager : MonoBehaviour
         //Wykonuje atak, jeśli cel jest w zasięgu
         if (_attackDistance <= attackerWeapon.AttackRange || _attackDistance <= attackerWeapon.AttackRange * 2 && attackerWeapon.Type.Contains("ranged"))
         {
-            //Sprawdza, czy broń jest naładowana (w przypadku ataku dystansowego)
-            if (_attackDistance > 1.5f && attackerWeapon.ReloadLeft != 0)
+            //Sprawdza konieczne warunki do wykonania ataku dystansowego
+            if(attackerWeapon.Type.Contains("ranged"))
             {
-                Debug.Log($"Broń wymaga przeładowania.");
-                return;
-            }
+                //Sprawdza, czy broń jest naładowana
+                if (attackerWeapon.ReloadLeft != 0)
+                {
+                    Debug.Log($"Broń wymaga przeładowania.");
+                    return;
+                }
 
-            //Sprawdza, czy cel nie znajduje się zbyt blisko (w przypadku ataku dystansowego)
-            if (_attackDistance <= 1.5f && attackerWeapon.Type.Contains("ranged"))
-            {
-                Debug.Log($"Stoisz zbyt blisko celu aby wykonać atak dystansowy.");
-                return;
+                //Sprawdza, czy cel nie znajduje się zbyt blisko
+                if (_attackDistance <= 1.5f)
+                {
+                    Debug.Log($"Stoisz zbyt blisko celu aby wykonać atak dystansowy.");
+                    return;
+                }
+
+                // Sprawdza, czy na linii strzału znajduje się przeszkoda
+                RaycastHit2D[] raycastHits = Physics2D.RaycastAll(attacker.transform.position, target.transform.position - attacker.transform.position, _attackDistance);
+
+                foreach (var raycastHit in raycastHits)
+                {
+                    if (raycastHit.collider != null && raycastHit.collider.GetComponent<MapElement>() != null && raycastHit.collider.GetComponent<MapElement>().IsHighObstacle)
+                    {
+                        Debug.Log("Na linii strzału znajduje się przeszkoda.");
+                        return;
+                    }
+                    if (raycastHit.collider != null && raycastHit.collider.GetComponent<MapElement>() != null && raycastHit.collider.GetComponent<MapElement>().IsLowObstacle)
+                    {
+                        _attackModifier -= 20;
+
+                        Debug.Log("Strzał jest wykonywany w jednostkę znajdującą się za niewielką przeszkodą. Zastosowano ujemny modyfikator do trafienia.");
+
+                        break; //Żeby modyfikator nie kumolował się za każdą przeszkodę
+                    }
+                }
             }
 
             //Wykonuje akcję (pomija tak okazyjny)

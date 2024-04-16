@@ -127,8 +127,8 @@ public class UnitsManager : MonoBehaviour
         //Resetuje input field z nazwą jednostki
         _unitNameInputField.text = null;
 
-        int width = GridManager.Instance.Width;
-        int height = GridManager.Instance.Height;
+        int width = GridManager.Width;
+        int height = GridManager.Height;
 
         // Liczba dostępnych pól
         int availableTiles = width * height;

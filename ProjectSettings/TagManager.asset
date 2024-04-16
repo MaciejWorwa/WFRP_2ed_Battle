@@ -10,6 +10,7 @@ TagManager:
   - Panel
   - SidePanel
   - Attribute
+  - MapElement
   layers:
   - Default
   - TransparentFX
