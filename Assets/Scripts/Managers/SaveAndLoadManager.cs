@@ -170,6 +170,8 @@ public class SaveAndLoadManager : MonoBehaviour
     {
         MapElementsContainer container = new MapElementsContainer();
 
+        if (MapEditor.Instance == null) return;
+
         // Zbieranie danych z każdego elementu
         foreach (var element in MapEditor.Instance.AllElements)
         {

@@ -6,6 +6,10 @@ using UnityEngine.TextCore.Text;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 using System.Linq;
+using static SimpleFileBrowser.FileBrowser;
+using Unity.VisualScripting;
+using UnityEditor;
+using UnityEditor.Experimental.GraphView;
 
 public class CombatManager : MonoBehaviour
 {
@@ -41,6 +45,8 @@ public class CombatManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button _allOutAttackButton;
     [SerializeField] private UnityEngine.UI.Button _guardedAttackButton;
     [SerializeField] private UnityEngine.UI.Button _multipleAttackButton;
+    [SerializeField] private UnityEngine.UI.Button _feintButton;
+    [SerializeField] private UnityEngine.UI.Button _stunButton;
     public Dictionary<string, bool> AttackTypes = new Dictionary<string, bool>();
 
     // Metoda inicjalizująca słownik ataków
@@ -59,6 +65,8 @@ public class CombatManager : MonoBehaviour
         AttackTypes.Add("AllOutAttack", false);  // Szaleńczy atak
         AttackTypes.Add("GuardedAttack", false);  // Ostrożny atak
         AttackTypes.Add("MultipleAttack", false);  // Atak wielokrotny
+        AttackTypes.Add("Feint", false);  // Finta
+        AttackTypes.Add("Stun", false);  // Ogłuszanie
     }
 
     // Metoda ustawiająca dany typ ataku
@@ -122,6 +130,22 @@ public class CombatManager : MonoBehaviour
                 }
 
             }
+
+            //Ogłuszanie jest dostępne tylko dla jednostek ze zdolnością ogłuszania
+            if (AttackTypes["Stun"] == true && unit.GetComponent<Stats>().StrikeToStun == false)
+            {
+                    AttackTypes[attackTypeName] = false;
+                    AttackTypes["StandardAttack"] = true;
+                    Debug.Log("Ogłuszanie mogą wykonywać tylko jednostki posiadające tą zdolność.");
+            }
+
+            //Ograniczenie finty do ataków w zwarciu
+            if (AttackTypes["Feint"] == true && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type.Contains("ranged"))
+            {
+                AttackTypes[attackTypeName] = false;
+                AttackTypes["StandardAttack"] = true;
+                Debug.Log("Jednostka walcząca bronią dystansową nie może wykonywać finty.");
+            }
         }
 
         UpdateAttackTypeButtonsColor();
@@ -132,26 +156,28 @@ public class CombatManager : MonoBehaviour
         _standardAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["StandardAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
         _allOutAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["AllOutAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
         _guardedAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["GuardedAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
-        _multipleAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["MultipleAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;       
+        _multipleAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["MultipleAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
+        _feintButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Feint"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
+        _stunButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Stun"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
     }
 
     #endregion
 
     #region Attack function
-    public void Attack(Unit attacker, Unit target, bool opportunityAttack) 
+    public void Attack(Unit attacker, Unit target, bool opportunityAttack)
     {
         //Sprawdza, czy gra nie jest wstrzymana (np. poprzez otwarcie dodatkowych paneli)
-        if(GameManager.IsGamePaused)
+        if (GameManager.IsGamePaused)
         {
             Debug.Log("Gra została wstrzymana. Aby ją wznowić musisz wyłączyć okno znajdujące się na polu gry.");
-            return; 
+            return;
         }
 
-        if(attacker.CanAttack == false && opportunityAttack == false)
+        if (attacker.CanAttack == false && opportunityAttack == false)
         {
             Debug.Log("Wybrana jednostka nie może wykonać kolejnego ataku w tej rundzie.");
             return;
-        } 
+        }
 
         Stats attackerStats = attacker.Stats;
         Stats targetStats = target.Stats;
@@ -160,7 +186,7 @@ public class CombatManager : MonoBehaviour
         Weapon targetWeapon = target.GetComponent<Weapon>();
 
         //Jeżeli postać nie posiada w rękach broni to odnosimy się bezpośrednio do jego komponentu Weapon, który odpowiada w tym przypadku walce bez broni
-        if(attackerWeapon == null)
+        if (attackerWeapon == null)
         {
             attackerWeapon = attacker.GetComponent<Weapon>();
         }
@@ -172,7 +198,7 @@ public class CombatManager : MonoBehaviour
         if (_attackDistance <= attackerWeapon.AttackRange || _attackDistance <= attackerWeapon.AttackRange * 2 && attackerWeapon.Type.Contains("ranged"))
         {
             //Sprawdza konieczne warunki do wykonania ataku dystansowego
-            if(attackerWeapon.Type.Contains("ranged"))
+            if (attackerWeapon.Type.Contains("ranged"))
             {
                 //Sprawdza, czy broń jest naładowana
                 if (attackerWeapon.ReloadLeft != 0)
@@ -212,22 +238,25 @@ public class CombatManager : MonoBehaviour
             //Wykonuje akcję (pomija tak okazyjny)
             bool canDoAction = true;
             if (attacker.IsCharging && _attackModifier != 0) //Szarża
-            {            
+            {
                 canDoAction = RoundsManager.Instance.DoFullAction(attacker);
             }
             else if (AttackTypes["AllOutAttack"] == true || AttackTypes["GuardedAttack"] == true || (AttackTypes["MultipleAttack"] == true && _availableAttacks == attackerStats.A)) //Specjalne ataki (szaleńczy, ostrożny i wielokrotny)
             {
                 canDoAction = RoundsManager.Instance.DoFullAction(attacker);
             }
-            else if(AttackTypes["StandardAttack"] == true && opportunityAttack == false) //Zwykły atak
+            else if ((AttackTypes["StandardAttack"] == true && opportunityAttack == false) || AttackTypes["Feint"] == true || AttackTypes["Stun"] == true) //Zwykły atak lub finta
             {
                 canDoAction = RoundsManager.Instance.DoHalfAction(attacker);
             }
 
-            if(!canDoAction) return;
+            if (!canDoAction) return;
 
-            //Zaznacza, że jednostka wykonała już akcję ataku w tej rundzie. Uniemożliwia to wykonanie kolejnej. Nie dotyczy ataku okazyjnego, a w wielokrotnym sprawdza ilość dostępnych ataków
-            if(!opportunityAttack && !AttackTypes["MultipleAttack"] || AttackTypes["MultipleAttack"] && _availableAttacks == 0) attacker.CanAttack = false;
+            //Zaznacza, że jednostka wykonała już akcję ataku w tej rundzie. Uniemożliwia to wykonanie kolejnej. Nie dotyczy ataku okazyjnego, finty i ogłuszania, a w wielokrotnym sprawdza ilość dostępnych ataków
+            if (!opportunityAttack && !AttackTypes["MultipleAttack"] && !AttackTypes["Feint"] && !AttackTypes["Stun"] || AttackTypes["MultipleAttack"] && _availableAttacks == 0)
+            {
+                attacker.CanAttack = false;
+            }
 
             //Resetuje pozycję obronną, jeśli była aktywna
             if (attacker.DefensiveBonus != 0)
@@ -281,6 +310,16 @@ public class CombatManager : MonoBehaviour
                 //Rzut na trafienie
                 int rollResult = Random.Range(1, 101);
 
+                //Wykonuje fintę. Po niej następuje zwykły atak (inaczej bez sensu jest robienie finty).
+                if (AttackTypes["Feint"] == true)
+                {
+                    attacker.Feinted = Feint(rollResult, attackerStats, targetStats);
+
+                    ChangeAttackType("StandardAttack");
+
+                    return; //Kończy akcję ataku, żeby nie przechodzić do dalszych etapów jak np. zadanie obrażeń
+                }
+
                 //Sprawdza, czy atak jest atakiem dystansowym, czy atakiem w zwarciu i ustala jego skuteczność
                 isSuccessful = CheckAttackEffectiveness(rollResult, attackerStats, attackerWeapon, target);
 
@@ -299,19 +338,35 @@ public class CombatManager : MonoBehaviour
             }
 
             //Atakowany próbuje parować lub unikać.
-            if (isSuccessful && attackerWeapon.Type.Contains("melee"))
+            if (isSuccessful && attackerWeapon.Type.Contains("melee") && (attacker.Feinted != true || AttackTypes["StandardAttack"] != true))
             {
                 isSuccessful = CheckForParryAndDodge(attackerWeapon, targetWeapon, targetStats, target);
             }
 
+            //Zresetowanie finty
+            attacker.Feinted = false;
+
             if (isSuccessful)
             {
+                //Ogłuszanie
+                if (AttackTypes["Stun"] == true)
+                {
+                    Stun(attackerStats, targetStats);
+                    return; //Kończy akcję ataku, żeby nie przechodzić do dalszych etapów jak np. zadanie obrażeń
+                }
+
                 int damageRollResult = DamageRoll(attackerStats, attackerWeapon);
                 int damage = CalculateDamage(damageRollResult, attackerStats, attackerWeapon);
                 int armor = CalculateArmor(targetStats, attackerWeapon);
 
+                //Bonus do obrażeń w przypadku atakowania postaci bezbronnej
+                if (target.HelplessDuration > 0)
+                {
+                    damage += Random.Range(1, 11);
+                }
+
                 //Uwzględnienie strzału przebijającego zbroję (zdolność)
-                if(attackerStats.SureShot && _attackDistance <= 1.5f && attackerWeapon.Type.Contains("ranged") && armor > 0) armor --;
+                if (attackerStats.SureShot && _attackDistance <= 1.5f && attackerWeapon.Type.Contains("ranged") && armor > 0) armor --;
             
                 Debug.Log($"{attackerStats.Name} wyrzucił {damageRollResult} i zadał {damage} obrażeń.");
 
@@ -396,6 +451,14 @@ public class CombatManager : MonoBehaviour
         if(attackerWeapon.Quality == "Kiepska") _attackModifier -= 5;
         else if(attackerWeapon.Quality == "Najlepsza") _attackModifier += 5;
 
+        //Modyfikatory za stany atakowanego (ogłuszenie, unieruchomienie, bezbronność)
+        if(targetUnit.StunDuration > 0) _attackModifier += 20;
+        if(targetUnit.TrappedDuration > 0) _attackModifier += 20;
+        if (targetUnit.HelplessDuration > 0)
+        {
+            return true; //Gdy postać jest bezbronna to trafienie następuje automatycznie
+        }
+
         //Sprawdza, czy atak jest atakiem dystansowym
         if (attackerWeapon.Type.Contains("ranged"))
         {
@@ -436,7 +499,7 @@ public class CombatManager : MonoBehaviour
         if (attackerWeapon.Type.Contains("melee"))
         {
             //Uwzględnienie zdolności bijatyka, w przypadku walki Pięściami (Id broni = 0)
-            if(attackerWeapon.Id == 0 && attackerStats.StreetFighting == true)
+            if (attackerWeapon.Id == 0 && attackerStats.StreetFighting == true)
             {
                 _attackModifier += 10;
             }
@@ -914,6 +977,95 @@ public class CombatManager : MonoBehaviour
         {
             attackerWeapon.ReloadLeft--;   
         }
+    }
+    #endregion
+
+    #region Feint
+    private bool Feint(int rollResult, Stats attackerStats, Stats targetStats)
+    {
+        //Przeciwstawny rzut na WW
+        int targetRollResult = Random.Range(1, 101);
+
+        int attackerSuccessLevel = attackerStats.WW - rollResult;
+        int targetSuccessLevel = targetStats.WW - targetRollResult;
+
+        Debug.Log($"{attackerStats.Name} wykonuje fintę. Następuje przeciwstawny rzut na WW. Atakujący rzuca: {rollResult} Wartość WW: {attackerStats.WW}. Atakowany rzuca: {targetRollResult} Wartość WW: {targetStats.WW}. Wynik: {attackerSuccessLevel} do {targetSuccessLevel}");
+
+        if (attackerSuccessLevel > targetSuccessLevel)
+        {
+            return true;
+        }
+        else return false;
+    }
+    #endregion
+
+    #region Stun
+    public void Stun(Stats attackerStats, Stats targetStats)
+    {
+        //Przeciwstawny rzut na Krzepę
+        int attackerRollResult = Random.Range(1, 101);
+        int targetRollResult = Random.Range(1, 101);
+
+        int attackerSuccessLevel = attackerStats.K - attackerRollResult;
+        int targetSuccessLevel = targetStats.K - targetRollResult;
+
+        Debug.Log($"{attackerStats.Name} wykonuje ogłuszanie. Następuje przeciwstawny rzut na krzepę. Atakujący rzuca: {attackerRollResult} Wartość cechy: {attackerStats.K}. Atakowany rzuca: {targetRollResult} Wartość cechy: {targetStats.K}. Wynik: {attackerSuccessLevel} do {targetSuccessLevel}");
+
+        if (attackerSuccessLevel > targetSuccessLevel)
+        {
+            // Rzut na odporność
+            int odpRoll = Random.Range(1, 101);
+            int modifier = targetStats.Armor_head * 10; //Mofydikator do rzutu na odporność za zbroję na głowie
+
+            Debug.Log($"Rzut na odporność {targetStats.Name}. Wynik rzutu: {odpRoll} Wartość cechy: {targetStats.Odp}. Modyfikator za hełm: {modifier}");
+
+            if (odpRoll > (targetStats.Odp + modifier))
+            {
+                int roundsNumber = Random.Range(1, 11);
+
+                targetStats.GetComponent<Unit>().StunDuration = roundsNumber;
+                RoundsManager.Instance.UnitsWithActionsLeft[targetStats.GetComponent<Unit>()] = 0;
+
+                Debug.Log($"{targetStats.Name} zostaje ogłuszony na {roundsNumber} rund/y.");
+            }
+            else
+            {
+                Debug.Log($"Ogłuszanie nie powiodło się.");
+            }
+        }
+        else
+        {
+            Debug.Log($"Ogłuszanie nie powiodło się.");
+        }
+    }
+    #endregion
+
+    #region Trap
+    //Próba uwolnienia się z unierchomienia
+    public void BreakFree(Unit unit) //JESZCZE NIE TESTOWANE
+    {
+        bool canDoAction = RoundsManager.Instance.DoHalfAction(unit);
+
+        if (!canDoAction) return;
+
+        Stats unitStats = unit.GetComponent<Stats>();
+
+        int rollResult = Random.Range(1, 101);
+
+        string attributeName = unitStats.K > unitStats.Zr ? "Krzepę" : "Zręczność";
+        int attributeValue = unitStats.K > unitStats.Zr ? unitStats.K : unitStats.Zr;
+
+        Debug.Log($"{unitStats.Name} próbuje się uwolnić. Rzut na {attributeName}: {rollResult} Wartość cechy: {attributeValue}");
+
+        if (rollResult < attributeValue)
+        {
+            unit.TrappedDuration = 0; 
+            Debug.Log($"{unitStats.Name} uwolnił/a się.");
+        }
+        else
+        {
+            Debug.Log($"Próba uwolnienia {unitStats.Name} nie powiodła się.");
+        }    
     }
     #endregion
 }

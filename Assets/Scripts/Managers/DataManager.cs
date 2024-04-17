@@ -273,15 +273,16 @@ public class UnitData
     public bool IsSelected;
     public bool IsRunning; // Biegnie
     public bool IsCharging; // Szarżuje
-    public bool IsHelpless; // Jest bezbronny
+    public int HelplessDuration; // Czas stanu bezbronności (podany w rundach). Wartość 0 oznacza, że postać nie jest bezbronna
     public bool IsScared; // Jest przestraszony
     public bool IsFearTestPassed; // Zdał test strachu
-    public bool IsStunned; // Jest ogłuszony
-    public bool IsTrapped; // Jest unieruchomiony
+    public int StunDuration; // Czas ogłuszenia (podany w rundach). Wartość 0 oznacza, że postać nie jest ogłuszona
+    public int TrappedDuration; // Czas unieruchomienia (podany w rundach). Wartość 0 oznacza, że postać nie jest unieruchomiona
     public int AimingBonus;
     public int DefensiveBonus;
     public int GuardedAttackBonus; //Modyfikator do uników i parowania za ostrożny atak
     public bool CanAttack = true;
+    public bool Feinted = false; // Określa, czy postać wykonała w poprzedniej akcji udaną fintę
     public bool CanParry = true;
     public bool CanDodge = false;
 

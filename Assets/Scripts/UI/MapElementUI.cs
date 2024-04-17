@@ -35,11 +35,11 @@ public class MapElementUI : MonoBehaviour, IPointerClickHandler
 
     public void ResetColor(Image image)
     {
-        image.color = Color.white;
+        image.color = new Color(0f, 0f, 0f, 0.4f);
     }
 
     public void HighlightElement(Image image)
     {
-        image.color = new Color(0f, 0.8f, 0f, 0.5f);
+        image.color = new Color(0f, 0.8f, 0f, 0.35f);
     }
 }

@@ -274,9 +274,9 @@ public class MovementManager : MonoBehaviour
         }
 
         //Sprawdzenie, czy postać walczy bronia dystansową. Jeśli tak, to szarża nie jest możliwa
-        if(modifier == 2 && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type[0] == "ranged")
+        if(modifier == 2 && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type.Contains("ranged"))
         {
-            Debug.Log("Postać walcząca bronią dystansową nie może wykonywać szarży.");
+            Debug.Log("Jednostka walcząca bronią dystansową nie może wykonywać szarży.");
             return;
         }
 
