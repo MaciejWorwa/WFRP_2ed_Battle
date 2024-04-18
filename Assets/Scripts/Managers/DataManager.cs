@@ -277,7 +277,8 @@ public class UnitData
     public bool IsScared; // Jest przestraszony
     public bool IsFearTestPassed; // Zdał test strachu
     public int StunDuration; // Czas ogłuszenia (podany w rundach). Wartość 0 oznacza, że postać nie jest ogłuszona
-    public int TrappedDuration; // Czas unieruchomienia (podany w rundach). Wartość 0 oznacza, że postać nie jest unieruchomiona
+    public bool Trapped; // Unieruchomiony
+    //public int TrappedDuration; // Czas unieruchomienia (podany w rundach). Wartość 0 oznacza, że postać nie jest unieruchomiona
     public int AimingBonus;
     public int DefensiveBonus;
     public int GuardedAttackBonus; //Modyfikator do uników i parowania za ostrożny atak
@@ -393,12 +394,15 @@ public class WeaponData
     public int S;
     public int ReloadTime;
     public int ReloadLeft;
+    public bool ArmourPiercing; // przebijający zbroje
+    public bool Balanced; // wyważony
     public bool Defensive; // parujący
     public bool Fast; // szybki
     public bool Impact; // druzgoczący
+    public bool Pummelling; // ogłuszający
     public bool Slow; // powolny
+    public bool Snare; // unieruchamiający
     public bool Tiring; // ciężki
-    public bool ArmourPiercing; // przebijający zbroje
 
     public WeaponData(Weapon weapons)
     {

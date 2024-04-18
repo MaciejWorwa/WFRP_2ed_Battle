@@ -26,6 +26,8 @@ public class Tile : MonoBehaviour
 
     private void OnMouseEnter()
     {
+        if(SaveAndLoadManager.Instance != null && SaveAndLoadManager.Instance.IsLoading) return; //Zapobiega podświetlaniu pól podczas wczytywania gry
+
         HighlightTile();
 
         if(Unit.SelectedUnit != null && !MovementManager.Instance.IsMoving)

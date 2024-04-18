@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class CameraManager : MonoBehaviour
 {
@@ -21,6 +22,12 @@ public class CameraManager : MonoBehaviour
     void Update()
     {
         if(GameManager.IsGamePaused || GameManager.Instance.IsAnyInputFieldFocused()) return;
+
+        if(SceneManager.GetActiveScene().buildIndex == 1)
+        {
+            bool isCursorOnConsoleView = CursorPositionOnConsoleView();
+            if(isCursorOnConsoleView) return;
+        }
 
         float scrollInput = Input.GetAxis("Mouse ScrollWheel");
 
@@ -67,6 +74,30 @@ public class CameraManager : MonoBehaviour
             transform.Translate(-dragDirection); // Przesuwa kamerę przeciwnie do kierunku przeciągnięcia
 
             _dragOrigin = currentPosition; // Aktualizuje pozycję początkową dla kolejnego kroku
+        }
+    }
+
+    private bool CursorPositionOnConsoleView()
+    {
+        // Pobieranie pozycji kursora
+        Vector3 mousePos = Input.mousePosition;
+
+        // Definiowanie obszarów granicznych
+        float rightBoundaryWidth = Screen.width * 0.39f; // Prawe 39% szerokości ekranu
+        float topRectHeight = Screen.height * 0.38f; // Górne 38% wysokości ekranu
+        float rightBoundaryStart = Screen.width * (1 - 0.39f); // Początek prawej granicy
+        float topRectStart = Screen.height * (1 - 0.38f); // Początek górnej granicy prostokąta
+
+        // Sprawdzanie, czy kursor znajduje się w wyznaczonym obszarze
+        bool isInRightRect = mousePos.x >= rightBoundaryStart && mousePos.y >= topRectStart;
+
+        if (isInRightRect)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 }

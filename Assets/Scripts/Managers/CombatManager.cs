@@ -9,7 +9,6 @@ using System.Linq;
 using static SimpleFileBrowser.FileBrowser;
 using Unity.VisualScripting;
 using UnityEditor;
-using UnityEditor.Experimental.GraphView;
 
 public class CombatManager : MonoBehaviour
 {
@@ -40,11 +39,11 @@ public class CombatManager : MonoBehaviour
     private float _attackDistance;
     private int _availableAttacks;
     [SerializeField] private UnityEngine.UI.Button _aimButton;
-    [SerializeField] private UnityEngine.UI.Button _defensivePositionButton;
+    [SerializeField] private UnityEngine.UI.Button _defensiveStanceButton;
     [SerializeField] private UnityEngine.UI.Button _standardAttackButton;
     [SerializeField] private UnityEngine.UI.Button _allOutAttackButton;
     [SerializeField] private UnityEngine.UI.Button _guardedAttackButton;
-    [SerializeField] private UnityEngine.UI.Button _multipleAttackButton;
+    [SerializeField] private UnityEngine.UI.Button _swiftAttackButton;
     [SerializeField] private UnityEngine.UI.Button _feintButton;
     [SerializeField] private UnityEngine.UI.Button _stunButton;
     public Dictionary<string, bool> AttackTypes = new Dictionary<string, bool>();
@@ -64,7 +63,7 @@ public class CombatManager : MonoBehaviour
         AttackTypes.Add("Charge", false);
         AttackTypes.Add("AllOutAttack", false);  // Szaleńczy atak
         AttackTypes.Add("GuardedAttack", false);  // Ostrożny atak
-        AttackTypes.Add("MultipleAttack", false);  // Atak wielokrotny
+        AttackTypes.Add("SwiftAttack", false);  // Atak wielokrotny
         AttackTypes.Add("Feint", false);  // Finta
         AttackTypes.Add("Stun", false);  // Ogłuszanie
     }
@@ -114,7 +113,7 @@ public class CombatManager : MonoBehaviour
                 AttackTypes["StandardAttack"] = true;
             }
 
-            if(AttackTypes["MultipleAttack"] == true)
+            if(AttackTypes["SwiftAttack"] == true)
             {
                 //Atak wielokrotny jest dostępny tylko dla jednostek z ilością ataków większą niż 1
                 if(unit.GetComponent<Stats>().A > 1)
@@ -156,7 +155,7 @@ public class CombatManager : MonoBehaviour
         _standardAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["StandardAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
         _allOutAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["AllOutAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
         _guardedAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["GuardedAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
-        _multipleAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["MultipleAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
+        _swiftAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["SwiftAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
         _feintButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Feint"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
         _stunButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Stun"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
     }
@@ -185,17 +184,11 @@ public class CombatManager : MonoBehaviour
         Weapon attackerWeapon = InventoryManager.Instance.ChooseWeaponToAttack(attacker.gameObject);
         Weapon targetWeapon = target.GetComponent<Weapon>();
 
-        //Jeżeli postać nie posiada w rękach broni to odnosimy się bezpośrednio do jego komponentu Weapon, który odpowiada w tym przypadku walce bez broni
-        if (attackerWeapon == null)
-        {
-            attackerWeapon = attacker.GetComponent<Weapon>();
-        }
-
         //Liczy dystans pomiedzy walczącymi
         _attackDistance = CalculateDistance(attacker.gameObject, target.gameObject);
 
         //Wykonuje atak, jeśli cel jest w zasięgu
-        if (_attackDistance <= attackerWeapon.AttackRange || _attackDistance <= attackerWeapon.AttackRange * 2 && attackerWeapon.Type.Contains("ranged"))
+        if (_attackDistance <= attackerWeapon.AttackRange || _attackDistance <= attackerWeapon.AttackRange * 2 && attackerWeapon.Type.Contains("ranged") && !attackerWeapon.Type.Contains("short-range-only"))
         {
             //Sprawdza konieczne warunki do wykonania ataku dystansowego
             if (attackerWeapon.Type.Contains("ranged"))
@@ -241,7 +234,7 @@ public class CombatManager : MonoBehaviour
             {
                 canDoAction = RoundsManager.Instance.DoFullAction(attacker);
             }
-            else if (AttackTypes["AllOutAttack"] == true || AttackTypes["GuardedAttack"] == true || (AttackTypes["MultipleAttack"] == true && _availableAttacks == attackerStats.A)) //Specjalne ataki (szaleńczy, ostrożny i wielokrotny)
+            else if (AttackTypes["AllOutAttack"] == true || AttackTypes["GuardedAttack"] == true || (AttackTypes["SwiftAttack"] == true && _availableAttacks == attackerStats.A)) //Specjalne ataki (szaleńczy, ostrożny i wielokrotny)
             {
                 canDoAction = RoundsManager.Instance.DoFullAction(attacker);
             }
@@ -253,7 +246,7 @@ public class CombatManager : MonoBehaviour
             if (!canDoAction) return;
 
             //Zaznacza, że jednostka wykonała już akcję ataku w tej rundzie. Uniemożliwia to wykonanie kolejnej. Nie dotyczy ataku okazyjnego, finty i ogłuszania, a w wielokrotnym sprawdza ilość dostępnych ataków
-            if (!opportunityAttack && !AttackTypes["MultipleAttack"] && !AttackTypes["Feint"] && !AttackTypes["Stun"] || AttackTypes["MultipleAttack"] && _availableAttacks == 0)
+            if (!opportunityAttack && !AttackTypes["SwiftAttack"] && !AttackTypes["Feint"] && !AttackTypes["Stun"] || AttackTypes["SwiftAttack"] && _availableAttacks == 0)
             {
                 attacker.CanAttack = false;
             }
@@ -261,7 +254,7 @@ public class CombatManager : MonoBehaviour
             //Resetuje pozycję obronną, jeśli była aktywna
             if (attacker.DefensiveBonus != 0)
             {
-                DefensivePosition();
+                DefensiveStance();
             }  
 
             //Uniemożliwia parowanie i unikanie do końca rundy w przypadku szaleńczego ataku, a w przypadku ostrożnego dodaje modyfikator do parowania i uników
@@ -274,7 +267,7 @@ public class CombatManager : MonoBehaviour
             {
                 attacker.GuardedAttackBonus += 10;
             }
-            else if(AttackTypes["MultipleAttack"] == true)
+            else if(AttackTypes["SwiftAttack"] == true)
             {
                 if(_availableAttacks <= 0)
                 {
@@ -351,8 +344,20 @@ public class CombatManager : MonoBehaviour
                 //Ogłuszanie
                 if (AttackTypes["Stun"] == true)
                 {
-                    Stun(attackerStats, targetStats);
+                    Stun(attackerWeapon, attackerStats, targetStats);
                     return; //Kończy akcję ataku, żeby nie przechodzić do dalszych etapów jak np. zadanie obrażeń
+                }
+
+                //Unieruchomienie, jeżeli broń atakującego posiada cechę "unieruchamiający"
+                if(attackerWeapon.Snare)
+                {
+                    if(target.Trapped == false)
+                    {
+                        target.Trapped = true;
+                        Debug.Log($"{attackerStats.Name} unieruchomił {targetStats.Name} przy pomocy {attackerWeapon.Name}");
+                    }
+
+                    if(attackerWeapon.Type.Contains("no-damage")) return; //Jeśli broń nie powoduje obrażeń, np. sieć, to pomijamy dalszą część kodu
                 }
 
                 int damageRollResult = DamageRoll(attackerStats, attackerWeapon);
@@ -436,8 +441,8 @@ public class CombatManager : MonoBehaviour
         //Uwzględnia utrudnienie za atak słabszą ręką (sprawdza, czy dominująca ręka jest pusta lub inna od broni, którą wykonywany jest atak)
         if(attackerStats.GetComponent<Inventory>().EquippedWeapons[0] == null || attackerWeapon.Name != attackerStats.GetComponent<Inventory>().EquippedWeapons[0].Name)
         {
-            //Sprawdza, czy postać nie jest oburęczna albo nie uderza pięściami
-            if (!attackerStats.Ambidextrous && attackerWeapon.Id != 0)
+            //Sprawdza, czy postać nie jest oburęczna, nie uderza pięściami lub broń nie jest wyważona
+            if (!attackerStats.Ambidextrous && attackerWeapon.Id != 0 && !attackerWeapon.Balanced)
             {
                 _attackModifier -= 20;
             }
@@ -453,7 +458,7 @@ public class CombatManager : MonoBehaviour
 
         //Modyfikatory za stany atakowanego (ogłuszenie, unieruchomienie, bezbronność)
         if(targetUnit.StunDuration > 0) _attackModifier += 20;
-        if(targetUnit.TrappedDuration > 0) _attackModifier += 20;
+        if(targetUnit.Trapped == true) _attackModifier += 20;
         if (targetUnit.HelplessDuration > 0)
         {
             return true; //Gdy postać jest bezbronna to trafienie następuje automatycznie
@@ -594,7 +599,10 @@ public class CombatManager : MonoBehaviour
         }
         else //Oblicza łączne obrażenia dla ataku dystansowego
         {
-            damage = attackerStats.MightyShot ? damageRollResult + attackerWeapon.S + 1 : damageRollResult + attackerWeapon.S;             
+            damage = attackerStats.MightyShot ? damageRollResult + attackerWeapon.S + 1 : damageRollResult + attackerWeapon.S;
+
+            //Dodaje siłę do broni dystansowych opierających na niej swoje obrażenia (np. bicz)
+            if(attackerWeapon.Type.Contains("strength-based")) damage += attackerStats.S;         
         }
 
         if (damage < 0) damage = 0;
@@ -782,7 +790,7 @@ public class CombatManager : MonoBehaviour
             }  
         }
 
-        if(path.Count > attacker.GetComponent<Stats>().TempSz)
+        if(shortestPathLength > attacker.GetComponent<Stats>().TempSz)
         {
             return null;
         }
@@ -793,8 +801,8 @@ public class CombatManager : MonoBehaviour
     }
     #endregion
 
-    #region Defensive position
-    public void DefensivePosition()
+    #region Defensive stance
+    public void DefensiveStance()
     {
         if (Unit.SelectedUnit == null) return;
 
@@ -815,17 +823,17 @@ public class CombatManager : MonoBehaviour
             unit.DefensiveBonus = 0;
         }
 
-        UpdateDefensivePositionButtonColor();
+        UpdateDefensiveStanceButtonColor();
     }
-    public void UpdateDefensivePositionButtonColor()
+    public void UpdateDefensiveStanceButtonColor()
     {
         if(Unit.SelectedUnit.GetComponent<Unit>().DefensiveBonus > 0)
         {
-            _defensivePositionButton.GetComponent<UnityEngine.UI.Image>().color = Color.green;
+            _defensiveStanceButton.GetComponent<UnityEngine.UI.Image>().color = Color.green;
         }
         else
         {
-            _defensivePositionButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;
+            _defensiveStanceButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;
         }
     }
     #endregion
@@ -1000,13 +1008,14 @@ public class CombatManager : MonoBehaviour
     #endregion
 
     #region Stun
-    public void Stun(Stats attackerStats, Stats targetStats)
+    public void Stun(Weapon attackerWeapon, Stats attackerStats, Stats targetStats)
     {
         //Przeciwstawny rzut na Krzepę
         int attackerRollResult = Random.Range(1, 101);
+        int modifier = attackerWeapon.Pummelling ? 10 : 0; // bonus za broń z cechą "ogłuszający"
         int targetRollResult = Random.Range(1, 101);
 
-        int attackerSuccessLevel = attackerStats.K - attackerRollResult;
+        int attackerSuccessLevel = attackerStats.K - attackerRollResult + modifier;
         int targetSuccessLevel = targetStats.K - targetRollResult;
 
         Debug.Log($"{attackerStats.Name} wykonuje ogłuszanie. Następuje przeciwstawny rzut na krzepę. Atakujący rzuca: {attackerRollResult} Wartość cechy: {attackerStats.K}. Atakowany rzuca: {targetRollResult} Wartość cechy: {targetStats.K}. Wynik: {attackerSuccessLevel} do {targetSuccessLevel}");
@@ -1015,9 +1024,9 @@ public class CombatManager : MonoBehaviour
         {
             // Rzut na odporność
             int odpRoll = Random.Range(1, 101);
-            int modifier = targetStats.Armor_head * 10; //Mofydikator do rzutu na odporność za zbroję na głowie
+            int armorModifier = targetStats.Armor_head * 10; //Mofydikator do rzutu na odporność za zbroję na głowie
 
-            Debug.Log($"Rzut na odporność {targetStats.Name}. Wynik rzutu: {odpRoll} Wartość cechy: {targetStats.Odp}. Modyfikator za hełm: {modifier}");
+            Debug.Log($"Rzut na odporność {targetStats.Name}. Wynik rzutu: {odpRoll} Wartość cechy: {targetStats.Odp}. Modyfikator za hełm: {armorModifier}");
 
             if (odpRoll > (targetStats.Odp + modifier))
             {
@@ -1041,10 +1050,10 @@ public class CombatManager : MonoBehaviour
     #endregion
 
     #region Trap
-    //Próba uwolnienia się z unierchomienia
-    public void BreakFree(Unit unit) //JESZCZE NIE TESTOWANE
+    //Próba uwolnienia się z unieruchomienia
+    public void EscapeFromTheSnare(Unit unit)
     {
-        bool canDoAction = RoundsManager.Instance.DoHalfAction(unit);
+        bool canDoAction = RoundsManager.Instance.DoFullAction(unit);
 
         if (!canDoAction) return;
 
@@ -1059,7 +1068,7 @@ public class CombatManager : MonoBehaviour
 
         if (rollResult < attributeValue)
         {
-            unit.TrappedDuration = 0; 
+            unit.Trapped = false;
             Debug.Log($"{unitStats.Name} uwolnił/a się.");
         }
         else

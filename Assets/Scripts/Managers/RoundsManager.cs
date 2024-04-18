@@ -64,11 +64,6 @@ public class RoundsManager : MonoBehaviour
                 UnitsWithActionsLeft[key] = 0;
                 key.StunDuration--;
             }
-            if (key.TrappedDuration > 0)
-            {
-                UnitsWithActionsLeft[key] = 0;
-                key.TrappedDuration--;
-            }
             if (key.HelplessDuration > 0)
             {
                 UnitsWithActionsLeft[key] = 0;
@@ -123,7 +118,7 @@ public class RoundsManager : MonoBehaviour
             Debug.Log($"<color=green> {unit.GetComponent<Stats>().Name} wykonał/a akcję podwójną. </color>");
             
             //Aktualizuje aktywną postać na kolejce inicjatywy, bo obecna postać wykonała wszystkie akcje w tej rundzie. Wyjątkiem jest atak wielokrotny
-            if(!CombatManager.Instance.AttackTypes["MultipleAttack"])
+            if(!CombatManager.Instance.AttackTypes["SwiftAttack"])
             {
                 InitiativeQueueManager.Instance.SelectUnitByQueue();
             }    

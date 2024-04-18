@@ -1,13 +1,22 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 public class ConsoleView : MonoBehaviour
 {
     private List<string> _myLogs = new List<string>();
     private Vector2 _scrollPosition = Vector2.zero;
-    private bool _doShow = false;
-    [SerializeField] private Slider _slider;
+    private bool _doShow = true;
+    //[SerializeField] private Slider _slider;
+    private float _consoleWidth;
+    private float _consoleHeight;
+
+    void Start()
+    {
+        _consoleHeight = Screen.height * 0.33f;
+        _consoleWidth = Screen.width * 0.4f;
+    }
 
     private void OnEnable()
     {
@@ -34,10 +43,11 @@ public class ConsoleView : MonoBehaviour
     void OnGUI()
     {
         if (!_doShow) return;
+        
+        float consolePosX = Screen.width - _consoleWidth - 10;
+        float consolePosY = Screen.height / 13;
 
-        float consoleWidth = Screen.width * 0.42f;
-        float consoleHeight = Screen.height * _slider.value;
-        Rect consoleRect = new Rect(Screen.width - consoleWidth, 0, consoleWidth, consoleHeight);
+        Rect consoleRect = new Rect(consolePosX, consolePosY, _consoleWidth, _consoleHeight);
 
         GUIStyle style = new GUIStyle(GUI.skin.box)
         {

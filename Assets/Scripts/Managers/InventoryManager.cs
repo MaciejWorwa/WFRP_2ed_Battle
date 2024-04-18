@@ -386,6 +386,12 @@ public class InventoryManager : MonoBehaviour
         //Gdy postać trzyma broń w ręce, która jest oznaczona jako aktywna to atakuje za jej pomocą, w przeciwnym razie używa drugiej ręki
         int otherHand = SelectedHand == 0 ? 1 : 0;
         Weapon weapon = inventory.EquippedWeapons[SelectedHand] != null ? inventory.EquippedWeapons[SelectedHand] : inventory.EquippedWeapons[otherHand];
+        
+        if(weapon == null)
+        {
+            unit.GetComponent<Weapon>().ResetWeapon();
+            weapon = unit.GetComponent<Weapon>();
+        }
 
         return weapon;
     }

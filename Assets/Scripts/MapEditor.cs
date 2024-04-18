@@ -142,6 +142,10 @@ public class MapEditor : MonoBehaviour
             AllElements.RemoveAt(i);
         }
 
+        GridManager.Width = data.Elements[0].GridWidth;
+        GridManager.Height = data.Elements[0].GridHeight;   
+        GridManager.Instance.GenerateGrid();  
+
         foreach (var mapElement in data.Elements)
         {
             Vector3 position = new Vector3(mapElement.position[0], mapElement.position[1], mapElement.position[2]);
@@ -155,12 +159,7 @@ public class MapEditor : MonoBehaviour
 
             newElement.tag = mapElement.Tag;
             newElement.IsHighObstacle = mapElement.IsHighObstacle;
-            newElement.IsLowObstacle = mapElement.IsLowObstacle;
-
-            GridManager.Width = mapElement.GridWidth;
-            GridManager.Height = mapElement.GridHeight;
-
-            GridManager.Instance.GenerateGrid();
+            newElement.IsLowObstacle = mapElement.IsLowObstacle;   
         }
 
         GridManager.Instance.CheckTileOccupancy();

@@ -78,7 +78,7 @@ public class MovementManager : MonoBehaviour
             //Resetuje pozycję obronną, jeśli była aktywna
             if (Unit.SelectedUnit.GetComponent<Unit>().DefensiveBonus != 0)
             {
-                CombatManager.Instance.DefensivePosition();
+                CombatManager.Instance.DefensiveStance();
             }
 
             // Oznacza wybrane pole jako zajęte (gdyż trochę potrwa, zanim postać tam dojdzie i gdyby nie zaznaczyć, to można na nie ruszyć inną postacią)
@@ -112,7 +112,7 @@ public class MovementManager : MonoBehaviour
             float elapsedTime = 0f;
             float duration = 0.2f; // Czas trwania interpolacji
 
-            while (elapsedTime < duration)
+            while (elapsedTime < duration && unit != null)
             {
                 IsMoving = true;
 
@@ -120,6 +120,13 @@ public class MovementManager : MonoBehaviour
                 elapsedTime += Time.deltaTime;
                 yield return null; // Poczekaj na odświeżenie klatki animacji
             }
+
+            //Na wypadek, gdyby w wyniku ataku okazyjnego podczas ruchu jednostka została zabita i usunięta
+            if(unit == null)
+            {
+                IsMoving = false;
+                yield break;
+            } 
 
             unit.transform.position = nextPos;
         }
@@ -311,15 +318,16 @@ public class MovementManager : MonoBehaviour
     // Sprawdza czy ruch powoduje atak okazyjny
     public void CheckForOpportunityAttack(GameObject movingUnit, Vector3 selectedTilePosition)
     {
-
         //Stworzenie tablicy wszystkich jednostek
         Unit[] units = FindObjectsByType<Unit>(FindObjectsSortMode.None);
 
         // Atak okazyjny wywolywany dla kazdego wroga bedacego w zwarciu z bohaterem gracza
         foreach (Unit unit in units)
         {
-            //Jeżeli jest to sojusznik lub jednostka z bronią dystansową to ją pomijamy
-            if (unit.CompareTag(movingUnit.tag) || unit.GetComponent<Weapon>().Type.Contains("ranged")) continue;
+            Weapon weapon = InventoryManager.Instance.ChooseWeaponToAttack(unit.gameObject);
+
+            //Jeżeli jest to sojusznik, jednostka ogłuszona, unieruchomiona, bezbronna lub jednostka z bronią dystansową to ją pomijamy
+            if (unit.CompareTag(movingUnit.tag) || weapon.Type.Contains("ranged") || unit.Trapped || unit.StunDuration > 0 || unit.HelplessDuration > 0) continue;
 
             // Sprawdzenie ilu przeciwników jest w zwarciu z aktywną jednostką i czy jej ruch powoduje oddalenie się od nich (czyli atak okazyjny)
             float distanceFromOpponent = Vector3.Distance(movingUnit.transform.position, unit.transform.position);

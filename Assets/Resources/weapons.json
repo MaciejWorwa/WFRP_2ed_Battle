@@ -2,10 +2,15 @@
   "Weapons": [
     {
       "Id": 1,
-      "Name": "Broń jednoręczna",
-      "Type": ["melee"],
-      "AttackRange": 1.5,
-      "S": 0
+      "Name": "Bicz",
+      "Type": ["ranged", "short-range-only", "strength-based"],
+      "TwoHanded": false,
+      "AttackRange": 3,
+      "S": -4,
+      "ReloadTime": 1,
+      "ReloadLeft": 0,
+      "Fast": true,
+      "Snare": true
     },
     {
       "Id": 2,
@@ -19,23 +24,35 @@
     },
     {
       "Id": 3,
-      "Name": "Łuk",
-      "Type": ["ranged"],
-      "TwoHanded": true,
-      "AttackRange": 12,
-      "S": 3,
-      "ReloadTime": 1,
-      "ReloadLeft": 0
+      "Name": "Broń jednoręczna",
+      "Type": ["melee"],
+      "AttackRange": 1.5,
+      "S": 0
     },
     {
       "Id": 4,
-      "Name": "Sztylet",
-      "Type": ["melee"],
-      "AttackRange": 1.5,
-      "S": -3
+      "Name": "Długi łuk",
+      "Type": ["ranged"],
+      "TwoHanded": true,
+      "AttackRange": 15,
+      "S": 3,
+      "ReloadTime": 1,
+      "ReloadLeft": 0,
+      "ArmourPiercing": true
     },
     {
       "Id": 5,
+      "Name": "Elfi łuk",
+      "Type": ["ranged"],
+      "TwoHanded": true,
+      "AttackRange": 18,
+      "S": 3,
+      "ReloadTime": 1,
+      "ReloadLeft": 0,
+      "ArmourPiercing": true
+    },
+    {
+      "Id": 6,
       "Name": "Kusza",
       "Type": ["ranged"],
       "TwoHanded": true,
@@ -45,20 +62,14 @@
       "ReloadLeft": 0
     },
     {
-      "Id": 6,
-      "Name": "Tarcza",
-      "Type": ["melee", "shield"],
-      "AttackRange": 1.5,
-      "S": -2,
-      "Defensive": true
-    },
-    {
       "Id": 7,
-      "Name": "Włócznia",
-      "Type": ["melee"],
-      "AttackRange": 1.5,
-      "S": 0,
-      "Fast": true
+      "Name": "Łuk",
+      "Type": ["ranged"],
+      "TwoHanded": true,
+      "AttackRange": 12,
+      "S": 3,
+      "ReloadTime": 1,
+      "ReloadLeft": 0
     },
     {
       "Id": 8,
@@ -70,25 +81,36 @@
     },
     {
       "Id": 9,
-      "Name": "Długi łuk",
-      "Type": ["ranged"],
-      "TwoHanded": true,
-      "AttackRange": 15,
-      "S": 3,
-      "ReloadTime": 1,
+      "Name": "Sieć",
+      "Type": ["ranged", "no-damage"],
+      "TwoHanded": false,
+      "AttackRange": 2,
+      "ReloadTime": 2,
       "ReloadLeft": 0,
-      "ArmourPiercing": true
+      "Snare": true
     },
     {
       "Id": 10,
-      "Name": "Elfi łuk",
-      "Type": ["ranged"],
-      "TwoHanded": true,
-      "AttackRange": 18,
-      "S": 3,
-      "ReloadTime": 1,
-      "ReloadLeft": 0,
-      "ArmourPiercing": true
+      "Name": "Sztylet",
+      "Type": ["melee"],
+      "AttackRange": 1.5,
+      "S": -3
+    },
+    {
+      "Id": 11,
+      "Name": "Tarcza",
+      "Type": ["melee", "shield"],
+      "AttackRange": 1.5,
+      "S": -2,
+      "Defensive": true
+    },
+    {
+      "Id": 12,
+      "Name": "Włócznia",
+      "Type": ["melee"],
+      "AttackRange": 1.5,
+      "S": 0,
+      "Fast": true
     }
   ]
 }

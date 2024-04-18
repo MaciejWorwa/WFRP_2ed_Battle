@@ -144,7 +144,7 @@ public class SaveAndLoadManager : MonoBehaviour
         }
 
         //Zapisanie wszystkich elementów mapy
-        SaveMap(savesFolderName);
+        SaveMap();
 
         Debug.Log($"<color=green>Zapisano stan gry.</color>");
     }
@@ -166,8 +166,23 @@ public class SaveAndLoadManager : MonoBehaviour
         File.WriteAllText(roundsManagerPath, roundsManagerJsonData);
     }
 
-    private void SaveMap(string savesFolderName)
+    public void SaveMap()
     {
+        string savesFolderName;
+
+        // Stworzenie folderu dla zapisów
+        savesFolderName = _saveNameInput.text;
+        Directory.CreateDirectory(Application.persistentDataPath + "/" + savesFolderName);
+
+        // Pobranie listy zapisanych plików
+        string[] files = Directory.GetFiles(Application.persistentDataPath + "/" + savesFolderName, "*.json");
+
+        // Usuwa pliki z poprzedniego zapisu
+        foreach (string file in files)
+        {
+            File.Delete(file);
+        }
+
         MapElementsContainer container = new MapElementsContainer();
 
         if (MapEditor.Instance == null) return;
@@ -236,7 +251,7 @@ public class SaveAndLoadManager : MonoBehaviour
         }
 
         //Wczytanie mapy
-        LoadMap(saveFolderPath);
+        LoadMap();
 
         StartCoroutine(LoadAllUnitsWithDelay(saveFolderPath));
 
@@ -349,7 +364,7 @@ public class SaveAndLoadManager : MonoBehaviour
 
         LoadRoundsManager(saveFolderPath);
 
-        Unit.SelectedUnit.GetComponent<Unit>().SelectUnit(); //Odznaczenie postaci
+        Unit.SelectedUnit = null;
         IsLoading = false;
         Debug.Log($"<color=green>Wczytano stan gry.</color>");
     }
@@ -403,12 +418,15 @@ public class SaveAndLoadManager : MonoBehaviour
         }
     }
 
-    private void LoadMap(string savesFolderPath)
+    public void LoadMap()
     {
-        string filePath = Path.Combine(savesFolderPath, "MapElements.json");
+        CustomDropdown dropdown = _savesScrollViewContent.GetComponent<CustomDropdown>();
+        string saveName = dropdown.SelectedButton.GetComponentInChildren<TextMeshProUGUI>().text;
+
+        string filePath = Path.Combine(Application.persistentDataPath, saveName, "MapElements.json");
 
         // Sprawdź, czy plik istnieje
-        if (File.Exists(filePath))
+        if (File.Exists(filePath) && MapEditor.Instance != null)
         {
             // Deserializuj dane z pliku JSON do obiektu RoundsManagerData
             string jsonData = File.ReadAllText(filePath);

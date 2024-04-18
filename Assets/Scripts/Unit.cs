@@ -19,7 +19,8 @@ public class Unit : MonoBehaviour
     public bool IsScared; // Jest przestraszony
     public bool IsFearTestPassed; // Zdał test strachu
     public int StunDuration; // Czas ogłuszenia (podany w rundach). Wartość 0 oznacza, że postać nie jest ogłuszona
-    public int TrappedDuration; // Czas unieruchomienia (podany w rundach). Wartość 0 oznacza, że postać nie jest unieruchomiona
+    public bool Trapped; // Unieruchomiony
+    //public int TrappedDuration; // Czas unieruchomienia (podany w rundach). Wartość 0 oznacza, że postać nie jest unieruchomiona
     public int AimingBonus;
     public int DefensiveBonus;
     public int GuardedAttackBonus; //Modyfikator do uników i parowania za ostrożny atak
@@ -97,7 +98,7 @@ public class Unit : MonoBehaviour
             AimingBonus = 0;
             CombatManager.Instance.UpdateAimButtonColor(); 
             DefensiveBonus = 0;
-            CombatManager.Instance.UpdateDefensivePositionButtonColor(); 
+            CombatManager.Instance.UpdateDefensiveStanceButtonColor(); 
 
             //Zamyka aktywne panele
             GameManager.Instance.HideActivePanels(); 
@@ -117,7 +118,7 @@ public class Unit : MonoBehaviour
             SelectedUnit = this.gameObject;
 
             CombatManager.Instance.UpdateAimButtonColor(); //Resetuje przycisk celowania jeśli był aktywny
-            CombatManager.Instance.UpdateDefensivePositionButtonColor(); //Resetuje przycisk pozycji obronnej jeśli był aktywny
+            CombatManager.Instance.UpdateDefensiveStanceButtonColor(); //Resetuje przycisk pozycji obronnej jeśli był aktywny
 
             //Odświeża listę ekwipunku
             InventoryManager.Instance.InventoryScrollViewContent.GetComponent<CustomDropdown>().SelectedIndex = 0;

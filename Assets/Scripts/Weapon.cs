@@ -28,12 +28,16 @@ public class Weapon : MonoBehaviour
     public int ReloadLeft;
 
     [Header("Cechy")]
+    public bool ArmourPiercing; // przebijający zbroje
+    public bool Balanced; // wyważony
     public bool Defensive; // parujący
     public bool Fast; // szybki
     public bool Impact; // druzgoczący
+    public bool Pummelling; // ogłuszający
     public bool Slow; // powolny
+    public bool Snare; // unieruchamiający
     public bool Tiring; // ciężki
-    public bool ArmourPiercing; // przebijający zbroje
+
     public Dictionary<int, int> WeaponsWithReloadLeft = new Dictionary<int, int>(); // słownik zawierający wszystkie posiadane przez postać bronie wraz z ich ReloadLeft
 
     public void ResetWeapon()
@@ -47,11 +51,14 @@ public class Weapon : MonoBehaviour
         AttackRange = 1.5f;
         ReloadTime = 0;
         ReloadLeft = 0;
+        ArmourPiercing = false;
+        Balanced = false;
         Defensive = false;
         Fast = false;
         Impact = false;
+        Pummelling = false;
         Slow = false;
+        Snare = false;
         Tiring = false;
-        ArmourPiercing = false;
     }
 }
