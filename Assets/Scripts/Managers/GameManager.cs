@@ -76,7 +76,7 @@ public class GameManager : MonoBehaviour
     private void Update()
     {
         //Pauzuje grę (możliwość ruchu jednostek), gdy któryś z paneli konkretnej jednostki jest otwarty
-        IsGamePaused = CountActivePanels() > 0 || FileBrowser.IsOpen? true : false;
+        IsGamePaused = IsPointerOverPanel() || FileBrowser.IsOpen? true : false;
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -129,6 +129,8 @@ public class GameManager : MonoBehaviour
     }
     public void HideActivePanels()
     {
+        CountActivePanels();
+        
         foreach (GameObject panel in activePanels)
         {
             panel.SetActive(false);

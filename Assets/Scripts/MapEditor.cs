@@ -142,6 +142,8 @@ public class MapEditor : MonoBehaviour
             AllElements.RemoveAt(i);
         }
 
+        if(data.Elements.Count == 0) return;
+
         GridManager.Width = data.Elements[0].GridWidth;
         GridManager.Height = data.Elements[0].GridHeight;   
         GridManager.Instance.GenerateGrid();  

@@ -175,13 +175,10 @@ public class SaveAndLoadManager : MonoBehaviour
         Directory.CreateDirectory(Application.persistentDataPath + "/" + savesFolderName);
 
         // Pobranie listy zapisanych plików
-        string[] files = Directory.GetFiles(Application.persistentDataPath + "/" + savesFolderName, "*.json");
+        string previousFile = Path.Combine(Application.persistentDataPath, savesFolderName, "MapElements.json");
 
-        // Usuwa pliki z poprzedniego zapisu
-        foreach (string file in files)
-        {
-            File.Delete(file);
-        }
+        // Usuwa plik z poprzedniego zapisu
+        File.Delete(previousFile);
 
         MapElementsContainer container = new MapElementsContainer();
 
@@ -364,7 +361,8 @@ public class SaveAndLoadManager : MonoBehaviour
 
         LoadRoundsManager(saveFolderPath);
 
-        Unit.SelectedUnit = null;
+        if(Unit.SelectedUnit != null) Unit.SelectedUnit.GetComponent<Unit>().SelectUnit();
+ 
         IsLoading = false;
         Debug.Log($"<color=green>Wczytano stan gry.</color>");
     }

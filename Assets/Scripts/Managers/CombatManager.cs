@@ -214,16 +214,26 @@ public class CombatManager : MonoBehaviour
                 {
                     if (raycastHit.collider != null && raycastHit.collider.GetComponent<MapElement>() != null && raycastHit.collider.GetComponent<MapElement>().IsHighObstacle)
                     {
-                        Debug.Log("Na linii strzału znajduje się przeszkoda.");
+                        Debug.Log("Na linii strzału znajduje się przeszkoda, przez którą strzał jest niemożliwy.");
                         return;
                     }
                     if (raycastHit.collider != null && raycastHit.collider.GetComponent<MapElement>() != null && raycastHit.collider.GetComponent<MapElement>().IsLowObstacle)
                     {
                         _attackModifier -= 20;
 
-                        Debug.Log("Strzał jest wykonywany w jednostkę znajdującą się za niewielką przeszkodą. Zastosowano ujemny modyfikator do trafienia.");
+                        Debug.Log("Strzał jest wykonywany w jednostkę znajdującą się za przeszkodą. Zastosowano ujemny modyfikator do trafienia.");
 
                         break; //Żeby modyfikator nie kumolował się za każdą przeszkodę
+                    }
+                    if (raycastHit.collider != null && raycastHit.collider.GetComponent<Unit>() != null && raycastHit.collider.GetComponent<Unit>() != target && raycastHit.collider.GetComponent<Unit>() != attacker)
+                    {
+                        _attackModifier -= 20;
+
+                        Debug.Log(raycastHit.collider.GetComponent<Stats>().Name);
+
+                        Debug.Log("Na linii strzału znajduje się inna jednostka. Zastosowano ujemny modyfikator do trafienia.");
+
+                        break; //Żeby modyfikator nie kumolował się za każdą postać
                     }
                 }
             }
@@ -360,36 +370,45 @@ public class CombatManager : MonoBehaviour
                     if(attackerWeapon.Type.Contains("no-damage")) return; //Jeśli broń nie powoduje obrażeń, np. sieć, to pomijamy dalszą część kodu
                 }
 
-                int damageRollResult = DamageRoll(attackerStats, attackerWeapon);
-                int damage = CalculateDamage(damageRollResult, attackerStats, attackerWeapon);
                 int armor = CalculateArmor(targetStats, attackerWeapon);
 
-                //Bonus do obrażeń w przypadku atakowania postaci bezbronnej
-                if (target.HelplessDuration > 0)
+                //W przypadku, gdy atak następuje w trybie ręcznego rzucania kośćmi to nie sprawdzamy rzutu na obrażenia. W przeciwnym razie sprawdzamy
+                if(attacker.CompareTag("PlayerUnit") && GameManager.IsAutoDiceRollingMode == false)
                 {
-                    damage += Random.Range(1, 11);
-                }
-
-                //Uwzględnienie strzału przebijającego zbroję (zdolność)
-                if (attackerStats.SureShot && _attackDistance <= 1.5f && attackerWeapon.Type.Contains("ranged") && armor > 0) armor --;
-            
-                Debug.Log($"{attackerStats.Name} wyrzucił {damageRollResult} i zadał {damage} obrażeń.");
-
-                //Zadanie obrażeń
-                if (damage > (targetStats.Wt + armor))
-                {
-                    targetStats.TempHealth -= damage - (targetStats.Wt + armor);
-
-                    Debug.Log(targetStats.Name + " znegował " + (targetStats.Wt + armor) + " obrażeń.");
-                    
-                    //Zaktualizowanie punktów żywotności
-                    target.GetComponent<Unit>().DisplayUnitHealthPoints();
-                    Debug.Log($"Punkty żywotności {targetStats.Name}: {targetStats.TempHealth}/{targetStats.MaxHealth}");
+                    Debug.Log($"{attackerStats.Name} trafia w {targetStats.Name}, który neguje {targetStats.Wt + armor} obrażeń. Zadaj obrażenia ręcznie w panelu atakowanego (ikona \"-\" obrok Żywotności).");
                 }
                 else
                 {
-                    Debug.Log($"Atak {attackerStats.Name} nie przebił się przez pancerz.");
-                }
+                    int damageRollResult = DamageRoll(attackerStats, attackerWeapon);
+                    int damage = CalculateDamage(damageRollResult, attackerStats, attackerWeapon);
+
+                    //Bonus do obrażeń w przypadku atakowania postaci bezbronnej
+                    if (target.HelplessDuration > 0)
+                    {
+                        damage += Random.Range(1, 11);
+                    }
+
+                    //Uwzględnienie strzału przebijającego zbroję (zdolność)
+                    if (attackerStats.SureShot && _attackDistance <= 1.5f && attackerWeapon.Type.Contains("ranged") && armor > 0) armor --;
+                
+                    Debug.Log($"{attackerStats.Name} wyrzucił {damageRollResult} i zadał {damage} obrażeń.");
+
+                    //Zadanie obrażeń
+                    if (damage > (targetStats.Wt + armor))
+                    {
+                        targetStats.TempHealth -= damage - (targetStats.Wt + armor);
+
+                        Debug.Log(targetStats.Name + " znegował " + (targetStats.Wt + armor) + " obrażeń.");
+                        
+                        //Zaktualizowanie punktów żywotności
+                        target.GetComponent<Unit>().DisplayUnitHealthPoints();
+                        Debug.Log($"Punkty żywotności {targetStats.Name}: {targetStats.TempHealth}/{targetStats.MaxHealth}");
+                    }
+                    else
+                    {
+                        Debug.Log($"Atak {attackerStats.Name} nie przebił się przez pancerz.");
+                    }
+                }      
 
                 //Śmierć
                 if (targetStats.TempHealth < 0 && GameManager.IsAutoKillMode)
