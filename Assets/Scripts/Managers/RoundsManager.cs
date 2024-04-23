@@ -55,7 +55,7 @@ public class RoundsManager : MonoBehaviour
             UnitsWithActionsLeft[key] = 2;
 
             key.CanParry = true;
-            key.CanDodge = true;
+            if(key.GetComponent<Stats>().Dodge > 0) key.CanDodge = true;
             key.CanAttack = true;
             key.GuardedAttackBonus = 0;
 

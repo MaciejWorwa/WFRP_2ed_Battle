@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.UIElements;
 using System.Reflection;
+using System;
 
 public class UnitsManager : MonoBehaviour
 {
@@ -41,6 +42,7 @@ public class UnitsManager : MonoBehaviour
     [SerializeField] private GameObject _unitPrefab;
     [SerializeField] private CustomDropdown _unitsDropdown;
     [SerializeField] private TMP_InputField _unitNameInputField;
+    [SerializeField] private UnityEngine.UI.Slider _modifierAttributeSlider;
     [SerializeField] private UnityEngine.UI.Toggle _randomPositionToggle;
     [SerializeField] private UnityEngine.UI.Toggle _unitTagToggle;
     [SerializeField] private UnityEngine.UI.Button _createUnitButton;
@@ -53,6 +55,7 @@ public class UnitsManager : MonoBehaviour
     public static bool IsUnitRemoving;
     public static bool IsUnitEditing = false;
     public List<Unit> AllUnits = new List<Unit>();
+
 
     void Start()
     {
@@ -148,8 +151,8 @@ public class UnitsManager : MonoBehaviour
             if(_randomPositionToggle.isOn && !SaveAndLoadManager.Instance.IsLoading)
             {
                 // Generowanie losowej pozycji na mapie
-                int x = xEven ? Random.Range(-width / 2, width / 2) : Random.Range(-width / 2, width / 2 + 1);
-                int y = yEven ? Random.Range(-height / 2, height / 2) : Random.Range(-height / 2, height / 2 + 1);
+                int x = xEven ? UnityEngine.Random.Range(-width / 2, width / 2) : UnityEngine.Random.Range(-width / 2, width / 2 + 1);
+                int y = yEven ? UnityEngine.Random.Range(-height / 2, height / 2) : UnityEngine.Random.Range(-height / 2, height / 2 + 1);
 
                 position = new Vector2(x, y);
 
@@ -227,7 +230,7 @@ public class UnitsManager : MonoBehaviour
         if(SaveAndLoadManager.Instance.IsLoading != true)
         {
             //Ustala początkową inicjatywę i dodaje jednostkę do kolejki inicjatywy
-            newUnit.GetComponent<Stats>().Initiative = newUnit.GetComponent<Stats>().Zr + Random.Range(1, 11);
+            newUnit.GetComponent<Stats>().Initiative = newUnit.GetComponent<Stats>().Zr + UnityEngine.Random.Range(1, 11);
             InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(newUnit.GetComponent<Unit>());
         }
 
@@ -350,7 +353,7 @@ public class UnitsManager : MonoBehaviour
         }
 
         //Ustala inicjatywę i aktualizuje kolejkę inicjatywy
-        unit.GetComponent<Stats>().Initiative = unit.GetComponent<Stats>().Zr + Random.Range(1, 11);
+        unit.GetComponent<Stats>().Initiative = unit.GetComponent<Stats>().Zr + UnityEngine.Random.Range(1, 11);
         InitiativeQueueManager.Instance.RemoveUnitFromInitiativeQueue(unit.GetComponent<Unit>());
         InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(unit.GetComponent<Unit>());
         InitiativeQueueManager.Instance.UpdateInitiativeQueue();
@@ -366,7 +369,7 @@ public class UnitsManager : MonoBehaviour
         GameObject unit = Unit.SelectedUnit;
 
         //Ustala nową inicjatywę
-        unit.GetComponent<Stats>().Initiative = unit.GetComponent<Stats>().Zr + Random.Range(1, 11);
+        unit.GetComponent<Stats>().Initiative = unit.GetComponent<Stats>().Zr + UnityEngine.Random.Range(1, 11);
 
         //Aktualizuje kolejkę inicjatywy
         InitiativeQueueManager.Instance.InitiativeQueue[unit.GetComponent<Unit>()] = unit.GetComponent<Stats>().Initiative;
@@ -509,6 +512,36 @@ public class UnitsManager : MonoBehaviour
 
         Unit.SelectedUnit.GetComponent<Unit>().DisplayUnitHealthPoints();
         UpdateUnitPanel(Unit.SelectedUnit);
+    }
+    #endregion
+
+
+    #region Attributes tests
+    public void TestAttribute(string attributeName)
+    {
+        if(Unit.SelectedUnit == null) return;
+
+        Stats stats = Unit.SelectedUnit.GetComponent<Stats>();
+
+        FieldInfo field = stats.GetType().GetField(attributeName);
+
+        int value = (int)field.GetValue(stats);
+        int modifier = (int)_modifierAttributeSlider.value * 10;
+        int rollResult = UnityEngine.Random.Range(1, 101);
+        int successLevel = Math.Abs(value + modifier - rollResult) / 10;
+
+        string resultString;
+
+        if((rollResult <= value + modifier || rollResult <= 5) && rollResult < 96)
+        {
+            resultString = "<color=green>Test zdany.</color> Poziomy sukcesu:";
+        }
+        else
+        {
+            resultString = "<color=red>Test niezdany</color> Poziomy porażki:";
+        }
+
+        Debug.Log($"{stats.Name} wykonał test {attributeName}. Wynik rzutu: {rollResult} Wartość cechy: {value} Modyfikator: {modifier}. {resultString} {successLevel}");
     }
     #endregion
 
