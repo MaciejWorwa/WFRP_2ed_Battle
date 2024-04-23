@@ -33,6 +33,7 @@ public class UnitsManager : MonoBehaviour
     }
 
     [SerializeField] private GameObject _unitPanel;
+    [SerializeField] private GameObject _spellbookButton;
     [SerializeField] private GameObject _actionsPanel;
     [SerializeField] private TMP_Text _nameDisplay;
     [SerializeField] private TMP_Text _raceDisplay;
@@ -323,13 +324,11 @@ public class UnitsManager : MonoBehaviour
         //Ustawia tag postaci, który definiuje, czy jest to sojusznik, czy przeciwnik, a także jej domyślny kolor.
         if (_unitTagToggle.isOn)
         {
-            Debug.Log("player");
             unit.tag = "PlayerUnit";
             unit.GetComponent<Unit>().DefaultColor = new Color(0f, 0.54f, 0.17f, 1.0f);
         }
         else
         {
-            Debug.Log("enemy");
             unit.tag = "EnemyUnit";
             unit.GetComponent<Unit>().DefaultColor = new Color(0.72f, 0.15f, 0.17f, 1.0f);
         }
@@ -447,6 +446,15 @@ public class UnitsManager : MonoBehaviour
         }
 
         Stats stats = unit.GetComponent<Stats>();
+
+        if (stats.Mag > 0)
+        {
+            _spellbookButton.SetActive(true);
+        }
+        else
+        {
+            _spellbookButton.SetActive(false);
+        }
         _nameDisplay.text = stats.Name;
         _raceDisplay.text = stats.Race;
         _initiativeDisplay.text = stats.Initiative.ToString();

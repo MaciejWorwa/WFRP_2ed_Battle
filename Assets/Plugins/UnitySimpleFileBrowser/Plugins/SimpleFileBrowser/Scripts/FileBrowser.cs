@@ -39,10 +39,18 @@ namespace SimpleFileBrowser
 			public Sprite icon;
 		}
 #pragma warning restore 0649
-		#endregion
+        #endregion
 
-		#region Inner Classes
-		public class Filter
+        private void Start()
+        {
+            // Change the text of the cancel button
+            Text cancelButtonText = cancelButton.GetComponentInChildren<Text>();
+            if (cancelButtonText != null)
+                cancelButtonText.text = "Anuluj"; // New text for the button
+        }
+
+        #region Inner Classes
+        public class Filter
 		{
 			public readonly string name;
 			public readonly string[] extensions;
