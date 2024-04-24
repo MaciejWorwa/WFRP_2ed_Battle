@@ -194,20 +194,6 @@ public class UnitsManager : MonoBehaviour
         //Ustawia Id postaci, które będzie definiować jego rasę i statystyki
         newUnit.GetComponent<Stats>().Id = unitId;
 
-        //Ustawia tag postaci, który definiuje, czy jest to sojusznik, czy przeciwnik, a także jej domyślny kolor.
-        if (_unitTagToggle.isOn)
-        {
-
-            newUnit.tag = "PlayerUnit";
-            newUnit.GetComponent<Unit>().DefaultColor = new Color(0f, 0.54f, 0.17f, 1.0f);
-        }
-        else
-        {
-            newUnit.tag = "EnemyUnit";
-            newUnit.GetComponent<Unit>().DefaultColor = new Color(0.72f, 0.15f, 0.17f, 1.0f);
-        }
-        newUnit.GetComponent<Unit>().ChangeUnitColor(newUnit);
-
         //Zmienia status wybranego pola na zajęte
         selectedTile.GetComponent<Tile>().IsOccupied = true;
 
@@ -230,6 +216,26 @@ public class UnitsManager : MonoBehaviour
 
         if(SaveAndLoadManager.Instance.IsLoading != true)
         {
+            //Ustawia tag postaci, który definiuje, czy jest to sojusznik, czy przeciwnik, a także jej domyślny kolor.
+            if (_unitTagToggle.isOn)
+            {
+
+                newUnit.tag = "PlayerUnit";
+                newUnit.GetComponent<Unit>().DefaultColor = new Color(0f, 0.54f, 0.17f, 1.0f);
+            }
+            else
+            {
+                newUnit.tag = "EnemyUnit";
+                newUnit.GetComponent<Unit>().DefaultColor = new Color(0.72f, 0.15f, 0.17f, 1.0f);
+            }
+            newUnit.GetComponent<Unit>().ChangeUnitColor(newUnit);
+
+            //Losuje początkowe statystyki dla człowieka, elfa, krasnoluda i niziołka
+            if (newUnit.GetComponent<Stats>().Id <= 4)
+            {
+                newUnit.GetComponent<Stats>().RollForBaseStats();
+            }
+
             //Ustala początkową inicjatywę i dodaje jednostkę do kolejki inicjatywy
             newUnit.GetComponent<Stats>().Initiative = newUnit.GetComponent<Stats>().Zr + UnityEngine.Random.Range(1, 11);
             InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(newUnit.GetComponent<Unit>());

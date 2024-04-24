@@ -12,7 +12,7 @@ public class Unit : MonoBehaviour
     public string TokenFilePath;
     public Color DefaultColor;
     public Color HighlightColor;
-    public bool IsSelected { get; private set; } = false;
+    public bool IsSelected = false;
     public bool IsRunning; // Biegnie
     public bool IsCharging; // Szarżuje
     public int HelplessDuration; // Czas stanu bezbronności (podany w rundach). Wartość 0 oznacza, że postać nie jest bezbronna
@@ -136,7 +136,7 @@ public class Unit : MonoBehaviour
     }
 
     public void ChangeUnitColor(GameObject unit)
-    {  
+    {
         Renderer renderer = unit.GetComponent<Renderer>();
 
         //Ustawia wartość HighlightColor na jaśniejszą wersję DefaultColor. Trzeci parametr określa ilość koloru białego w całości.

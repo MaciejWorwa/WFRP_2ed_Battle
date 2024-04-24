@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using UnityEngine;
+using UnityEngine.TextCore.Text;
 
 public class Stats : MonoBehaviour
 {
@@ -66,5 +69,45 @@ public class Stats : MonoBehaviour
     [Header("Umiejętności")]
     public int Channeling; // Splatanie magii
     public int Dodge; // Unik
-}
 
+    public void RollForBaseStats()
+    {
+        WW += Random.Range(2, 21);
+        US += Random.Range(2, 21);
+        K += Random.Range(2, 21);
+        Odp += Random.Range(2, 21);
+        Zr += Random.Range(2, 21);
+        Int += Random.Range(2, 21);
+        SW += Random.Range(2, 21);
+        Ogd += Random.Range(2, 21);
+
+        int rollMaxHealth = Random.Range(1, 11);
+        if (rollMaxHealth <= 6 && rollMaxHealth > 3)
+            MaxHealth += 1;
+        else if (rollMaxHealth <= 9)
+            MaxHealth += 2;
+        else if (rollMaxHealth == 10)
+            MaxHealth += 3;
+
+        int rollPP = Random.Range(1, 11);
+        if (rollPP <= 4)
+            PP = 2;
+        else if (rollPP <= 7)
+            PP = 3;
+        else if (rollPP >= 8)
+            PP = 3;
+
+        if (Race == "Elf")
+        {
+            PP--;
+        }
+        else if (Race == "Krasnolud")
+        {
+            if (PP != 3) PP--;
+        }
+        else if (Race == "Niziołek")
+        {
+            if (rollPP <= 7 && rollPP > 4) PP--;
+        }
+    }
+}

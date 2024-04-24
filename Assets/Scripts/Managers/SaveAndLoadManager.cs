@@ -357,12 +357,15 @@ public class SaveAndLoadManager : MonoBehaviour
 
             //Dodaje jednostkę do kolejki inicjatywy
             InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(unitGameObject.GetComponent<Unit>());
+
+            if (unitGameObject.GetComponent<Unit>().IsSelected) unitGameObject.GetComponent<Unit>().SelectUnit();
         }
 
         LoadRoundsManager(saveFolderPath);
 
-        if(Unit.SelectedUnit != null) Unit.SelectedUnit.GetComponent<Unit>().SelectUnit();
- 
+        Unit.SelectedUnit = null;
+        InitiativeQueueManager.Instance.UpdateInitiativeQueue();
+
         IsLoading = false;
         Debug.Log($"<color=green>Wczytano stan gry.</color>");
     }
