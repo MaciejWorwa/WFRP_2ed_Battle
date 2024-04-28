@@ -56,6 +56,7 @@ public class RoundsManager : MonoBehaviour
 
             key.CanParry = true;
             if(key.GetComponent<Stats>().Dodge > 0) key.CanDodge = true;
+            if(key.GetComponent<Stats>().Mag > 0) key.CanCastSpell = true;
             key.CanAttack = true;
             key.GuardedAttackBonus = 0;
 

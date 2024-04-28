@@ -1,0 +1,31 @@
+{
+  "Spells": [
+    {
+      "Id": 1,
+      "Name": "Magiczne żądło",
+      "Type": ["offensive", "magic-bolt"],
+      "CastingNumber": 6,
+      "Range": 8,
+      "Strength": 3,
+      "CastingTime": 1
+    },
+    {
+      "Id": 2,
+      "Name": "Błyskawica",
+      "Type": ["offensive", "magic-bolt"],
+      "CastingNumber": 10,
+      "Range": 18,
+      "Strength": 5,
+      "CastingTime": 1
+    },
+    {
+      "Id": 3,
+      "Name": "Gorejący wzrok",
+      "Type": ["offensive", "magic-bolt"],
+      "CastingNumber": 7,
+      "Range": 8,
+      "Strength": 6,
+      "CastingTime": 2
+    }
+  ]
+}

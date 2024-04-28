@@ -36,6 +36,7 @@ public class DataManager : MonoBehaviour
 
     [SerializeField] private GameObject _buttonPrefab; // Przycisk odpowiadający każdej z broni
     [SerializeField] private Transform _weaponScrollViewContent; // Lista wszystkich dostępnych broni
+    [SerializeField] private Transform _spellbookScrollViewContent; // Lista wszystkich dostępnych zaklęć
     [SerializeField] private TMP_Dropdown _weaponQualityDropdown; // Lista jakości broni
     [SerializeField] private Transform _unitScrollViewContent; // Lista wszystkich dostępnych ras (jednostek)
 
@@ -225,6 +226,78 @@ public class DataManager : MonoBehaviour
         }
     }
     #endregion
+
+    #region Loading spells
+    public void LoadAndUpdateSpells(int spellId = 0)
+    {
+        // Ładowanie danych JSON
+        TextAsset jsonFile = Resources.Load<TextAsset>("spells");
+        if (jsonFile == null)
+        {
+            Debug.LogError("Nie znaleziono pliku JSON.");
+            return;
+        }
+
+        // Deserializacja danych JSON
+        SpellData[] spellsArray = null;
+        spellsArray = JsonHelper.FromJson<SpellData>(jsonFile.text);
+
+        if (spellsArray == null)
+        {
+            Debug.LogError("Deserializacja JSON nie powiodła się. Sprawdź strukturę JSON.");
+            return;
+        }
+
+        //Odniesienie do klasy spell postaci
+        Spell spellToUpdate = null;
+        if(Unit.SelectedUnit != null && Unit.SelectedUnit.GetComponent<Spell>() != null && spellId != 0)
+        {
+            spellToUpdate = Unit.SelectedUnit.GetComponent<Spell>();
+            spellToUpdate.Id = spellId;
+        }
+
+        foreach (var spell in spellsArray)
+        {
+            if (spellToUpdate != null && spell.Id == spellToUpdate.Id)
+            {
+                // Używanie refleksji do aktualizacji wartości wszystkich pól w klasie Spell
+                FieldInfo[] fields = typeof(SpellData).GetFields(BindingFlags.Instance | BindingFlags.Public);
+                foreach (var field in fields)
+                {
+                    var targetField = typeof(Spell).GetField(field.Name, BindingFlags.Instance | BindingFlags.Public);
+                    if (targetField != null)
+                    {
+                        targetField.SetValue(spellToUpdate, field.GetValue(spell));             
+                    }
+                }
+            }
+
+            bool buttonExists = _spellbookScrollViewContent.GetComponentsInChildren<TextMeshProUGUI>().Any(t => t.text == spell.Name);
+
+            if(buttonExists == false)
+            {
+                //Dodaje zaklęcie do ScrollViewContent w postaci buttona
+                GameObject buttonObj = Instantiate(_buttonPrefab, _spellbookScrollViewContent);
+                TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
+                //Ustala text buttona
+                buttonText.text = spell.Name;
+
+                UnityEngine.UI.Button button = buttonObj.GetComponent<UnityEngine.UI.Button>();
+                
+                //Dodaje opcję do CustomDropdowna ze wszystkimi zaklęciami
+                _spellbookScrollViewContent.GetComponent<CustomDropdown>().Buttons.Add(button);
+
+                int currentIndex = _weaponScrollViewContent.GetComponent<CustomDropdown>().Buttons.Count; // Pobiera indeks nowego przycisku
+
+                // Zdarzenie po kliknięciu na konkretny item z listy
+                button.onClick.AddListener(() =>
+                {
+                    _spellbookScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(currentIndex); // Wybiera element i aktualizuje jego wygląd
+                });
+            }
+        }
+    }
+    #endregion
 }
 
 public static class JsonHelper
@@ -242,6 +315,10 @@ public static class JsonHelper
         {
             return wrapper.Weapons;
         }
+        else if (wrapper.Spells != null)
+        {
+            return wrapper.Spells;
+        }
         else
         {
             Debug.LogError("Deserializacja JSON nie powiodła się. Sprawdź składnię i strukturę JSON.");
@@ -254,6 +331,7 @@ public static class JsonHelper
     {
         public T[] Units;
         public T[] Weapons;
+        public T[] Spells;
     }
 }
 
@@ -283,6 +361,7 @@ public class UnitData
     public int DefensiveBonus;
     public int GuardedAttackBonus; //Modyfikator do uników i parowania za ostrożny atak
     public bool CanAttack = true;
+    public bool CanCastSpell = false;
     public bool Feinted = false; // Określa, czy postać wykonała w poprzedniej akcji udaną fintę
     public bool CanParry = true;
     public bool CanDodge = false;
@@ -348,6 +427,7 @@ public class StatsData
     public bool Fearless; // Nieustraszony
     public bool Frightening; // Straszny (test Fear)
     public bool LightningParry; // Błyskawiczny blok
+    public bool MagicSense; //Zmysł magii
     public bool MasterGunner; // Artylerzysta
     public bool MightyShot; // Strzał precyzyjny
     public bool PowerfulBlow; // Potężny cios (parowanie -30)
@@ -418,6 +498,37 @@ public class WeaponData
             if (field != null && field.GetValue(weapons) != null)
             {
                 thisField.SetValue(this, field.GetValue(weapons));
+            }
+        }
+    }
+}
+[System.Serializable]
+public class SpellData
+{
+    public int Id;
+    public string Name;
+    public string[] Type;
+    public int CastingNumber; //poziom mocy
+    public float Range;
+    public int Strength;
+    public float AreaSize;
+    public int CastingTime;
+    public int Duration;
+
+    public SpellData(Spell spell)
+    {
+        // Pobiera wszystkie pola (zmienne) z klasy spell
+        var fields = spell.GetType().GetFields();
+        var thisFields = this.GetType().GetFields();
+
+        // Dla każdego pola z klasy spell odnajduje pole w klasie this (czyli SpellData) i ustawia mu wartość jego odpowiednika z klasy spell
+        foreach (var thisField in thisFields)
+        {
+            var field = fields.FirstOrDefault(f => f.Name == thisField.Name); // Znajduje pierwsze pole o tej samej nazwie wśród pól z klasy spell
+
+            if (field != null && field.GetValue(spell) != null)
+            {
+                thisField.SetValue(this, field.GetValue(spell));
             }
         }
     }

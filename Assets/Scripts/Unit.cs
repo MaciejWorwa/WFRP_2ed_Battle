@@ -25,6 +25,7 @@ public class Unit : MonoBehaviour
     public int DefensiveBonus;
     public int GuardedAttackBonus; //Modyfikator do uników i parowania za ostrożny atak
     public bool CanAttack = true;
+    public bool CanCastSpell = false;
     public bool Feinted = false; // Określa, czy postać wykonała w poprzedniej akcji udaną fintę
     public bool CanParry = true;
     public bool CanDodge = false;
@@ -66,7 +67,7 @@ public class Unit : MonoBehaviour
 
     private void OnMouseOver()
     {
-        if(Input.GetMouseButtonDown(1) && SelectedUnit != null && SelectedUnit != this.gameObject)
+        if(Input.GetMouseButtonDown(1) && SelectedUnit != null && SelectedUnit != this.gameObject && !MagicManager.IsTargetSelecting)
         {
             //Sprawdza, czy atakowanym jest nasz sojusznik i czy tryb Friendly Fire jest aktywny
             if(GameManager.IsFriendlyFire == false && this.gameObject.CompareTag(SelectedUnit.tag))
@@ -77,6 +78,10 @@ public class Unit : MonoBehaviour
 
             CombatManager.Instance.Attack(SelectedUnit.GetComponent<Unit>(), this, false);
         }
+        else if (Input.GetMouseButtonDown(1) && SelectedUnit != null && MagicManager.IsTargetSelecting)
+        {
+            MagicManager.Instance.CastSpell(this);
+        }   
     }
 
     public void SelectUnit()
@@ -133,6 +138,9 @@ public class Unit : MonoBehaviour
 
         //Zaznacza lub odznacza jednostkę na kolejce inicjatywy
         InitiativeQueueManager.Instance.UpdateInitiativeQueue();
+
+        //Zresetowanie rzucania zaklęć
+        MagicManager.Instance.ResetSpellCasting();
     }
 
     public void ChangeUnitColor(GameObject unit)

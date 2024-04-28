@@ -439,7 +439,7 @@ public class UnitsManager : MonoBehaviour
     #region Update unit panel (at the top of the screen)
     public void UpdateUnitPanel(GameObject unit)
     {
-        if(unit == null)
+        if(unit == null || SaveAndLoadManager.Instance.IsLoading)
         {
             _unitPanel.SetActive(false);
             _actionsPanel.SetActive(false);
@@ -456,6 +456,11 @@ public class UnitsManager : MonoBehaviour
         if (stats.Mag > 0)
         {
             _spellbookButton.SetActive(true);
+
+            if(unit.GetComponent<Spell>() == null)
+            {
+                unit.AddComponent<Spell>();
+            }
         }
         else
         {

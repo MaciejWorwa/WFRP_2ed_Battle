@@ -53,6 +53,7 @@ public class Stats : MonoBehaviour
     public bool Fearless; // Nieustraszony
     public bool Frightening; // Straszny (test Fear)
     public bool LightningParry; // Błyskawiczny blok
+    public bool MagicSense; //Zmysł magii
     public bool MasterGunner; // Artylerzysta
     public bool MightyShot; // Strzał precyzyjny
     public bool PowerfulBlow; // Potężny cios (parowanie -30)
