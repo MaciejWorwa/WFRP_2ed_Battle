@@ -100,11 +100,11 @@ public class MagicManager : MonoBehaviour
 
     public void CastSpell(Unit target)
     {
-        ResetSpellCasting();
-
         DataManager.Instance.LoadAndUpdateSpells(_spellbookDropdown.GetSelectedIndex());
 
-        bool isSuccessful = CastingNumberRoll(Unit.SelectedUnit.GetComponent<Stats>(), Unit.SelectedUnit.GetComponent<Spell>().CastingNumber) > Unit.SelectedUnit.GetComponent<Spell>().CastingNumber ? true : false;
+        bool isSuccessful = CastingNumberRoll(Unit.SelectedUnit.GetComponent<Stats>(), Unit.SelectedUnit.GetComponent<Spell>().CastingNumber) >= Unit.SelectedUnit.GetComponent<Spell>().CastingNumber ? true : false;
+
+        ResetSpellCasting();
 
         //TUTAJ JEST WSZYSTKO DO UZUPEŁNIENIA, NA RAZIE JEST TAK:
         Debug.Log("succesfull " + isSuccessful);  

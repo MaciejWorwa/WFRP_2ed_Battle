@@ -104,6 +104,12 @@ public class InitiativeQueueManager : MonoBehaviour
         }
     }
 
+    //public void ClearInitiativeQueue()
+    //{
+    //    InitiativeQueue.Clear();
+    //    RoundsManager.Instance.UnitsWithActionsLeft.Clear();
+    //}
+
     public void SelectUnitByQueue()
     {
         StartCoroutine(InvokeSelectUnitCoroutine());

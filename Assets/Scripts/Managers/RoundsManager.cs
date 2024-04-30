@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Linq;
 using TMPro;
 using UnityEngine.UI;
+using System.IO;
 
 public class RoundsManager : MonoBehaviour
 {   
@@ -33,12 +34,15 @@ public class RoundsManager : MonoBehaviour
     [SerializeField] private TMP_Text _roundNumberDisplay;
     [SerializeField] private TMP_Text _nextRoundButtonText;
     public Dictionary <Unit, int> UnitsWithActionsLeft = new Dictionary<Unit, int>();
+    [SerializeField] private GameObject _useFortunePointsButton;
 
     private void Start()
     {
         RoundNumber = 0;
         _roundNumberDisplay.text = "Zaczynamy?";
         _nextRoundButtonText.text = "Start";
+
+        _useFortunePointsButton.SetActive(false);
     }
 
     public void NextRound()
@@ -93,6 +97,12 @@ public class RoundsManager : MonoBehaviour
 
             Debug.Log($"<color=green> {unit.GetComponent<Stats>().Name} wykonał/a akcję pojedynczą. </color>");
 
+            SaveAndLoadManager.Instance.SaveUnits(UnitsManager.Instance.AllUnits, "autosave");
+            if(!_useFortunePointsButton.activeSelf)
+            {
+                _useFortunePointsButton.SetActive(true);
+            }
+
             //Zresetowanie szarży lub biegu, jeśli były aktywne (po zużyciu jednej akcji szarża i bieg nie mogą być możliwe)
             MovementManager.Instance.UpdateMovementRange(1);
 
@@ -107,7 +117,7 @@ public class RoundsManager : MonoBehaviour
         {
             Debug.Log("Ta jednostka nie może w tej rundzie wykonać więcej akcji.");
             return false;
-        }     
+        }
     }
 
     public bool DoFullAction(Unit unit)
@@ -117,9 +127,15 @@ public class RoundsManager : MonoBehaviour
             UnitsWithActionsLeft[unit] -= 2;
 
             Debug.Log($"<color=green> {unit.GetComponent<Stats>().Name} wykonał/a akcję podwójną. </color>");
-            
+
+            SaveAndLoadManager.Instance.SaveUnits(UnitsManager.Instance.AllUnits, "autosave");
+            if (!_useFortunePointsButton.activeSelf)
+            {
+                _useFortunePointsButton.SetActive(true);
+            }
+
             //Aktualizuje aktywną postać na kolejce inicjatywy, bo obecna postać wykonała wszystkie akcje w tej rundzie. Wyjątkiem jest atak wielokrotny
-            if(!CombatManager.Instance.AttackTypes["SwiftAttack"])
+            if (!CombatManager.Instance.AttackTypes["SwiftAttack"])
             {
                 InitiativeQueueManager.Instance.SelectUnitByQueue();
             }    
@@ -131,6 +147,31 @@ public class RoundsManager : MonoBehaviour
             Debug.Log("Ta jednostka nie może w tej rundzie wykonać akcji podwójnej.");
             return false;
         }     
+    }
+
+    public void UseFortunePoint()
+    {
+        if (Unit.SelectedUnit == null) return;
+
+        Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
+        Stats stats = Unit.SelectedUnit.GetComponent<Stats>();
+
+        if (UnitsWithActionsLeft[unit] == 2)
+        {
+            stats = Unit.LastSelectedUnit.GetComponent<Stats>();
+        }
+
+        if (stats.PS == 0)
+        {
+            Debug.Log("Ta jednostka nie posiada Punktów Szczęścia. Przerzut jest niemożliwy.");
+            return;
+        }
+        stats.PS--;
+
+        SaveAndLoadManager.Instance.SaveFortunePoints("autosave", stats, stats.PS);
+        SaveAndLoadManager.Instance.LoadAllUnits(null, "autosave");
+
+        _useFortunePointsButton.SetActive(false);
     }
     #endregion
 

@@ -49,7 +49,7 @@ public class SaveAndLoadManager : MonoBehaviour
     #region Saving methods
     public void SaveAllUnits(GameObject saveGamePanel)
     {
-        if (_saveNameInput.text.Length < 1)
+        if (_saveNameInput.text.Length < 1 || _saveNameInput.text == "autosave")
         {
             Debug.Log($"<color=red>Zapis nieudany. Niepoprawna nazwa pliku.</color>");
             return;
@@ -65,12 +65,17 @@ public class SaveAndLoadManager : MonoBehaviour
 
         SaveUnits(allUnits);
 
+        //Zapisanie wszystkich elementów mapy
+        SaveMap();
+
         //Resetuje inpu fielda i zamyka panel
         _saveNameInput.text = "";
         saveGamePanel.SetActive(false);
+
+        Debug.Log($"<color=green>Zapisano stan gry.</color>");
     }
 
-    private void SaveUnits(List<Unit> allUnits)
+    public void SaveUnits(List<Unit> allUnits, string savesFolderName = "")
     {
         //BinaryFormatter formatter = new BinaryFormatter(); // ZAKOMENTOWANY KOD TO SPOSÓB SZYFROWANIA DANYCH. W PRZYPADKU KORZYSTANIA Z NIEGO ZMIENIC FORMAT PLIKÓW Z .JSON NA .FUN
 
@@ -81,10 +86,11 @@ public class SaveAndLoadManager : MonoBehaviour
             unitNames.Add(unit.GetComponent<Stats>().Name);
         }
 
-        string savesFolderName;
-
         // Stworzenie folderu dla zapisów
-        savesFolderName = _saveNameInput.text;
+        if (savesFolderName.Length < 1)
+        {
+            savesFolderName = _saveNameInput.text;
+        }
         Directory.CreateDirectory(Application.persistentDataPath + "/" + savesFolderName);
 
         // Pobranie listy zapisanych plików
@@ -142,11 +148,6 @@ public class SaveAndLoadManager : MonoBehaviour
 
             //stream.Close();
         }
-
-        //Zapisanie wszystkich elementów mapy
-        SaveMap();
-
-        Debug.Log($"<color=green>Zapisano stan gry.</color>");
     }
 
     private void SaveRoundsManager(string savesFolderName, List<Unit> allUnits)
@@ -164,6 +165,19 @@ public class SaveAndLoadManager : MonoBehaviour
 
         // Zapisanie danych do pliku
         File.WriteAllText(roundsManagerPath, roundsManagerJsonData);
+    }
+
+    public void SaveFortunePoints(string savesFolderName, Stats stats, int PS)
+    {
+        string unitName = stats.Name;
+
+        string statsPath = Path.Combine(Application.persistentDataPath, savesFolderName, unitName + "_stats.json");
+
+        StatsData statsData = new StatsData(stats);
+        statsData.PS = PS;
+
+        string statsJsonData = JsonUtility.ToJson(statsData, true);
+        File.WriteAllText(statsPath, statsJsonData);
     }
 
     public void SaveMap()
@@ -203,21 +217,27 @@ public class SaveAndLoadManager : MonoBehaviour
 
         // Zapis do pliku
         File.WriteAllText(mapElementsPath, mapElementsJsonData);
+
+
+        Debug.Log($"<color=green>Zapisano mapę.</color>");
     }
 
     #endregion
 
     #region Loading methods
-    public void LoadAllUnits(GameObject loadGamePanel)
+    public void LoadAllUnits(GameObject loadGamePanel = null, string saveName = "")
     {
         CustomDropdown dropdown = _savesScrollViewContent.GetComponent<CustomDropdown>();
-        if(dropdown == null || dropdown.SelectedButton == null)
+        if(dropdown == null || (saveName == "" && dropdown.SelectedButton == null))
         {
             Debug.Log($"<color=red>Aby wczytać grę musisz wybrać plik z listy.</color>");
             return;
         }
 
-        string saveName = dropdown.SelectedButton.GetComponentInChildren<TextMeshProUGUI>().text;
+        if(saveName.Length < 1)
+        {
+            saveName = dropdown.SelectedButton.GetComponentInChildren<TextMeshProUGUI>().text;
+        }
 
         string saveFolderPath = Path.Combine(Application.persistentDataPath, saveName);
 
@@ -228,6 +248,9 @@ public class SaveAndLoadManager : MonoBehaviour
         }
 
         IsLoading = true;
+
+        ////Zresetowanie kolejki inicjatywy
+        //InitiativeQueueManager.Instance.ClearInitiativeQueue();
 
         //Odznaczenie zaznaczonej postaci
         if (Unit.SelectedUnit != null)
@@ -247,15 +270,21 @@ public class SaveAndLoadManager : MonoBehaviour
             }
         }
 
-        //Wczytanie mapy
-        LoadMap();
+        if(saveName != "autosave")
+        {
+            //Wczytanie mapy
+            LoadMap();
+        }
 
         StartCoroutine(LoadAllUnitsWithDelay(saveFolderPath));
 
-        loadGamePanel.SetActive(false);
+        if(loadGamePanel!= null)
+        {
+            loadGamePanel.SetActive(false);
+        }
     }
 
-    private IEnumerator LoadAllUnitsWithDelay(string saveFolderPath)
+    public IEnumerator LoadAllUnitsWithDelay(string saveFolderPath)
     {
         var unitFiles = Directory.GetFiles(saveFolderPath, "*_unit.json");
 
@@ -264,7 +293,7 @@ public class SaveAndLoadManager : MonoBehaviour
             IsLoading = false;
             yield break;
         }
-        
+
         foreach (string unitFile in unitFiles)
         {
             //Pobieramy nazwę jednostki, usuwając końcówkę nazwy pliku
@@ -397,6 +426,8 @@ public class SaveAndLoadManager : MonoBehaviour
                 componentField.SetValue(component, value);
             }
         }
+
+        gameObject.GetComponent<Unit>().DisplayUnitHealthPoints();
     }
  
     private void LoadRoundsManager(string savesFolderPath)

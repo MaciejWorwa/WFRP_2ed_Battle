@@ -9,6 +9,7 @@ using System.IO;
 public class Unit : MonoBehaviour
 {
     public static GameObject SelectedUnit;
+    public static GameObject LastSelectedUnit;
     public string TokenFilePath;
     public Color DefaultColor;
     public Color HighlightColor;
@@ -111,6 +112,7 @@ public class Unit : MonoBehaviour
             //Wyłącza panel edycji jednostki, jeśli był włączony
             UnitsManager.Instance.EditUnitModeOff();
 
+            LastSelectedUnit = SelectedUnit;
             SelectedUnit = null;
         }
         else
@@ -120,6 +122,7 @@ public class Unit : MonoBehaviour
             SelectedUnit.GetComponent<Unit>().IsSelected = false;
 
             ChangeUnitColor(SelectedUnit);
+            LastSelectedUnit = SelectedUnit;
             SelectedUnit = this.gameObject;
 
             CombatManager.Instance.UpdateAimButtonColor(); //Resetuje przycisk celowania jeśli był aktywny

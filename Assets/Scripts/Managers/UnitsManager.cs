@@ -318,14 +318,26 @@ public class UnitsManager : MonoBehaviour
 
         if(_unitsDropdown.SelectedButton == null)
         {
-            Debug.Log("Wybierz rasę z listy.");
+            Debug.Log("Wybierz rasę z listy. Zmiana rasy wpłynie na statystyki.");
             return;
         }
     
         GameObject unit = Unit.SelectedUnit;
 
-        //Ustala nową rasę na podstawie rasy wybranej z listy
-        unit.GetComponent<Stats>().Id = _unitsDropdown.GetSelectedIndex();
+        //Aktualizuje imię postaci
+        if (_unitNameInputField.text.Length > 0)
+        {
+            unit.GetComponent<Stats>().Name = _unitNameInputField.text;
+            unit.GetComponent<Unit>().DisplayUnitName();
+            unit.name = _unitNameInputField.text;
+            //Resetuje input field z nazwą jednostki
+            _unitNameInputField.text = null;
+        }
+        else
+        {
+            unit.GetComponent<Stats>().Name = unit.GetComponent<Stats>().Race;
+            unit.GetComponent<Unit>().DisplayUnitName();
+        }
 
         //Ustawia tag postaci, który definiuje, czy jest to sojusznik, czy przeciwnik, a także jej domyślny kolor.
         if (_unitTagToggle.isOn)
@@ -340,28 +352,28 @@ public class UnitsManager : MonoBehaviour
         }
         unit.GetComponent<Unit>().ChangeUnitColor(unit);
 
-        //Aktualizuje statystyki
-        DataManager.Instance.LoadAndUpdateStats(unit);
-
-        //Aktualizuje imię postaci
-        if(_unitNameInputField.text.Length > 0)
+        //Sprawdza, czy rasa jest zmieniana
+        if (unit.GetComponent<Stats>().Id != _unitsDropdown.GetSelectedIndex())
         {
-            unit.GetComponent<Stats>().Name = _unitNameInputField.text;
-            unit.GetComponent<Unit>().DisplayUnitName();
-            //Resetuje input field z nazwą jednostki
-            _unitNameInputField.text = null;
-        }
-        else
-        {
-            unit.GetComponent<Stats>().Name = unit.GetComponent<Stats>().Race;
-            unit.GetComponent<Unit>().DisplayUnitName();
-        }
+            //Ustala nową rasę na podstawie rasy wybranej z listy
+            unit.GetComponent<Stats>().Id = _unitsDropdown.GetSelectedIndex();
 
-        //Ustala inicjatywę i aktualizuje kolejkę inicjatywy
-        unit.GetComponent<Stats>().Initiative = unit.GetComponent<Stats>().Zr + UnityEngine.Random.Range(1, 11);
-        InitiativeQueueManager.Instance.RemoveUnitFromInitiativeQueue(unit.GetComponent<Unit>());
-        InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(unit.GetComponent<Unit>());
-        InitiativeQueueManager.Instance.UpdateInitiativeQueue();
+            //Aktualizuje statystyki
+            DataManager.Instance.LoadAndUpdateStats(unit);
+
+            //Losuje początkowe statystyki dla człowieka, elfa, krasnoluda i niziołka
+            if (unit.GetComponent<Stats>().Id <= 4)
+            {
+                unit.GetComponent<Stats>().RollForBaseStats();
+                unit.GetComponent<Unit>().DisplayUnitHealthPoints();
+            }
+
+            //Ustala inicjatywę i aktualizuje kolejkę inicjatywy
+            unit.GetComponent<Stats>().Initiative = unit.GetComponent<Stats>().Zr + UnityEngine.Random.Range(1, 11);
+            InitiativeQueueManager.Instance.RemoveUnitFromInitiativeQueue(unit.GetComponent<Unit>());
+            InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(unit.GetComponent<Unit>());
+            InitiativeQueueManager.Instance.UpdateInitiativeQueue();
+        }
 
         //Aktualizuje wyświetlany panel ze statystykami
         UpdateUnitPanel(unit);

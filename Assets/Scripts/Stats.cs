@@ -84,11 +84,20 @@ public class Stats : MonoBehaviour
 
         int rollMaxHealth = Random.Range(1, 11);
         if (rollMaxHealth <= 6 && rollMaxHealth > 3)
+        {
             MaxHealth += 1;
+            TempHealth += 1;
+        }   
         else if (rollMaxHealth <= 9)
+        {
             MaxHealth += 2;
+            TempHealth += 2;
+        }
         else if (rollMaxHealth == 10)
+        {
             MaxHealth += 3;
+            TempHealth += 3;
+        }
 
         int rollPP = Random.Range(1, 11);
         if (rollPP <= 4)
@@ -110,5 +119,7 @@ public class Stats : MonoBehaviour
         {
             if (rollPP <= 7 && rollPP > 4) PP--;
         }
+
+        PS = PP;
     }
 }
