@@ -23,6 +23,7 @@ public class Unit : MonoBehaviour
     public bool Trapped; // Unieruchomiony
     //public int TrappedDuration; // Czas unieruchomienia (podany w rundach). Wartość 0 oznacza, że postać nie jest unieruchomiona
     public int AimingBonus;
+    public int CastingNumberBonus;
     public int DefensiveBonus;
     public int GuardedAttackBonus; //Modyfikator do uników i parowania za ostrożny atak
     public bool CanAttack = true;
@@ -81,7 +82,7 @@ public class Unit : MonoBehaviour
         }
         else if (Input.GetMouseButtonDown(1) && SelectedUnit != null && MagicManager.IsTargetSelecting)
         {
-            MagicManager.Instance.CastSpell(this);
+            MagicManager.Instance.CastSpell(this.gameObject);
         }   
     }
 

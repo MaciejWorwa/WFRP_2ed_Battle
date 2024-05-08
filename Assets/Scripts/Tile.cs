@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.TextCore.Text;
 
 public class Tile : MonoBehaviour
 {
@@ -30,10 +32,16 @@ public class Tile : MonoBehaviour
 
         HighlightTile();
 
-        if(Unit.SelectedUnit != null && !MovementManager.Instance.IsMoving)
+        if(Unit.SelectedUnit != null && !MovementManager.Instance.IsMoving && !MagicManager.IsTargetSelecting)
         {
             MovementManager.Instance.HighlightPath(Unit.SelectedUnit, this.gameObject);
-        }      
+        }
+
+        //Podświetla pola w obszarze działania zaklęcia
+        if (MagicManager.IsTargetSelecting && Unit.SelectedUnit != null && Unit.SelectedUnit.GetComponent<Spell>().AreaSize > 1)
+        {
+            GridManager.Instance.HighlightTilesInSpellArea(this.gameObject);
+        }
     }
 
     private void OnMouseExit()
@@ -57,7 +65,13 @@ public class Tile : MonoBehaviour
             {
                 Debug.Log("Wybierz przeciwnika, na którego chcesz zaszarżować.");
                 return;
-            }     
+            }
+            
+            if(MagicManager.IsTargetSelecting)
+            {
+                MagicManager.Instance.CastSpell(this.gameObject);
+                return;
+            }
 
             //Wykonuje ruch na kliknięte pole
             MovementManager.Instance.MoveSelectedUnit(this.gameObject, Unit.SelectedUnit);
@@ -66,6 +80,11 @@ public class Tile : MonoBehaviour
 
     private void OnMouseOver()
     {
+        if (Input.GetMouseButtonDown(1) && Unit.SelectedUnit != null && MagicManager.IsTargetSelecting)
+        {
+            MagicManager.Instance.CastSpell(this.gameObject);
+        }
+
         // Jeżeli nie jesteśmy w kreatorze pola bitwy to funkcja stawiania przeszkód jest wyłączona. Tak samo nie wywołujemy jej, gdy lewy przycisk myszy nie jest wciśnięty
         if (SceneManager.GetActiveScene().buildIndex != 0 ||  GameManager.IsMousePressed == false) return;
 
@@ -84,7 +103,7 @@ public class Tile : MonoBehaviour
         else if (_renderer.material.color == _rangeColor)
             _renderer.material.color = _highlightRangeColor;
     }
-    private void ResetTileHighlight()
+    public void ResetTileHighlight()
     {
         if(_renderer.material.color == _highlightColor)
             _renderer.material.color = _baseColor;

@@ -20512,10 +20512,10 @@ MonoBehaviour:
       - m_Target: {fileID: 1629999961}
         m_TargetAssemblyTypeName: SaveAndLoadManager, Assembly-CSharp
         m_MethodName: LoadAllUnits
-        m_Mode: 2
+        m_Mode: 5
         m_Arguments:
-          m_ObjectArgument: {fileID: 2061984353}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
@@ -44672,6 +44672,7 @@ MonoBehaviour:
   _saveNameInput: {fileID: 647256957}
   _savesScrollViewContent: {fileID: 577287063}
   _buttonPrefab: {fileID: 1192054422147782566, guid: 499c7d0701b6e7741a127a17f0f1b483, type: 3}
+  _loadGamePanel: {fileID: 2061984353}
   IsLoading: 0
 --- !u!1 &1631523108
 GameObject:

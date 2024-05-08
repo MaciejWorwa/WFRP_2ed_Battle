@@ -2,15 +2,6 @@
   "Spells": [
     {
       "Id": 1,
-      "Name": "Magiczne żądło",
-      "Type": ["offensive", "magic-bolt"],
-      "CastingNumber": 6,
-      "Range": 8,
-      "Strength": 3,
-      "CastingTime": 1
-    },
-    {
-      "Id": 2,
       "Name": "Błyskawica",
       "Type": ["offensive", "magic-bolt"],
       "CastingNumber": 10,
@@ -19,13 +10,41 @@
       "CastingTime": 1
     },
     {
-      "Id": 3,
+      "Id": 2,
       "Name": "Gorejący wzrok",
       "Type": ["offensive", "magic-bolt"],
       "CastingNumber": 7,
       "Range": 8,
       "Strength": 6,
       "CastingTime": 2
+    },
+    {
+      "Id": 3,
+      "Name": "Magiczne żądło",
+      "Type": ["offensive", "magic-bolt"],
+      "CastingNumber": 6,
+      "Range": 8,
+      "Strength": 3,
+      "CastingTime": 1
+    },
+    {
+      "Id": 4,
+      "Name": "Nawałnica",
+      "Type": ["offensive"],
+      "CastingNumber": 25,
+      "Range": 24,
+      "AreaSize": 5,
+      "Strength": 5,
+      "CastingTime": 2
+    },
+    {
+      "Id": 5,
+      "Name": "Ogień U'zhul",
+      "Type": ["offensive", "magic-bolt"],
+      "CastingNumber": 6,
+      "Range": 18,
+      "Strength": 4,
+      "CastingTime": 1
     }
   ]
 }

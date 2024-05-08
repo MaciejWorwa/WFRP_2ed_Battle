@@ -161,6 +161,21 @@ public class GridManager : MonoBehaviour
             tile.GetComponent<Tile>().ResetRangeColor();
     }
 
+    public void HighlightTilesInSpellArea(GameObject tileUnderCursor)
+    {
+        ResetColorOfTilesInMovementRange();
+
+        Collider2D[] allColliders = Physics2D.OverlapCircleAll(tileUnderCursor.transform.position, Unit.SelectedUnit.GetComponent<Spell>().AreaSize / 2);
+
+        foreach (var collider in allColliders)
+        {
+            if (collider != null && collider.gameObject.CompareTag("Tile"))
+            {
+                collider.GetComponent<Tile>().SetRangeColor();
+            }
+        }
+    }
+
     public void CheckTileOccupancy()
     {
         foreach (Tile tile in Tiles)

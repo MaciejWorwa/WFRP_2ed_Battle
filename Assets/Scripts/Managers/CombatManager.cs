@@ -751,27 +751,27 @@ public class CombatManager : MonoBehaviour
         switch (attackLocalization)
         {
             case int n when (n >= 1 && n <= 15):
-                Debug.Log("Trafienie w głowę");
+                Debug.Log("Trafienie w głowę.");
                 armor = targetStats.Armor_head;
                 break;
             case int n when (n >= 16 && n <= 35):
-                Debug.Log("Trafienie w prawą rękę");
+                Debug.Log("Trafienie w prawą rękę.");
                 armor = targetStats.Armor_arms;
                 break;
             case int n when (n >= 36 && n <= 55):
-                Debug.Log("Trafienie w lewą rękę");
+                Debug.Log("Trafienie w lewą rękę.");
                 armor = targetStats.Armor_arms;
                 break;
             case int n when (n >= 56 && n <= 80):
-                Debug.Log("Trafienie w korpus");
+                Debug.Log("Trafienie w korpus.");
                 armor = targetStats.Armor_torso;
                 break;
             case int n when (n >= 81 && n <= 90):
-                Debug.Log("Trafienie w prawą nogę");
+                Debug.Log("Trafienie w prawą nogę.");
                 armor = targetStats.Armor_legs;
                 break;
             case int n when (n >= 91 && n <= 100):
-                Debug.Log("Trafienie w lewą nogę");
+                Debug.Log("Trafienie w lewą nogę.");
                 armor = targetStats.Armor_legs;
                 break;
         }

@@ -1,6 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.TextCore.Text;
 using UnityEngine.UI;
 
 public class MagicManager : MonoBehaviour
@@ -27,11 +31,12 @@ public class MagicManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-    private int _castingNumberModifier;
+
     [SerializeField] private CustomDropdown _spellbookDropdown;
     [SerializeField] private Button _castSpellButton;
     public List <Spell> SpellBook = new List<Spell>();
     public static bool IsTargetSelecting;
+    private float _spellDistance;
 
     void Start()
     {
@@ -42,6 +47,12 @@ public class MagicManager : MonoBehaviour
     public void ChannelingMagic()
     {
         if(Unit.SelectedUnit == null) return;
+
+        if(Unit.SelectedUnit.GetComponent<Unit>().CastingNumberBonus > 0)
+        {
+            Debug.Log("Ta jednostka już wcześniej splotła magię.");
+            return;
+        }
 
         Stats stats = Unit.SelectedUnit.GetComponent<Stats>();
 
@@ -63,12 +74,12 @@ public class MagicManager : MonoBehaviour
 
         if (stats.SW + modifier >= rollResult)
         {
-            _castingNumberModifier += stats.Mag;
+            Unit.SelectedUnit.GetComponent<Unit>().CastingNumberBonus += stats.Mag;
             Debug.Log($"Wynik rzutu: {rollResult}. Wartość cechy: {stats.SW}. Modyfikator: {modifier}. Splatanie magii zakończone sukcesem.");
         }
         else
         {
-            _castingNumberModifier = 0;
+            Unit.SelectedUnit.GetComponent<Unit>().CastingNumberBonus = 0;
             Debug.Log($"Wynik rzutu: {rollResult}. Wartość cechy: {stats.SW}. Modyfikator: {modifier}. Splatanie magii zakończone niepowodzeniem.");
         }
     }
@@ -89,25 +100,93 @@ public class MagicManager : MonoBehaviour
             return;
         }
 
+        GridManager.Instance.ResetColorOfTilesInMovementRange();
+
         IsTargetSelecting = true;
+        DataManager.Instance.LoadAndUpdateSpells(_spellbookDropdown.GetSelectedIndex());
 
         //Zmienia kolor przycisku na aktywny
         _castSpellButton.GetComponent<Image>().color = Color.green;
 
         Debug.Log("Kliknij prawym przyciskiem myszy na jednostkę, która ma być celem zaklęcia.");
-        return;
     }
 
-    public void CastSpell(Unit target)
+    public void CastSpell(GameObject target)
     {
-        DataManager.Instance.LoadAndUpdateSpells(_spellbookDropdown.GetSelectedIndex());
+        if (Unit.SelectedUnit == null) return;
 
-        bool isSuccessful = CastingNumberRoll(Unit.SelectedUnit.GetComponent<Stats>(), Unit.SelectedUnit.GetComponent<Spell>().CastingNumber) >= Unit.SelectedUnit.GetComponent<Spell>().CastingNumber ? true : false;
+        Stats spellcasterStats = Unit.SelectedUnit.GetComponent<Stats>();
+        Unit spellcasterUnit = Unit.SelectedUnit.GetComponent<Unit>();
+        Spell spell = Unit.SelectedUnit.GetComponent<Spell>();
+
+        //Sprawdza dystans
+        _spellDistance = CalculateDistance(Unit.SelectedUnit, target.gameObject);
+        if (_spellDistance > spell.Range)
+        {
+            Debug.Log("Cel znajduje się poza zasięgiem zaklęcia.");
+            return;
+        }
+
+        //Sprawdza wszystkie jednostki w obszarze działania zaklęcia
+        List<Collider2D> allTargets = Physics2D.OverlapCircleAll(target.transform.position, spell.AreaSize / 2).ToList();
+
+        // Usuwa wszystkie collidery, które nie są jednostkami
+        for (int i = allTargets.Count - 1; i >= 0; i--)
+        {
+            //Usuwa collidery, które nie są jednostkami oraz rzucającego zaklęcie w przypadku zaklęć ofensywnych 
+            if (allTargets[i].GetComponent<Unit>() == null || (allTargets[i].gameObject == Unit.SelectedUnit && spell.Type.Contains("offensive")))
+            {
+                allTargets.RemoveAt(i);
+            }
+        }
+
+        if (allTargets.Count == 0)
+        {
+            Debug.Log($"W obszarze działania zaklęcia musi znaleźć się jakaś jednostka.");
+            return;
+        }
+
+        //Wykonuje akcję
+        if (spell.CastingTime >= 2 && RoundsManager.Instance.UnitsWithActionsLeft[spellcasterUnit] == 2)
+        {
+            bool canDoAction = RoundsManager.Instance.DoFullAction(spellcasterUnit);
+
+            if (canDoAction) spell.CastingTimeLeft -= 2;
+            else return;
+        }
+        else if (spell.CastingTime == 1 || (spell.CastingTime >= 2 && RoundsManager.Instance.UnitsWithActionsLeft[spellcasterUnit] == 1))
+        {
+            bool canDoAction = RoundsManager.Instance.DoHalfAction(spellcasterUnit);
+
+            if (canDoAction) spell.CastingTimeLeft--;
+            else return;
+        }
+
+        if (spell.CastingTimeLeft > 0)
+        {
+            Debug.Log($"{Unit.SelectedUnit.GetComponent<Stats>().Name} splata zaklęcie. Pozostała/y {spell.CastingTimeLeft} akcja/e do końca.");
+            return;
+        }
+
+        bool isSuccessful = CastingNumberRoll(spellcasterStats, spell.CastingNumber) >= spell.CastingNumber ? true : false;
 
         ResetSpellCasting();
+        spell.CastingTimeLeft = spell.CastingTime;
+        spellcasterUnit.CastingNumberBonus = 0;
 
-        //TUTAJ JEST WSZYSTKO DO UZUPEŁNIENIA, NA RAZIE JEST TAK:
-        Debug.Log("succesfull " + isSuccessful);  
+        if (isSuccessful == false)
+        {
+            Debug.Log("Rzucanie zaklęcia nie powiodło się.");
+            return;
+        }
+
+        if (spell.Type.Contains("offensive"))
+        {
+            foreach(var collider in allTargets)
+            {
+                DealMagicDamage(spellcasterStats, collider.GetComponent<Unit>(), spell);
+            }
+        }
     }
 
     public void ResetSpellCasting()
@@ -115,8 +194,6 @@ public class MagicManager : MonoBehaviour
         IsTargetSelecting = false;
         //Zmienia kolor przycisku na nieaktywny
         _castSpellButton.GetComponent<Image>().color = Color.white;
-
-        _castingNumberModifier = 0;
     }
 
     private int CastingNumberRoll(Stats stats, int spellCastingNumber)
@@ -138,10 +215,13 @@ public class MagicManager : MonoBehaviour
             castingNumber += rollResult;
 
             resultString += $"kość {i+1}: <color=green>{rollResult}</color> ";
-
         }
+
+        //Uwzględnienie splecenia magii
+        castingNumber += Unit.SelectedUnit.GetComponent<Unit>().CastingNumberBonus;
+
         Debug.Log(resultString);
-        Debug.Log($"Uzyskany poziom mocy: {castingNumber + _castingNumberModifier}. Wymagany poziom mocy: {spellCastingNumber}");
+        Debug.Log($"Uzyskany poziom mocy: {castingNumber}. Wymagany poziom mocy: {spellCastingNumber}");
 
         // Liczenie dubletów
         foreach (int rollResult in allRollResults)
@@ -181,6 +261,84 @@ public class MagicManager : MonoBehaviour
         }
 
         stats.GetComponent<Unit>().CanCastSpell = false;
-        return castingNumber;
+        return castingNumber+ Unit.SelectedUnit.GetComponent<Unit>().CastingNumberBonus;
+    }
+
+    private void DealMagicDamage(Stats spellcasterStats, Unit target, Spell spell)
+    {
+        int rollResult = Random.Range(1, 11);
+        int damage = rollResult + spell.Strength;
+
+        Debug.Log($"{spellcasterStats.Name} wyrzucił {rollResult} i zadał {damage} obrażeń.");
+
+        Stats targetStats = target.GetComponent<Stats>();
+        int armor = CalculateArmor(targetStats);
+
+        //Zadanie obrażeń
+        if (damage > (targetStats.Wt + armor))
+        {
+            targetStats.TempHealth -= damage - (targetStats.Wt + armor);
+
+            Debug.Log(targetStats.Name + " znegował " + (targetStats.Wt + armor) + " obrażeń.");
+
+            //Zaktualizowanie punktów żywotności
+            target.GetComponent<Unit>().DisplayUnitHealthPoints();
+            Debug.Log($"Punkty żywotności {targetStats.Name}: {targetStats.TempHealth}/{targetStats.MaxHealth}");
+        }
+        else
+        {
+            Debug.Log($"Atak {spellcasterStats.Name} nie przebił się przez pancerz.");
+        }
+    }
+
+    private int CalculateArmor(Stats targetStats)
+    {
+        int attackLocalization = Random.Range(1, 101);
+        int armor = 0;
+
+        switch (attackLocalization)
+        {
+            case int n when (n >= 1 && n <= 15):
+                Debug.Log("Trafienie w głowę.");
+                armor = targetStats.Armor_head;
+                break;
+            case int n when (n >= 16 && n <= 35):
+                Debug.Log("Trafienie w prawą rękę.");
+                armor = targetStats.Armor_arms;
+                break;
+            case int n when (n >= 36 && n <= 55):
+                Debug.Log("Trafienie w lewą rękę.");
+                armor = targetStats.Armor_arms;
+                break;
+            case int n when (n >= 56 && n <= 80):
+                Debug.Log("Trafienie w korpus.");
+                armor = targetStats.Armor_torso;
+                break;
+            case int n when (n >= 81 && n <= 90):
+                Debug.Log("Trafienie w prawą nogę.");
+                armor = targetStats.Armor_legs;
+                break;
+            case int n when (n >= 91 && n <= 100):
+                Debug.Log("Trafienie w lewą nogę.");
+                armor = targetStats.Armor_legs;
+                break;
+        }
+
+        return armor;
+    }
+
+    private float CalculateDistance(GameObject spellcaster, GameObject target)
+    {
+        if (spellcaster != null && target != null)
+        {
+            _spellDistance = Vector3.Distance(spellcaster.transform.position, target.transform.position);
+
+            return _spellDistance;
+        }
+        else
+        {
+            Debug.LogError("Nie udało się ustalić odległości pomiędzy rzucającym zaklęcie a celem.");
+            return 0;
+        }
     }
 }

@@ -10,8 +10,8 @@ public class Spell : MonoBehaviour
     public int CastingNumber; //poziom mocy
     public float Range;
     public int Strength;
-    public float AreaSize;
+    public int AreaSize;
     public int CastingTime;
+    public int CastingTimeLeft;
     public int Duration;
-
 }

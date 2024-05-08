@@ -253,13 +253,15 @@ public class DataManager : MonoBehaviour
         if(Unit.SelectedUnit != null && Unit.SelectedUnit.GetComponent<Spell>() != null && spellId != 0)
         {
             spellToUpdate = Unit.SelectedUnit.GetComponent<Spell>();
-            spellToUpdate.Id = spellId;
+            //spellToUpdate.Id = spellId;
         }
 
         foreach (var spell in spellsArray)
         {
-            if (spellToUpdate != null && spell.Id == spellToUpdate.Id)
+            if (spellToUpdate != null && spell.Id == spellId)
             {
+                if(spellToUpdate.Id == spell.Id) return;
+
                 // Używanie refleksji do aktualizacji wartości wszystkich pól w klasie Spell
                 FieldInfo[] fields = typeof(SpellData).GetFields(BindingFlags.Instance | BindingFlags.Public);
                 foreach (var field in fields)
@@ -270,6 +272,8 @@ public class DataManager : MonoBehaviour
                         targetField.SetValue(spellToUpdate, field.GetValue(spell));             
                     }
                 }
+
+                spellToUpdate.CastingTimeLeft = spell.CastingTime;
             }
 
             bool buttonExists = _spellbookScrollViewContent.GetComponentsInChildren<TextMeshProUGUI>().Any(t => t.text == spell.Name);
@@ -358,6 +362,7 @@ public class UnitData
     public bool Trapped; // Unieruchomiony
     //public int TrappedDuration; // Czas unieruchomienia (podany w rundach). Wartość 0 oznacza, że postać nie jest unieruchomiona
     public int AimingBonus;
+    public int CastingNumberBonus;
     public int DefensiveBonus;
     public int GuardedAttackBonus; //Modyfikator do uników i parowania za ostrożny atak
     public bool CanAttack = true;
@@ -511,8 +516,9 @@ public class SpellData
     public int CastingNumber; //poziom mocy
     public float Range;
     public int Strength;
-    public float AreaSize;
+    public int AreaSize;
     public int CastingTime;
+    public int CastingTimeLeft;
     public int Duration;
 
     public SpellData(Spell spell)

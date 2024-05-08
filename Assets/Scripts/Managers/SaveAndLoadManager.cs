@@ -43,6 +43,7 @@ public class SaveAndLoadManager : MonoBehaviour
     [SerializeField] private TMP_InputField _saveNameInput;
     [SerializeField] private Transform _savesScrollViewContent;
     [SerializeField] private GameObject _buttonPrefab; // Przycisk odpowiadający każdemu zapisowi na liście
+    [SerializeField] private GameObject _loadGamePanel; 
 
     public bool IsLoading;
 
@@ -225,7 +226,7 @@ public class SaveAndLoadManager : MonoBehaviour
     #endregion
 
     #region Loading methods
-    public void LoadAllUnits(GameObject loadGamePanel = null, string saveName = "")
+    public void LoadAllUnits(string saveName = "")
     {
         CustomDropdown dropdown = _savesScrollViewContent.GetComponent<CustomDropdown>();
         if(dropdown == null || (saveName == "" && dropdown.SelectedButton == null))
@@ -270,6 +271,12 @@ public class SaveAndLoadManager : MonoBehaviour
             }
         }
 
+        //Resetuje zajęte pola
+        foreach (var tile in GridManager.Instance.Tiles)
+        {
+            tile.IsOccupied = false;
+        }
+
         if(saveName != "autosave")
         {
             //Wczytanie mapy
@@ -278,9 +285,9 @@ public class SaveAndLoadManager : MonoBehaviour
 
         StartCoroutine(LoadAllUnitsWithDelay(saveFolderPath));
 
-        if(loadGamePanel!= null)
+        if(_loadGamePanel!= null)
         {
-            loadGamePanel.SetActive(false);
+            _loadGamePanel.SetActive(false);
         }
     }
 

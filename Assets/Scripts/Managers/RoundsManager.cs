@@ -169,7 +169,7 @@ public class RoundsManager : MonoBehaviour
         stats.PS--;
 
         SaveAndLoadManager.Instance.SaveFortunePoints("autosave", stats, stats.PS);
-        SaveAndLoadManager.Instance.LoadAllUnits(null, "autosave");
+        SaveAndLoadManager.Instance.LoadAllUnits("autosave");
 
         _useFortunePointsButton.SetActive(false);
     }
