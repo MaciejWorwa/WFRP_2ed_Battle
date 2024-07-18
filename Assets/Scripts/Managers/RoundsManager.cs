@@ -56,6 +56,8 @@ public class RoundsManager : MonoBehaviour
         //Resetuje ilość dostępnych akcji dla wszystkich jednostek
         foreach (var key in UnitsWithActionsLeft.Keys.ToList())
         {
+            if(key == null) continue;
+
             UnitsWithActionsLeft[key] = 2;
 
             key.CanParry = true;
@@ -85,6 +87,39 @@ public class RoundsManager : MonoBehaviour
         if (GameManager.IsAutoSelectUnitMode && InitiativeQueueManager.Instance.ActiveUnit != null)
         {
             InitiativeQueueManager.Instance.SelectUnitByQueue();
+        }
+
+        //Wykonuje automatyczną akcję za każdą jednostkę
+        if(GameManager.IsAutoCombatMode)
+        {
+            StartCoroutine(AutoCombat());
+        }
+    }
+
+    IEnumerator AutoCombat()
+    {
+        // Posortowanie wszystkich jednostek wg inicjatywy
+        List<Unit> AllUnitsSorted = UnitsManager.Instance.AllUnits
+            .OrderByDescending(unit => unit.GetComponent<Stats>().Initiative)
+            .ToList();
+
+        foreach (Unit unit in AllUnitsSorted)
+        {
+            yield return new WaitForSeconds(0.1f);
+
+            InitiativeQueueManager.Instance.SelectUnitByQueue();
+
+            yield return new WaitForSeconds(0.1f);
+
+            AutoCombatManager.Instance.Act(Unit.SelectedUnit.GetComponent<Unit>());
+
+            //Sortuje jeszcze raz, bo któraś jednostka mogła zginąć
+            AllUnitsSorted = UnitsManager.Instance.AllUnits
+                .OrderByDescending(unit => unit.GetComponent<Stats>().Initiative)
+                .ToList();
+
+            // Czeka, aż postać skończy ruch, zanim wybierze kolejną postać
+            yield return new WaitUntil(() => MovementManager.Instance.IsMoving == false);
         }
     }
 
@@ -145,6 +180,7 @@ public class RoundsManager : MonoBehaviour
         else
         {
             Debug.Log("Ta jednostka nie może w tej rundzie wykonać akcji podwójnej.");
+            Debug.Log($"UNIT: {unit.GetComponent<Stats>().Name} CONTAINS KEY: {UnitsWithActionsLeft.ContainsKey(unit)} ACTIONS LEFT: {UnitsWithActionsLeft[unit]}");
             return false;
         }     
     }

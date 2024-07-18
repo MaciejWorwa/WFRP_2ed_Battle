@@ -37,7 +37,7 @@ public class MovementManager : MonoBehaviour
     public void MoveSelectedUnit(GameObject selectedTile, GameObject unit)
     {
         // Nie pozwala wykonać akcji ruchu, dopóki poprzedni ruch nie zostanie zakończony. Sprawdza też, czy gra nie jest wstrzymana (np. poprzez otwarcie dodatkowych paneli)
-        if( IsMoving == true || GameManager.IsGamePaused) return;    
+        if( IsMoving == true || GameManager.IsGamePaused) return;
 
         // Sprawdza zasięg ruchu postaci
         int movementRange = unit.GetComponent<Stats>().TempSz;
@@ -54,8 +54,8 @@ public class MovementManager : MonoBehaviour
         // Znajdź najkrótszą ścieżkę do celu
         List<Vector3> path = FindPath(startCharPos, selectedTilePos, movementRange);
 
-        // Sprawdza czy wybrane pole jest w zasięgu ruchu postaci.
-        if (path.Count > 0 && path.Count <= movementRange)
+        // Sprawdza czy wybrane pole jest w zasięgu ruchu postaci. W przypadku automatycznej walki ten warunek nie jest wymagany.
+        if (path.Count > 0 && path.Count <= movementRange || GameManager.IsAutoCombatMode)
         {
             //Wykonuje akcję
             bool canDoAction = true;

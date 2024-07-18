@@ -160,6 +160,8 @@ public class SaveAndLoadManager : MonoBehaviour
         // Serializacja do JSON
         foreach (var pair in RoundsManager.Instance.UnitsWithActionsLeft)
         {
+            if (pair.Key == null) continue;
+
             roundsManagerData.Entries.Add(new UnitNameAndActionsLeft() { UnitName = pair.Key.gameObject.name, ActionsLeft = pair.Value });
         }
         string roundsManagerJsonData = JsonUtility.ToJson(roundsManagerData, true);

@@ -43,6 +43,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button _autoSelectUnitButton;
     public static bool IsFriendlyFire = false;
     [SerializeField] private Button _friendlyFireButton;
+    [SerializeField] private Button _autoCombatButton;
+    public static bool IsAutoCombatMode = false;
     private Dictionary<Button, bool> allModes;
     public static bool IsGamePaused;
 
@@ -64,6 +66,7 @@ public class GameManager : MonoBehaviour
             {_autoKillButton, IsAutoKillMode},
             {_friendlyFireButton, IsFriendlyFire},
             {_autoDiceRollingButton, IsAutoDiceRollingMode},
+            {_autoCombatButton, IsAutoCombatMode},
         };
 
         // Ustawia kolory przycisków na podstawie początkowych wartości trybów
@@ -159,6 +162,21 @@ public class GameManager : MonoBehaviour
     #endregion
 
     #region Game modes
+    public void SetAutoCombatMode()
+    {
+        IsAutoCombatMode = !IsAutoCombatMode;
+
+        UpdateButtonColor(_autoCombatButton, IsAutoCombatMode);
+
+        if (IsAutoCombatMode)
+        {
+            Debug.Log("Tryb automatycznej walki został włączony. Wszystkie akcje będą wykonywane automatycznie.");
+        }
+        else
+        {
+            Debug.Log("Tryb automatycznej walki został wyłączony. Wszystkie akcje będą wykonywane ręcznie.");
+        }
+    }
     public void SetAutoRollingDiceMode()
     {
         IsAutoDiceRollingMode = !IsAutoDiceRollingMode;

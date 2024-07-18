@@ -88,6 +88,8 @@ public class Unit : MonoBehaviour
 
     public void SelectUnit()
     {
+        Debug.Log($"wybieramy {GetComponent<Stats>().Name}");
+
         if (SelectedUnit == null)
         {
             SelectedUnit = this.gameObject;
@@ -115,6 +117,8 @@ public class Unit : MonoBehaviour
 
             LastSelectedUnit = SelectedUnit;
             SelectedUnit = null;
+
+            Debug.Log($"odznaczamy {GetComponent<Stats>().Name}");
         }
         else
         {

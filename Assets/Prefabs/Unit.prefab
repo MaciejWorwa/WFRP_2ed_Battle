@@ -142,20 +142,29 @@ MonoBehaviour:
   TokenFilePath: 
   DefaultColor: {r: 0, g: 0, b: 0, a: 0}
   HighlightColor: {r: 0, g: 0, b: 0, a: 0}
+  IsSelected: 0
   IsRunning: 0
   IsCharging: 0
-  IsHelpless: 0
-  IsStunned: 0
-  IsTrapped: 0
+  HelplessDuration: 0
+  IsScared: 0
+  IsFearTestPassed: 0
+  StunDuration: 0
+  Trapped: 0
   AimingBonus: 0
+  CastingNumberBonus: 0
   DefensiveBonus: 0
   GuardedAttackBonus: 0
   CanAttack: 1
+  CanCastSpell: 0
+  Feinted: 0
   CanParry: 1
   CanDodge: 0
   Stats: {fileID: 0}
   NameDisplay: {fileID: 5344260523014033116}
   HealthDisplay: {fileID: 1306580773643467112}
+  DamageTaken: 0
+  DamageGiven: 0
+  CurrentGene: 0
 --- !u!114 &-2754630250583481522
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -196,17 +205,24 @@ MonoBehaviour:
   Armor_legs: 0
   Initiative: 0
   Ambidextrous: 0
+  Disarm: 0
+  Fearless: 0
   Frightening: 0
   LightningParry: 0
+  MagicSense: 0
   MasterGunner: 0
   MightyShot: 0
   PowerfulBlow: 0
   RapidReload: 0
+  Sharpshooter: 0
+  StoutHearted: 0
   StreetFighting: 0
   StrikeMightyBlow: 0
+  StrikeToStun: 0
   SureShot: 0
   Terryfying: 0
   QuickDraw: 0
+  Channeling: 0
   Dodge: 0
 --- !u!114 &6267734093322851998
 MonoBehaviour:
@@ -230,12 +246,15 @@ MonoBehaviour:
   AttackRange: 1.5
   ReloadTime: 0
   ReloadLeft: 0
+  ArmourPiercing: 0
+  Balanced: 0
   Defensive: 0
   Fast: 0
   Impact: 0
+  Pummelling: 0
   Slow: 0
+  Snare: 0
   Tiring: 0
-  ArmourPiercing: 0
 --- !u!114 &8447459666408192081
 MonoBehaviour:
   m_ObjectHideFlags: 0

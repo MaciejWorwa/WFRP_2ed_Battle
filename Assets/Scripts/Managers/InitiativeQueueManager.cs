@@ -131,13 +131,13 @@ public class InitiativeQueueManager : MonoBehaviour
             {
                 ActiveUnit.SelectUnit();
             }
-            else if (GameManager.IsAutoSelectUnitMode && ActiveUnit == null)
+            else if (GameManager.IsAutoSelectUnitMode && ActiveUnit == null && !GameManager.IsAutoCombatMode)
             {
                 RoundsManager.Instance.NextRound();
             }
 
             //Jeżeli wybrana postać jest unieruchomiona to wykonuje próbę uwolnienia się (bo to jedyne, co może w tej rundzie zrobić)
-            if(ActiveUnit.Trapped == true)
+            if(ActiveUnit != null && ActiveUnit.Trapped == true)
             {
                 CombatManager.Instance.EscapeFromTheSnare(ActiveUnit);
             }     

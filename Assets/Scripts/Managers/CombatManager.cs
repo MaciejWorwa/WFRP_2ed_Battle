@@ -10,6 +10,8 @@ using static SimpleFileBrowser.FileBrowser;
 using Unity.VisualScripting;
 using UnityEditor;
 using static UnityEngine.GraphicsBuffer;
+using UnityEditor.Experimental.GraphView;
+using static UnityEngine.UI.CanvasScaler;
 
 public class CombatManager : MonoBehaviour
 {
@@ -266,7 +268,13 @@ public class CombatManager : MonoBehaviour
                 canDoAction = RoundsManager.Instance.DoHalfAction(attacker);
             }
 
-            if (!canDoAction) return;
+            if (!canDoAction)
+            {
+                //Zresetowanie bonusu do trafienia
+                _attackModifier = 0;
+                return;
+            }
+
 
             //Zaznacza, że jednostka wykonała już akcję ataku w tej rundzie. Uniemożliwia to wykonanie kolejnej. Nie dotyczy ataku okazyjnego, finty i ogłuszania, a w wielokrotnym sprawdza ilość dostępnych ataków
             if (!opportunityAttack && !AttackTypes["SwiftAttack"] && !AttackTypes["Feint"] || AttackTypes["SwiftAttack"] && _availableAttacks == 0)
@@ -442,7 +450,7 @@ public class CombatManager : MonoBehaviour
             //W przypadku, gdy atak następuje w trybie ręcznego rzucania kośćmi to nie sprawdzamy rzutu na obrażenia. W przeciwnym razie sprawdzamy
             if (attacker.CompareTag("PlayerUnit") && GameManager.IsAutoDiceRollingMode == false)
             {
-                Debug.Log($"{attackerStats.Name} trafia w {targetStats.Name}, który neguje {targetStats.Wt + armor} obrażeń. Zadaj obrażenia ręcznie w panelu atakowanego (ikona \"-\" obrok Żywotności).");
+                Debug.Log($"{attackerStats.Name} trafia w {targetStats.Name}, który neguje {targetStats.Wt + armor} obrażeń. Zadaj obrażenia ręcznie w panelu atakowanego (ikona \"-\" obok Żywotności).");
             }
             else
             {
@@ -861,7 +869,8 @@ public class CombatManager : MonoBehaviour
             MovementManager.Instance.MoveSelectedUnit(targetTile, attacker);
 
             // Wywołanie funkcji z wyczekaniem na koniec animacji ruchu postaci
-            StartCoroutine(DelayedAttack(attacker, target, path.Count * 0.2f));
+            float delay = 0.2f;
+            StartCoroutine(DelayedAttack(attacker, target, path.Count * delay));
 
             IEnumerator DelayedAttack(GameObject attacker, GameObject target, float delay)
             {
@@ -999,7 +1008,7 @@ public class CombatManager : MonoBehaviour
         if (targetUnit.CanParry && targetUnit.CanDodge)
         {
             /* Sprawdza, czy atakowana postać ma większą szansę na unik, czy na parowanie i na tej podstawie ustala kolejność tych akcji.
-            Warunek sprawdza też, czy obrońca broni się Pięściami (Id=0). Parowanie pięściami jest możliwe tylko, gdy przeciwnik również atakuje Pięściami */
+            Warunek sprawdza też, czy obrońca broni się Pięściami (Id=0). Parowanie pięściami jest możliwe tylko, gdy przeciwnik również atakuje Pięściami. */
             if (targetStats.WW + parryModifier > (targetStats.Zr + (targetStats.Dodge * 10) - 10) && (targetWeapon.Id != 0 || targetWeapon.Id == attackerWeapon.Id))
             {
                 targetIsDefended = Parry(attackerWeapon, targetWeapon, targetStats, parryModifier);
