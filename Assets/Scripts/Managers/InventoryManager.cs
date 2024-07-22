@@ -36,7 +36,7 @@ public class InventoryManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button _inventoryButton;
     [SerializeField] private GameObject _buttonPrefab; // Przycisk odpowiadający każdej z broni
     public Transform InventoryScrollViewContent; // Lista ekwipunku postaci
-    [SerializeField] private CustomDropdown _weaponsDropdown;
+    public CustomDropdown WeaponsDropdown;
     [SerializeField] private GameObject _inventoryPanel;
     public int SelectedHand;
     [SerializeField] private UnityEngine.UI.Button _leftHandButtonInventory;
@@ -75,7 +75,7 @@ public class InventoryManager : MonoBehaviour
         if (Unit.SelectedUnit != null)
         {
             // Ustalenie Id broni na podstawie wyboru z dropdowna
-            Unit.SelectedUnit.GetComponent<Weapon>().Id = _weaponsDropdown.GetSelectedIndex();
+            Unit.SelectedUnit.GetComponent<Weapon>().Id = WeaponsDropdown.GetSelectedIndex();
         }
         else
         {
@@ -195,7 +195,7 @@ public class InventoryManager : MonoBehaviour
         if (selectedWeaponIsNotInSelectedHand)
         {
             //Uwzględnia szybkie wyciągnięcie. Nie dotyczy tryby automatycznego (akcja jest zużywana bezpośrednio w AutoCombatManager, bo jednostka automatycznie wielokrotnie zmienia bronie, dopóki nie trafi na odpowiednią)
-            if(!unit.GetComponent<Stats>().QuickDraw && !GameManager.IsAutoCombatMode)
+            if(!unit.GetComponent<Stats>().QuickDraw && !GameManager.IsAutoCombatMode && !SaveAndLoadManager.Instance.IsLoading)
             {
                 bool canDoAction = true;
                 canDoAction = RoundsManager.Instance.DoHalfAction(unit.GetComponent<Unit>());
@@ -250,7 +250,10 @@ public class InventoryManager : MonoBehaviour
         //Aktualizuje kolor broni w ekwipunku na aktywny
         CheckForEquippedWeapons();
 
-        Debug.Log($"{unit.GetComponent<Stats>().Name} dobył {selectedWeapon.Name}.");
+        if(!SaveAndLoadManager.Instance.IsLoading)
+        {
+            Debug.Log($"{unit.GetComponent<Stats>().Name} dobył {selectedWeapon.Name}.");
+        }
     }
     public void SelectHand(bool rightHand)
     {

@@ -11761,7 +11761,7 @@ MonoBehaviour:
   _inventoryButton: {fileID: 0}
   _buttonPrefab: {fileID: 1192054422147782566, guid: 499c7d0701b6e7741a127a17f0f1b483, type: 3}
   InventoryScrollViewContent: {fileID: 169186920}
-  _weaponsDropdown: {fileID: 1878746407}
+  WeaponsDropdown: {fileID: 1878746407}
   _inventoryPanel: {fileID: 2136240452}
   SelectedHand: 0
   _leftHandButtonInventory: {fileID: 734622124}

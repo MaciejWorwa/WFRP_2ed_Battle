@@ -15,6 +15,9 @@ public class Stats : MonoBehaviour
     [Header("Rasa")]
     public string Race;
 
+    [Header("Id początkowej broni")]
+    public int PrimaryWeaponId;
+
     [Header("Cechy pierwszorzędowe")]
     public int WW;
     public int US;

@@ -239,6 +239,23 @@ public class UnitsManager : MonoBehaviour
             //Ustala początkową inicjatywę i dodaje jednostkę do kolejki inicjatywy
             newUnit.GetComponent<Stats>().Initiative = newUnit.GetComponent<Stats>().Zr + UnityEngine.Random.Range(1, 11);
             InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(newUnit.GetComponent<Unit>());
+
+            //Dodaje do ekwipunku początkową broń adekwatną dla danej jednostki i wyposaża w nią
+            if (newUnit.GetComponent<Stats>().PrimaryWeaponId > 0)
+            {
+
+                Unit.LastSelectedUnit = Unit.SelectedUnit != null ? Unit.SelectedUnit : null;
+                Unit.SelectedUnit = newUnit;
+                SaveAndLoadManager.Instance.IsLoading = true; // Tylko po to, żeby informacja o dobyciu broni i dodaniu do ekwipunku z metody GrabWeapon i LoadWeapon nie były wyświetlane w oknie wiadomości
+
+                InventoryManager.Instance.WeaponsDropdown.SetSelectedIndex(newUnit.GetComponent<Stats>().PrimaryWeaponId);
+                InventoryManager.Instance.LoadWeapons();
+                InventoryManager.Instance.InventoryScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(1);
+                InventoryManager.Instance.GrabWeapon();
+
+                SaveAndLoadManager.Instance.IsLoading = false;
+                Unit.SelectedUnit = Unit.LastSelectedUnit != null ? Unit.LastSelectedUnit : null;
+            }
         }
 
         return newUnit;
@@ -367,6 +384,9 @@ public class UnitsManager : MonoBehaviour
                 unit.GetComponent<Stats>().RollForBaseStats();
                 unit.GetComponent<Unit>().DisplayUnitHealthPoints();
             }
+
+            //Aktualizuje siłę i wytrzymałość
+            unit.GetComponent<Unit>().CalculateStrengthAndToughness();
 
             //Ustala inicjatywę i aktualizuje kolejkę inicjatywy
             unit.GetComponent<Stats>().Initiative = unit.GetComponent<Stats>().Zr + UnityEngine.Random.Range(1, 11);

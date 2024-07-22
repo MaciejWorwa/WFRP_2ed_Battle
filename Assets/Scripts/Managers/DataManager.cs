@@ -403,6 +403,7 @@ public class StatsData
     public int Id;
     public string Name;
     public string Race;
+    public int PrimaryWeaponId;
     public int WW;
     public int US;
     public int K;
