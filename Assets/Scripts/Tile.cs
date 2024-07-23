@@ -76,7 +76,7 @@ public class Tile : MonoBehaviour
             //Wykonuje ruch na kliknięte pole
             MovementManager.Instance.MoveSelectedUnit(this.gameObject, Unit.SelectedUnit);
         }
-        if(GameManager.IsAutoCombatMode)
+        if(GameManager.IsAutoCombatMode && !GameManager.IsGamePaused)
         {
             Debug.Log("Aby poruszać się jednostkami, musisz wyłączyć tryb automatycznej walki.");
         }

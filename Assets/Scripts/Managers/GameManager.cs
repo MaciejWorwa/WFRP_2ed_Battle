@@ -171,6 +171,16 @@ public class GameManager : MonoBehaviour
         if (IsAutoCombatMode)
         {
             Debug.Log("Tryb automatycznej walki został włączony. Wszystkie akcje będą wykonywane automatycznie.");
+
+            // Upewnia się, że inne tryby powiązane z automatyczną walką są aktywne
+            if (!IsAutoDefenseMode) SetAutoDefenseMode();
+            if (!IsAutoDiceRollingMode) SetAutoRollingDiceMode();
+            if (!IsAutoKillMode) SetAutoKillMode();
+            if (!IsAutoSelectUnitMode) SetAutoSelectUnitMode();
+
+            IsAutoDiceRollingMode = true;
+
+            UpdateButtonColor(_autoDiceRollingButton, IsAutoDiceRollingMode);
         }
         else
         {
@@ -179,6 +189,12 @@ public class GameManager : MonoBehaviour
     }
     public void SetAutoRollingDiceMode()
     {
+        if(IsAutoCombatMode && IsAutoDiceRollingMode == true)
+        {
+            Debug.Log("Ten tryb jest wymagany podczas automatycznej walki. Jeśli chcesz go wyłączyć, wyłącz automatyczną walkę.");
+            return;
+        }
+
         IsAutoDiceRollingMode = !IsAutoDiceRollingMode;
 
         UpdateButtonColor(_autoDiceRollingButton, IsAutoDiceRollingMode);
@@ -194,6 +210,12 @@ public class GameManager : MonoBehaviour
     }
     public void SetAutoDefenseMode()
     {
+        if (IsAutoCombatMode && IsAutoDefenseMode == true)
+        {
+            Debug.Log("Ten tryb jest wymagany podczas automatycznej walki. Jeśli chcesz go wyłączyć, wyłącz automatyczną walkę.");
+            return;
+        }
+
         IsAutoDefenseMode = !IsAutoDefenseMode;
 
         UpdateButtonColor(_autoDefenseButton, IsAutoDefenseMode);
@@ -210,6 +232,12 @@ public class GameManager : MonoBehaviour
 
     public void SetAutoKillMode()
     {
+        if (IsAutoCombatMode && IsAutoKillMode == true)
+        {
+            Debug.Log("Ten tryb jest wymagany podczas automatycznej walki. Jeśli chcesz go wyłączyć, wyłącz automatyczną walkę.");
+            return;
+        }
+
         IsAutoKillMode = !IsAutoKillMode;
 
         UpdateButtonColor(_autoKillButton, IsAutoKillMode);
@@ -226,6 +254,12 @@ public class GameManager : MonoBehaviour
 
     public void SetAutoSelectUnitMode()
     {
+        if (IsAutoCombatMode && IsAutoSelectUnitMode == true)
+        {
+            Debug.Log("Ten tryb jest wymagany podczas automatycznej walki. Jeśli chcesz go wyłączyć, wyłącz automatyczną walkę.");
+            return;
+        }
+
         IsAutoSelectUnitMode = !IsAutoSelectUnitMode;
 
         UpdateButtonColor(_autoSelectUnitButton, IsAutoSelectUnitMode);
