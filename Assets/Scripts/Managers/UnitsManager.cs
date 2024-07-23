@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine.UIElements;
 using System.Reflection;
 using System;
+using UnityEditor.U2D.Aseprite;
 
 public class UnitsManager : MonoBehaviour
 {
@@ -131,57 +132,43 @@ public class UnitsManager : MonoBehaviour
         //Resetuje input field z nazwą jednostki
         _unitNameInputField.text = null;
 
-        int width = GridManager.Width;
-        int height = GridManager.Height;
+        List<Vector3> availablePositions = new List<Vector3>();
 
-        // Liczba dostępnych pól
-        int availableTiles = width * height;
+        // Przejście przez wszystkie Tile w tablicy Tiles
+        for (int x = 0; x < GridManager.Width; x++)
+        {
+            for (int y = 0; y < GridManager.Height; y++)
+            {
+                // Sprawdzenie, czy Tile nie jest zajęty
+                if (!GridManager.Instance.Tiles[x, y].IsOccupied)
+                {
+                    // Dodanie pozycji Tile do listy dostępnych pozycji
+                    availablePositions.Add(GridManager.Instance.Tiles[x, y].transform.position);
+                }
+            }
+        }
 
-        // Sprawdzenie, czy szerokość i wysokość siatki są liczbami parzystymi
-        bool xEven = (width % 2 == 0) ? true : false;
-        bool yEven = (height % 2 == 0) ? true : false;
+        if (_randomPositionToggle.isOn && !SaveAndLoadManager.Instance.IsLoading)
+        {
+            if (availablePositions.Count == 0)
+            {
+                Debug.Log("Nie można stworzyć nowej jednostki. Brak wolnych pól.");
+                return null;
+            }
 
-        // Ilość prób stworzenia postaci na losowym polu
-        int attempts = 0;
+            // Wybranie losowej pozycji z dostępnych
+            int randomIndex = UnityEngine.Random.Range(0, availablePositions.Count);
+            position = availablePositions[randomIndex];
+        }
+
+        if (availablePositions.Count == 0)
+        {
+            Debug.Log("Wybrane pole jest zajęte. Nie można utworzyć nowej jednostki.");
+            return null;
+        }
 
         // Pole na którym chcemy stworzyć jednostkę
         GameObject selectedTile = GameObject.Find($"Tile {position.x - GridManager.Instance.transform.position.x} {position.y - GridManager.Instance.transform.position.y}");
-
-        do
-        {
-            if(_randomPositionToggle.isOn && !SaveAndLoadManager.Instance.IsLoading)
-            {
-                // Generowanie losowej pozycji na mapie
-                int x = xEven ? UnityEngine.Random.Range(-width / 2, width / 2) : UnityEngine.Random.Range(-width / 2, width / 2 + 1);
-                int y = yEven ? UnityEngine.Random.Range(-height / 2, height / 2) : UnityEngine.Random.Range(-height / 2, height / 2 + 1);
-
-                position = new Vector2(x, y);
-
-                // Aktualizujemy pole na którym chcemy stworzyć jednostkę
-                selectedTile = GameObject.Find($"Tile {position.x - GridManager.Instance.transform.position.x} {position.y - GridManager.Instance.transform.position.y}");
-            }
-
-            // Zmniejszenie liczby dostępnych pól
-            availableTiles--;
-
-            // Inkrementacja liczby prób
-            attempts++;
-
-            // Sprawdzenie, czy liczba prób nie przekracza maksymalnej liczby dostępnych pól
-            if (attempts > availableTiles)
-            {
-                if(_randomPositionToggle.isOn)
-                {
-                    Debug.Log("Nie można stworzyć nowej jednostki. Brak wolnych pól.");
-                }
-                else
-                {
-                    Debug.Log("Wybrane pole jest zajęte. Nie można utworzyć nowej jednostki.");
-                }
-                return null;
-            }
-        }
-        while (selectedTile.GetComponent<Tile>().IsOccupied == true);
 
         IsTileSelecting = false;
       

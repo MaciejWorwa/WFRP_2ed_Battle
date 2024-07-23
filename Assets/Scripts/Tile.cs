@@ -57,7 +57,7 @@ public class Tile : MonoBehaviour
             UnitsManager.Instance.CreateUnitOnSelectedTile(this.gameObject.transform.position);
             return;
         }
-        if(Unit.SelectedUnit != null)
+        if(Unit.SelectedUnit != null && !GameManager.IsAutoCombatMode)
         {
             Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
 
@@ -75,6 +75,10 @@ public class Tile : MonoBehaviour
 
             //Wykonuje ruch na kliknięte pole
             MovementManager.Instance.MoveSelectedUnit(this.gameObject, Unit.SelectedUnit);
+        }
+        if(GameManager.IsAutoCombatMode)
+        {
+            Debug.Log("Aby poruszać się jednostkami, musisz wyłączyć tryb automatycznej walki.");
         }
     }
 

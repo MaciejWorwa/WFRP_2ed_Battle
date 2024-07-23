@@ -44,12 +44,34 @@ public class MapEditor : MonoBehaviour
 
     public void PlaceElementOnRandomTile()
     {
-        int x = Random.Range(0, GridManager.Width);
-        int y = Random.Range(0, GridManager.Height);
+        List<Vector3> availablePositions = new List<Vector3>();
+        Transform gridTransform = GridManager.Instance.transform;
 
-        Vector3 position = new Vector3(x + GridManager.Instance.gameObject.transform.position.x, y + GridManager.Instance.gameObject.transform.position.y, 1);
+        // Wypełnianie listy dostępnymi pozycjami
+        for (int x = 0; x < GridManager.Width; x++)
+        {
+            for (int y = 0; y < GridManager.Height; y++)
+            {
+                Vector3 worldPosition = gridTransform.TransformPoint(new Vector3(x, y, 0));
+                Collider2D collider = Physics2D.OverlapCircle(worldPosition, 0.1f);
 
-        PlaceElementOnSelectedTile(position);
+                if (collider != null && collider.gameObject.CompareTag("Tile"))
+                {
+                    availablePositions.Add(worldPosition);
+                }
+            }
+        }
+
+        if (availablePositions.Count == 0)
+        {
+            Debug.Log("Nie można umieścić więcej elementów na mapie. Brak wolnych pól.");
+            return;
+        }
+
+        // Losowanie pozycji z dostępnych
+        Vector3 selectedPosition = availablePositions[Random.Range(0, availablePositions.Count)];
+
+        PlaceElementOnSelectedTile(selectedPosition);
     }
 
     public void PlaceElementOnSelectedTile(Vector3 position)
