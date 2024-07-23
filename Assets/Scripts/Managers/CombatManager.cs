@@ -394,7 +394,7 @@ public class CombatManager : MonoBehaviour
                         yield return new WaitUntil(() => _parryAndDodgePanel.activeSelf == false);
 
                         _isSuccessful = CheckForParryAndDodge(attackerWeapon, targetWeapon, targetStats, target);
-                        ExecuteAttack(attacker, target);
+                        ExecuteAttack(attacker, target, attackerWeapon);
                     }
                     _parryOrDodge = "";
                     return;
@@ -406,7 +406,7 @@ public class CombatManager : MonoBehaviour
             //Zresetowanie finty
             attacker.Feinted = false;
 
-            ExecuteAttack(attacker, target);
+            ExecuteAttack(attacker, target, attackerWeapon);
         }
         else if (attacker.GetComponent<Unit>().IsCharging)
         {
@@ -418,10 +418,9 @@ public class CombatManager : MonoBehaviour
         }
     }
 
-    public void ExecuteAttack(Unit attacker, Unit target)
+    public void ExecuteAttack(Unit attacker, Unit target, Weapon attackerWeapon)
     {
         Stats attackerStats = attacker.GetComponent<Stats>();
-        Weapon attackerWeapon = attacker.GetComponent<Weapon>();
         Stats targetStats = target.GetComponent<Stats>();
 
         if (_isSuccessful)
@@ -869,7 +868,7 @@ public class CombatManager : MonoBehaviour
             MovementManager.Instance.MoveSelectedUnit(targetTile, attacker);
 
             // Wywołanie funkcji z wyczekaniem na koniec animacji ruchu postaci
-            float delay = 0.2f;
+            float delay = 0.25f;
             StartCoroutine(DelayedAttack(attacker, target, path.Count * delay));
 
             IEnumerator DelayedAttack(GameObject attacker, GameObject target, float delay)
@@ -877,7 +876,7 @@ public class CombatManager : MonoBehaviour
                 yield return new WaitForSeconds(delay);
 
                 Attack(attacker.GetComponent<Unit>(), target.GetComponent<Unit>(), false);
-
+                     
                 ChangeAttackType(); // Resetuje szarżę
             }
         }

@@ -105,8 +105,6 @@ public class RoundsManager : MonoBehaviour
 
         foreach (Unit unit in AllUnitsSorted)
         {
-            yield return new WaitForSeconds(0.1f);
-
             InitiativeQueueManager.Instance.SelectUnitByQueue();
 
             yield return new WaitForSeconds(0.1f);
@@ -120,6 +118,7 @@ public class RoundsManager : MonoBehaviour
 
             // Czeka, aż postać skończy ruch, zanim wybierze kolejną postać
             yield return new WaitUntil(() => MovementManager.Instance.IsMoving == false);
+            yield return new WaitForSeconds(0.5f);
         }
     }
 
