@@ -567,6 +567,19 @@ public class InventoryData
 }
 
 [System.Serializable]
+public class GridManagerData
+{
+    public int Width;
+    public int Height;
+
+    public GridManagerData()
+    {
+        Width = GridManager.Width;
+        Height = GridManager.Height;
+    }
+}
+
+[System.Serializable]
 public class RoundsManagerData
 {
     public int RoundNumber;
@@ -588,8 +601,6 @@ public class UnitNameAndActionsLeft
 [System.Serializable]
 public class MapElementsData
 {
-    public int GridWidth;
-    public int GridHeight;
     public string Name;
     public string Tag;
     public bool IsHighObstacle;
@@ -598,9 +609,6 @@ public class MapElementsData
 
     public MapElementsData(MapElement mapElement)
     {
-        GridWidth = GridManager.Width; 
-        GridHeight = GridManager.Height;
-
         Name = mapElement.gameObject.name.Replace("(Clone)", "");
         Tag = mapElement.gameObject.tag;
         IsHighObstacle= mapElement.IsHighObstacle;

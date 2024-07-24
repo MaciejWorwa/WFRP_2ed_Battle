@@ -111,6 +111,9 @@ public class SaveAndLoadManager : MonoBehaviour
         //Zapisuje numer rundy i dostępne akcje wszystkich jednostek
         SaveRoundsManager(savesFolderName, allUnits);
 
+        //Zapisuje wymiary siatki
+        SaveGridManager(savesFolderName);
+
         //Zapis statystyk wszystkich postaci
         foreach (var unit in allUnits)
         {
@@ -168,6 +171,18 @@ public class SaveAndLoadManager : MonoBehaviour
 
         // Zapisanie danych do pliku
         File.WriteAllText(roundsManagerPath, roundsManagerJsonData);
+    }
+
+    private void SaveGridManager(string savesFolderName)
+    {
+        string gridManagerPath = Path.Combine(Application.persistentDataPath, savesFolderName, "GridManager.json");
+
+        GridManagerData gridManagerData = new GridManagerData();
+
+        string gridManagerJsonData = JsonUtility.ToJson(gridManagerData, true);
+
+        // Zapisanie danych do pliku
+        File.WriteAllText(gridManagerPath, gridManagerJsonData);
     }
 
     public void SaveFortunePoints(string savesFolderName, Stats stats, int PS)
@@ -459,21 +474,44 @@ public class SaveAndLoadManager : MonoBehaviour
         }
     }
 
+    private void LoadGridManager(string filePath)
+    {
+        // Sprawdź, czy plik istnieje
+        if (File.Exists(filePath))
+        {
+            // Deserializuj dane z pliku JSON do obiektu GridManagerData
+            string jsonData = File.ReadAllText(filePath);
+            GridManagerData data = JsonUtility.FromJson<GridManagerData>(jsonData);
+
+            // Załaduj wczytane dane do istniejącego obiektu GridManager
+            GridManager.Instance.LoadGridManagerData(data);
+
+            GridManager.Instance.GenerateGrid();
+            GridManager.Instance.CheckTileOccupancy();
+        }
+        else
+        {
+            Debug.LogError("Pliku nie znaleziono.");
+        }
+    }
+
     public void LoadMap()
     {
         CustomDropdown dropdown = _savesScrollViewContent.GetComponent<CustomDropdown>();
         string saveName = dropdown.SelectedButton.GetComponentInChildren<TextMeshProUGUI>().text;
 
-        string filePath = Path.Combine(Application.persistentDataPath, saveName, "MapElements.json");
+        string mapElementsFilePath = Path.Combine(Application.persistentDataPath, saveName, "MapElements.json");
+        string gridFilePath = Path.Combine(Application.persistentDataPath, saveName, "GridManager.json");
+
+        LoadGridManager(gridFilePath);
 
         // Sprawdź, czy plik istnieje
-        if (File.Exists(filePath) && MapEditor.Instance != null)
+        if (File.Exists(mapElementsFilePath) && MapEditor.Instance != null)
         {
-            // Deserializuj dane z pliku JSON do obiektu RoundsManagerData
-            string jsonData = File.ReadAllText(filePath);
+            string jsonData = File.ReadAllText(mapElementsFilePath);
             MapElementsContainer data = JsonUtility.FromJson<MapElementsContainer>(jsonData);
 
-            // Załaduj wczytane dane do istniejącego obiektu RoundsManager
+            // Załaduj wczytane dane do istniejącego obiektu MapEditor
             MapEditor.Instance.LoadMapData(data);
         }
         else

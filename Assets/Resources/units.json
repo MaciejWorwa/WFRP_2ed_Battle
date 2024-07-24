@@ -262,6 +262,7 @@
       "Armor_arms": 5,
       "Armor_torso": 5,
       "Armor_legs": 5,
+      "LightningParry": true,
       "PowerfulBlow": true,
       "StrikeMightyBlow": true,
       "StrikeToStun": true,

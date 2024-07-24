@@ -47,6 +47,9 @@ public class RoundsManager : MonoBehaviour
 
     public void NextRound()
     {
+        //Zapobiega zmienianiu rundy podczas niedokończonej akcji jakiejś jednostki
+        if (MovementManager.Instance.IsMoving) return;
+
         RoundNumber++;
         _roundNumberDisplay.text = "Runda: " + RoundNumber;
         _nextRoundButtonText.text = "Następna runda";
@@ -57,6 +60,9 @@ public class RoundsManager : MonoBehaviour
         foreach (var key in UnitsWithActionsLeft.Keys.ToList())
         {
             if(key == null) continue;
+
+            //Stosuje zdolności specjalne różnych jednostek (np. regeneracja żywotności trolla)
+            key.GetComponent<Stats>().CheckForSpecialRaceAbilities();
 
             UnitsWithActionsLeft[key] = 2;
 

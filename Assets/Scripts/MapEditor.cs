@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 
@@ -18,16 +19,19 @@ public class MapEditor : MonoBehaviour
 
     void Awake()
     {
-        if (instance == null)
+        if (instance != null && instance != this)
         {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
+            AllElements = instance.AllElements;
+
+            // Niszczymy starą instancję, która już istnieje
+            Destroy(instance.gameObject);
         }
-        else if (instance != this)
-        {
-            // Jeśli instancja już istnieje, a próbujemy utworzyć kolejną, niszczymy nadmiarową
-            Destroy(gameObject);
-        }
+
+        // Aktualizujemy referencję do nowej instancji
+        instance = this;
+
+        // Ustawiamy obiekt, aby nie był niszczony przy ładowaniu nowej sceny
+        DontDestroyOnLoad(gameObject);
     }
 
     [SerializeField] private Transform _allElementsGrid;
@@ -164,11 +168,7 @@ public class MapEditor : MonoBehaviour
             AllElements.RemoveAt(i);
         }
 
-        if(data.Elements.Count == 0) return;
-
-        GridManager.Width = data.Elements[0].GridWidth;
-        GridManager.Height = data.Elements[0].GridHeight;   
-        GridManager.Instance.GenerateGrid();  
+        if (data.Elements.Count == 0) return;
 
         foreach (var mapElement in data.Elements)
         {

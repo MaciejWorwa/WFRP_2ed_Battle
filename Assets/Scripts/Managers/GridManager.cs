@@ -202,4 +202,10 @@ public class GridManager : MonoBehaviour
                 tile.IsOccupied = false;
         }
     }
+
+    public void LoadGridManagerData(GridManagerData data)
+    {
+        Width = data.Width;
+        Height = data.Height;
+    }
 }

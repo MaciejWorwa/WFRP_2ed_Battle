@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
+using static UnityEngine.GraphicsBuffer;
 
 public class Stats : MonoBehaviour
 {
@@ -125,4 +126,27 @@ public class Stats : MonoBehaviour
 
         PS = PP;
     }
+
+    public void CheckForSpecialRaceAbilities()
+    {
+        //Zdolność regeneracji
+        if (Race == "Troll")
+        {
+            int regeneration = Random.Range(0, 11);
+            int currentWounds = 0;
+
+            if (TempHealth < MaxHealth)
+            {
+                currentWounds = MaxHealth - TempHealth;
+            }
+            else return;
+
+            int woundsToHeal = regeneration < currentWounds ? regeneration : currentWounds;
+            TempHealth += woundsToHeal;
+            this.GetComponent<Unit>().DisplayUnitHealthPoints();
+
+            Debug.Log($"{Name} zregenerował {woundsToHeal} żywotności.");
+        }
+    }
+
 }

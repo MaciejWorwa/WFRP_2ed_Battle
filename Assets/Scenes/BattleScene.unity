@@ -37012,8 +37012,8 @@ RectTransform:
   - {fileID: 1139081419}
   - {fileID: 874471057}
   - {fileID: 1281018285}
-  - {fileID: 1877968634}
   - {fileID: 1449648740}
+  - {fileID: 1877968634}
   - {fileID: 450786274}
   m_Father: {fileID: 1322655427}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -39569,7 +39569,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -15}
+  m_AnchoredPosition: {x: 0, y: 35}
   m_SizeDelta: {x: 200, y: 35}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1449648741
@@ -50620,7 +50620,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 35}
+  m_AnchoredPosition: {x: 0, y: -15}
   m_SizeDelta: {x: 200, y: 35}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1877968635
@@ -55696,7 +55696,6 @@ MonoBehaviour:
   _updateUnitButton: {fileID: 204168962}
   _removeUnitConfirmButton: {fileID: 597942176}
   _removeUnitConfirmPanel: {fileID: 529071007}
-  _unitsAmount: 0
   AllUnits: []
 --- !u!1 &2061984353
 GameObject:
