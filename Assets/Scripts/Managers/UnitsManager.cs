@@ -52,7 +52,6 @@ public class UnitsManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button _updateUnitButton;
     [SerializeField] private UnityEngine.UI.Button _removeUnitConfirmButton;
     [SerializeField] private GameObject _removeUnitConfirmPanel;
-    [SerializeField] private int _unitsAmount;
     public static bool IsTileSelecting;
     public static bool IsUnitRemoving;
     public static bool IsUnitEditing = false;
@@ -185,7 +184,6 @@ public class UnitsManager : MonoBehaviour
         selectedTile.GetComponent<Tile>().IsOccupied = true;
 
         // Aktualizuje liczbę wszystkich postaci
-        _unitsAmount++;
         AllUnits.Add(newUnit.GetComponent<Unit>());
 
         //Wczytuje statystyki dla danego typu jednostki
@@ -194,7 +192,7 @@ public class UnitsManager : MonoBehaviour
         //Ustala nazwę GameObjectu jednostki
         if(unitName.Length < 1)
         {
-            newUnit.name = newUnit.GetComponent<Stats>().Race + $" {_unitsAmount}";
+            newUnit.name = newUnit.GetComponent<Stats>().Race + $" {AllUnits.Count}";
         }
         else
         {
@@ -277,7 +275,6 @@ public class UnitsManager : MonoBehaviour
         InitiativeQueueManager.Instance.UpdateInitiativeQueue();
 
         //Usuwa jednostkę z listy wszystkich jednostek
-        _unitsAmount--;
         AllUnits.Remove(unit.GetComponent<Unit>());
 
         //Wyłącza panel górny i dolny, a także wszystkie aktywne panele

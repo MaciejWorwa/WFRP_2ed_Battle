@@ -68,6 +68,9 @@ public class AutoCombatManager : MonoBehaviour
             CombatManager.Instance.ChangeAttackType("SwiftAttack");
             for (int i = 1; i <= unit.GetComponent<Stats>().A; i++)
             {
+                //Zapobiega kolejnym atakom, jeśli przeciwnik już nie żyje
+                if (closestOpponent.GetComponent<Stats>().TempHealth < 0) break;
+
                 CombatManager.Instance.Attack(unit, closestOpponent.GetComponent<Unit>(), false);
             }
             return;
