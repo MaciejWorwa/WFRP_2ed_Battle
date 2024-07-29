@@ -19,10 +19,15 @@ At the moment only Polish language is supported.
 
 # Features
 
-- 4 races: Human, Elf, Dwarf, Halfling
-- add more...
+- battlefield editor with 18 unique map elements,
+- 18 different races to choose,
+- 16 different weapons (with quality to choose),
+- 5 offensive spells,
+- 6 different game modes (including automatic combat mode),
+- save and load system.
 
 # Tutorial
 
-Describe how to play the game
+When you start the game, the battlefield editor opens, where you can place various elements and modify its size. When you're ready, click "Play" in the top right corner. 
+By clicking on "Esc" you can open the main menu, where after entering "Settings" you have the option to change game modes. By default, the recommended game modes are set.
 
