@@ -95,6 +95,14 @@ public class GridManager : MonoBehaviour
         // Generuje nową siatkę ze zmienionymi wartościami
         GenerateGrid();
 
+        StartCoroutine(RemoveElementsOutsideTheGrid());
+    }
+
+    IEnumerator RemoveElementsOutsideTheGrid()
+    {
+        //Opóźnienie, żeby wartości Sliderów zdążyły się zaktualizować w przypadku uruchamiania MapEditor z poziomu BattleScene. Inaczej elementy są usuwane nim sliderY zaktualizuje swoją wartość.
+        yield return new WaitForSeconds(0.02f);
+
         // Usuwa przeszkody poza obszarem siatki
         MapEditor.Instance.RemoveElementsOutsideTheGrid();
     }

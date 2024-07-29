@@ -49,6 +49,7 @@ public class CombatManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button _swiftAttackButton;
     [SerializeField] private UnityEngine.UI.Button _feintButton;
     [SerializeField] private UnityEngine.UI.Button _stunButton;
+    [SerializeField] private UnityEngine.UI.Button _disarmButton;
     public Dictionary<string, bool> AttackTypes = new Dictionary<string, bool>();
 
     private bool _isSuccessful;  //Skuteczność ataku
@@ -81,6 +82,7 @@ public class CombatManager : MonoBehaviour
         AttackTypes.Add("SwiftAttack", false);  // Atak wielokrotny
         AttackTypes.Add("Feint", false);  // Finta
         AttackTypes.Add("Stun", false);  // Ogłuszanie
+        AttackTypes.Add("Disarm", false);  // Rozbrajanie
     }
 
     // Metoda ustawiająca dany typ ataku
@@ -117,8 +119,8 @@ public class CombatManager : MonoBehaviour
                 AttackTypes[key] = false;
             }
 
-            // Zmieniamy wartość bool dla danego typu ataku na true, a jeśli już był true to zmieniamy na standardowy atak. Sprawdzamy też, czy jednostka może wykonać akcję podwójną
-            if(!AttackTypes[attackTypeName] && RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(unit) && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2)
+            // Zmieniamy wartość bool dla danego typu ataku na true, a jeśli już był true to zmieniamy na standardowy atak.
+            if(!AttackTypes[attackTypeName] && RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(unit))
             {
                 AttackTypes[attackTypeName] = true;
             }
@@ -153,12 +155,20 @@ public class CombatManager : MonoBehaviour
                     Debug.Log("Ogłuszanie mogą wykonywać tylko jednostki posiadające tą zdolność.");
             }
 
-            //Ograniczenie finty do ataków w zwarciu
-            if (AttackTypes["Feint"] == true && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type.Contains("ranged"))
+            //Rozbrajanie jest dostępne tylko dla jednostek ze zdolnością rozbrajania
+            if (AttackTypes["Disarm"] == true && unit.GetComponent<Stats>().Disarm == false)
             {
                 AttackTypes[attackTypeName] = false;
                 AttackTypes["StandardAttack"] = true;
-                Debug.Log("Jednostka walcząca bronią dystansową nie może wykonywać finty.");
+                Debug.Log("Rozbrajanie mogą wykonywać tylko jednostki posiadające tą zdolność.");
+            }
+
+            //Ograniczenie finty do ataków w zwarciu
+            if ((AttackTypes["Feint"] || AttackTypes["Stun"] || AttackTypes["Disarm"]) == true && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type.Contains("ranged"))
+            {
+                AttackTypes[attackTypeName] = false;
+                AttackTypes["StandardAttack"] = true;
+                Debug.Log("Jednostka walcząca bronią dystansową nie może wykonać tej akcji.");
             }
         }
 
@@ -173,6 +183,7 @@ public class CombatManager : MonoBehaviour
         _swiftAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["SwiftAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
         _feintButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Feint"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
         _stunButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Stun"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
+        _disarmButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Disarm"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
     }
 
     #endregion
@@ -263,7 +274,7 @@ public class CombatManager : MonoBehaviour
             {
                 canDoAction = RoundsManager.Instance.DoFullAction(attacker);
             }
-            else if ((AttackTypes["StandardAttack"] == true && opportunityAttack == false) || AttackTypes["Feint"] == true || AttackTypes["Stun"] == true) //Zwykły atak lub finta
+            else if ((AttackTypes["StandardAttack"] == true && opportunityAttack == false) || AttackTypes["Feint"] == true || AttackTypes["Stun"] == true || AttackTypes["Disarm"] == true) //Zwykły atak, ogłuszanie, rozbrajanie lub finta
             {
                 canDoAction = RoundsManager.Instance.DoHalfAction(attacker);
             }
@@ -276,7 +287,7 @@ public class CombatManager : MonoBehaviour
             }
 
 
-            //Zaznacza, że jednostka wykonała już akcję ataku w tej rundzie. Uniemożliwia to wykonanie kolejnej. Nie dotyczy ataku okazyjnego, finty i ogłuszania, a w wielokrotnym sprawdza ilość dostępnych ataków
+            //Zaznacza, że jednostka wykonała już akcję ataku w tej rundzie. Uniemożliwia to wykonanie kolejnej. Nie dotyczy ataku okazyjnego i finty, a w wielokrotnym sprawdza ilość dostępnych ataków
             if (!opportunityAttack && !AttackTypes["SwiftAttack"] && !AttackTypes["Feint"] || AttackTypes["SwiftAttack"] && _availableAttacks == 0)
             {
                 attacker.CanAttack = false;
@@ -429,6 +440,13 @@ public class CombatManager : MonoBehaviour
             if (AttackTypes["Stun"] == true)
             {
                 Stun(attackerWeapon, attackerStats, targetStats);
+                return; //Kończy akcję ataku, żeby nie przechodzić do dalszych etapów jak np. zadanie obrażeń
+            }
+
+            //Rozbrajanie
+            if (AttackTypes["Disarm"] == true)
+            {
+                Disarm(attackerStats, targetStats, targetStats.GetComponent<Weapon>());
                 return; //Kończy akcję ataku, żeby nie przechodzić do dalszych etapów jak np. zadanie obrażeń
             }
 
@@ -1225,6 +1243,44 @@ public class CombatManager : MonoBehaviour
         {
             Debug.Log($"Próba uwolnienia {unitStats.Name} nie powiodła się.");
         }    
+    }
+    #endregion
+
+    #region Disarm
+    private void Disarm(Stats attackerStats, Stats targetStats, Weapon targetWeapon)
+    {
+        if (targetWeapon.Type.Contains("natural-weapon"))
+        {
+            Debug.Log("Próba rozbrojenia nie powiodła się. Nie można rozbrajać jednostek walczących bronią naturalną.");
+            return;
+        }
+
+        //Przeciwstawny rzut na Zręczność
+        int attackerRollResult = Random.Range(1, 101);
+        int targetRollResult = Random.Range(1, 101);
+
+        int attackerSuccessLevel = attackerStats.Zr - attackerRollResult;
+        int targetSuccessLevel = targetStats.Zr - targetRollResult;
+
+        Debug.Log($"{attackerStats.Name} próbuje rozbroić {targetStats.Name}. Następuje przeciwstawny rzut na zręczność. Atakujący rzuca: {attackerRollResult} Wartość cechy: {attackerStats.Zr}. Atakowany rzuca: {targetRollResult} Wartość cechy: {targetStats.Zr}. Wynik: {attackerSuccessLevel} do {targetSuccessLevel}");
+
+        if (attackerSuccessLevel > targetSuccessLevel)
+        {
+            targetStats.GetComponent<Weapon>().ResetWeapon();
+
+            //Aktualizujemy tablicę dobytych broni
+            Weapon[] equippedWeapons = targetStats.GetComponent<Inventory>().EquippedWeapons;
+            for (int i = 0; i < equippedWeapons.Length; i++)
+            {
+                equippedWeapons[i] = null;
+            }
+
+            Debug.Log($"{targetStats.Name} został rozbrojony.");
+        }
+        else
+        {
+            Debug.Log($"Rozbrajanie nie powiodło się.");
+        }
     }
     #endregion
 }

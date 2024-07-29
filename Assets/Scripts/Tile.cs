@@ -57,29 +57,34 @@ public class Tile : MonoBehaviour
             UnitsManager.Instance.CreateUnitOnSelectedTile(this.gameObject.transform.position);
             return;
         }
-        if(Unit.SelectedUnit != null && !GameManager.IsAutoCombatMode)
-        {
-            Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
 
-            if(unit.IsCharging)
-            {
-                Debug.Log("Wybierz przeciwnika, na którego chcesz zaszarżować.");
-                return;
-            }
-            
-            if(MagicManager.IsTargetSelecting)
-            {
-                MagicManager.Instance.CastSpell(this.gameObject);
-                return;
-            }
-
-            //Wykonuje ruch na kliknięte pole
-            MovementManager.Instance.MoveSelectedUnit(this.gameObject, Unit.SelectedUnit);
-        }
-        if(GameManager.IsAutoCombatMode && !GameManager.IsGamePaused)
+        if(Unit.SelectedUnit != null)
         {
-            Debug.Log("Aby poruszać się jednostkami, musisz wyłączyć tryb automatycznej walki.");
+            if (!GameManager.IsAutoCombatMode)
+            {
+                Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
+
+                if (unit.IsCharging)
+                {
+                    Debug.Log("Wybierz przeciwnika, na którego chcesz zaszarżować.");
+                    return;
+                }
+
+                if (MagicManager.IsTargetSelecting)
+                {
+                    MagicManager.Instance.CastSpell(this.gameObject);
+                    return;
+                }
+
+                //Wykonuje ruch na kliknięte pole
+                MovementManager.Instance.MoveSelectedUnit(this.gameObject, Unit.SelectedUnit);
+            }
+            else if (!GameManager.IsGamePaused)
+            {
+                Debug.Log("Aby poruszać się jednostkami, musisz wyłączyć tryb automatycznej walki.");
+            }
         }
+
     }
 
     private void OnMouseOver()

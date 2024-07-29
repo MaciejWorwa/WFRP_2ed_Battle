@@ -32,14 +32,14 @@
     {
       "Id": 4,
       "Name": "Broń naturalna",
-      "Type": ["melee"],
+      "Type": ["melee", "natural-weapon"],
       "AttackRange": 1.5,
       "S": 0
     },
     {
       "Id": 5,
       "Name": "Broń naturalna - druzgocząca",
-      "Type": ["melee"],
+      "Type": ["melee", "natural-weapon"],
       "AttackRange": 1.5,
       "S": 0,
       "Impact": true

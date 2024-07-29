@@ -185,7 +185,6 @@ public class RoundsManager : MonoBehaviour
         else
         {
             Debug.Log("Ta jednostka nie może w tej rundzie wykonać akcji podwójnej.");
-            Debug.Log($"UNIT: {unit.GetComponent<Stats>().Name} CONTAINS KEY: {UnitsWithActionsLeft.ContainsKey(unit)} ACTIONS LEFT: {UnitsWithActionsLeft[unit]}");
             return false;
         }     
     }

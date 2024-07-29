@@ -236,6 +236,8 @@ public class SaveAndLoadManager : MonoBehaviour
         // Zapis do pliku
         File.WriteAllText(mapElementsPath, mapElementsJsonData);
 
+        //Zapisanie siatki
+        SaveGridManager(savesFolderName);
 
         Debug.Log($"<color=green>Zapisano mapę.</color>");
     }
