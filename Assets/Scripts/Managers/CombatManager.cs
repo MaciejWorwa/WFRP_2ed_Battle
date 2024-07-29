@@ -556,7 +556,7 @@ public class CombatManager : MonoBehaviour
 
         //Modyfikator za jakość wykonania broni
         if(attackerWeapon.Quality == "Kiepska") _attackModifier -= 5;
-        else if(attackerWeapon.Quality == "Najlepsza") _attackModifier += 5;
+        else if(attackerWeapon.Quality == "Najlepsza" || attackerWeapon.Quality == "Magiczna") _attackModifier += 5;
 
         //Modyfikatory za stany atakowanego (ogłuszenie, unieruchomienie, bezbronność)
         if(targetUnit.StunDuration > 0) _attackModifier += 20;
@@ -582,9 +582,9 @@ public class CombatManager : MonoBehaviour
             {
                 foreach (var weapon in targetUnit.GetComponent<Inventory>().EquippedWeapons)
                 {
-                    if (weapon != null && weapon.Type.Contains("shield")) 
+                    if (weapon != null && weapon.Name == "Tarcza") 
                     {
-                        shieldModifier = 20;
+                        shieldModifier = 10;
                         break;
                     }
                 }
@@ -624,6 +624,12 @@ public class CombatManager : MonoBehaviour
             {
                 Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na WW: {rollResult} Wartość cechy: {attackerStats.WW}");
             }
+        }
+
+        if(attackerWeapon.Quality != "Magiczna" && targetUnit.GetComponent<Stats>().Ethereal == true)
+        {
+            Debug.Log("Przeciwnik jest odporny na niemagiczne ataki. Aby go zranić konieczne jest użycie magicznej broni lub zaklęcia.");
+            return false;
         }
 
         return _isSuccessful;
@@ -806,6 +812,9 @@ public class CombatManager : MonoBehaviour
 
         //Uwzględnienie broni przebijających zbroję
         if (attackerWeapon.ArmourPiercing == true) armor --;
+
+        //Uwzględnienie broni ignorujących zbroję
+        if (attackerWeapon.ArmourIgnoring == true) armor = 0;
 
         return armor;
     }

@@ -6,7 +6,7 @@ public class Spell : MonoBehaviour
 {
     public int Id;
     public string Name;
-    public string[] Type; // np. offensive, buff, magic-bolt, healing (?) 
+    public string[] Type; // np. offensive, buff, magic-missile, healing (?) 
     public int CastingNumber; //poziom mocy
     public float Range;
     public int Strength;

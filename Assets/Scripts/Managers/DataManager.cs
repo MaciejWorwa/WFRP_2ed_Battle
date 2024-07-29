@@ -8,6 +8,7 @@ using UnityEngine.UIElements;
 using System.Collections.Generic;
 using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using Unity.VisualScripting;
+using System;
 
 public class DataManager : MonoBehaviour
 { 
@@ -287,11 +288,16 @@ public class DataManager : MonoBehaviour
                 buttonText.text = spell.Name;
 
                 UnityEngine.UI.Button button = buttonObj.GetComponent<UnityEngine.UI.Button>();
-                
-                //Dodaje opcję do CustomDropdowna ze wszystkimi zaklęciami
-                _spellbookScrollViewContent.GetComponent<CustomDropdown>().Buttons.Add(button);
 
-                int currentIndex = _weaponScrollViewContent.GetComponent<CustomDropdown>().Buttons.Count; // Pobiera indeks nowego przycisku
+                CustomDropdown spellbookDropdown = _spellbookScrollViewContent.GetComponent<CustomDropdown>();
+
+                //Dodaje opcję do CustomDropdowna ze wszystkimi zaklęciami
+                spellbookDropdown.Buttons.Add(button);
+
+                // Wyświetla przy zaklęciu wymagany poziom mocy
+                DisplayCastingNumberInfo(button, spell.CastingNumber);
+
+                int currentIndex = _spellbookScrollViewContent.GetComponent<CustomDropdown>().Buttons.Count; // Pobiera indeks nowego przycisku
 
                 // Zdarzenie po kliknięciu na konkretny item z listy
                 button.onClick.AddListener(() =>
@@ -300,6 +306,15 @@ public class DataManager : MonoBehaviour
                 });
             }
         }
+    }
+
+    public void DisplayCastingNumberInfo(UnityEngine.UI.Button button, int castingNumber)
+    {
+        button.transform.Find("castingNumber_text").gameObject.SetActive(true);
+
+        string castingNumberText = castingNumber.ToString();
+
+        button.transform.Find("castingNumber_text").GetComponent<TMP_Text>().text = castingNumberText;
     }
     #endregion
 }
@@ -430,12 +445,14 @@ public class StatsData
     public int Initiative;
     public bool Ambidextrous; // Oburęczność
     public bool Disarm; // Rozbrojenie
+    public bool Ethereal; // Eteryczny
     public bool Fearless; // Nieustraszony
     public bool Frightening; // Straszny (test Fear)
     public bool LightningParry; // Błyskawiczny blok
     public bool MagicSense; //Zmysł magii
     public bool MasterGunner; // Artylerzysta
     public bool MightyShot; // Strzał precyzyjny
+    public bool MightyMissile; // Morderczy pocisk
     public bool PowerfulBlow; // Potężny cios (parowanie -30)
     public bool RapidReload; // Błyskawiczne przeładowanie
     public bool Sharpshooter; // Strzał przebijający
@@ -480,6 +497,7 @@ public class WeaponData
     public int S;
     public int ReloadTime;
     public int ReloadLeft;
+    public bool ArmourIgnoring; // ignorujący zbroje
     public bool ArmourPiercing; // przebijający zbroje
     public bool Balanced; // wyważony
     public bool Defensive; // parujący

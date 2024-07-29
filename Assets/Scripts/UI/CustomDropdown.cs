@@ -56,7 +56,7 @@ public class CustomDropdown : MonoBehaviour
     {
         Buttons[index - 1].GetComponent<Image>().color = _defaultColor;
 
-        //Ukrywa widok informacji o tym, w której ręce trzymana jest broń
+        //Ukrywa widok informacji dodatkowej
         Buttons[index - 1].transform.Find("hand_text").gameObject.SetActive(false);
     }
 

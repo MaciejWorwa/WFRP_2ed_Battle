@@ -28,6 +28,7 @@ public class Weapon : MonoBehaviour
     public int ReloadLeft;
 
     [Header("Cechy")]
+    public bool ArmourIgnoring; // ignorujący zbroje
     public bool ArmourPiercing; // przebijający zbroje
     public bool Balanced; // wyważony
     public bool Defensive; // parujący

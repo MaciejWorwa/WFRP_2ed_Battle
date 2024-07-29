@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
@@ -269,6 +270,12 @@ public class MagicManager : MonoBehaviour
         int rollResult = Random.Range(1, 11);
         int damage = rollResult + spell.Strength;
 
+        //Uwzględnienie zdolności Morderczy Pocisk
+        if (spell.Type.Contains("magic-missile") && spellcasterStats.MightyMissile == true)
+        {
+            damage++;
+        }
+
         Debug.Log($"{spellcasterStats.Name} wyrzucił {rollResult} i zadał {damage} obrażeń.");
 
         Stats targetStats = target.GetComponent<Stats>();
@@ -288,6 +295,15 @@ public class MagicManager : MonoBehaviour
         else
         {
             Debug.Log($"Atak {spellcasterStats.Name} nie przebił się przez pancerz.");
+        }
+
+        //Śmierć
+        if (targetStats.TempHealth < 0 && GameManager.IsAutoKillMode)
+        {
+            UnitsManager.Instance.DestroyUnit(target.gameObject);
+
+            //Aktualizuje podświetlenie pól w zasięgu ruchu atakującego (inaczej pozostanie puste pole w miejscu usuniętego przeciwnika)
+            GridManager.Instance.HighlightTilesInMovementRange(spellcasterStats);
         }
     }
 

@@ -3,7 +3,7 @@
     {
       "Id": 1,
       "Name": "Błyskawica",
-      "Type": ["offensive", "magic-bolt"],
+      "Type": ["offensive", "magic-missile"],
       "CastingNumber": 10,
       "Range": 18,
       "Strength": 5,
@@ -12,7 +12,7 @@
     {
       "Id": 2,
       "Name": "Gorejący wzrok",
-      "Type": ["offensive", "magic-bolt"],
+      "Type": ["offensive", "magic-missile"],
       "CastingNumber": 7,
       "Range": 8,
       "Strength": 6,
@@ -21,7 +21,7 @@
     {
       "Id": 3,
       "Name": "Magiczne żądło",
-      "Type": ["offensive", "magic-bolt"],
+      "Type": ["offensive", "magic-missile"],
       "CastingNumber": 6,
       "Range": 8,
       "Strength": 3,
@@ -40,7 +40,7 @@
     {
       "Id": 5,
       "Name": "Ogień U'zhul",
-      "Type": ["offensive", "magic-bolt"],
+      "Type": ["offensive", "magic-missile"],
       "CastingNumber": 6,
       "Range": 18,
       "Strength": 4,

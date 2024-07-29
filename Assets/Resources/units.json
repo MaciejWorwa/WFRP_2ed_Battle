@@ -313,6 +313,24 @@
     },
     {
       "Id": 16,
+      "Race": "Zjawa",
+      "PrimaryWeaponId": 6,
+      "WW": 42,
+      "US": 0,
+      "K": 40,
+      "Odp": 43,
+      "Zr": 42,
+      "Int": 18,
+      "SW": 18,
+      "Ogd": 30,
+      "A": 2,
+      "Sz": 6,
+      "MaxHealth": 20,
+      "Ethereal": true,
+      "Frightening": true
+    },
+    {
+      "Id": 17,
       "Race": "Zwierzoczłek - bestigor",
       "PrimaryWeaponId": 2,
       "WW": 45,
@@ -334,7 +352,7 @@
       "StrikeMightyBlow": true
     },
     {
-      "Id": 17,
+      "Id": 18,
       "Race": "Zwierzoczłek - gor",
       "PrimaryWeaponId": 3,
       "WW": 40,
