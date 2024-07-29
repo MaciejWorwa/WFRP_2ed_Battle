@@ -890,6 +890,9 @@ public class CombatManager : MonoBehaviour
         //Sprawdza, czy postać jest wystarczająco daleko do wykonania szarży
         if (path.Count >= 3 && path.Count <= attacker.GetComponent<Stats>().TempSz)
         {
+            //Zapisuje grę przed wykonaniem ruchu, aby użycie punktu szczęścia wczytywało pozycję przed wykonaniem szarży i można było wykonać ją ponownie
+            SaveAndLoadManager.Instance.SaveUnits(UnitsManager.Instance.AllUnits, "autosave");
+
             _attackModifier += 10;
 
             MovementManager.Instance.MoveSelectedUnit(targetTile, attacker);

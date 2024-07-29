@@ -133,11 +133,16 @@ public class RoundsManager : MonoBehaviour
     {
         if (UnitsWithActionsLeft.ContainsKey(unit) && UnitsWithActionsLeft[unit] >= 1)
         {
+            // Automatyczny zapis, aby możliwe było użycie punktów szczęścia. Jeżeli jednostka ich nie posiada to zapis nie jest wykonywany
+            if(unit.Stats.PS > 0)
+            {
+                SaveAndLoadManager.Instance.SaveUnits(UnitsManager.Instance.AllUnits, "autosave");
+            }
+
             UnitsWithActionsLeft[unit]--;
 
             Debug.Log($"<color=green> {unit.GetComponent<Stats>().Name} wykonał/a akcję pojedynczą. </color>");
 
-            SaveAndLoadManager.Instance.SaveUnits(UnitsManager.Instance.AllUnits, "autosave");
             if(!_useFortunePointsButton.activeSelf)
             {
                 _useFortunePointsButton.SetActive(true);
@@ -164,11 +169,16 @@ public class RoundsManager : MonoBehaviour
     {
         if (UnitsWithActionsLeft.ContainsKey(unit) && UnitsWithActionsLeft[unit] == 2)
         {
+            // Automatyczny zapis, aby możliwe było użycie punktów szczęścia. Jeżeli jednostka ich nie posiada to zapis nie jest wykonywany. W przypadku szarży gra jest zapisywana przed wykonaniem ruchu (w klasie CombatManager), a nie w momencie zużywania akcji
+            if (unit.Stats.PS > 0 && !CombatManager.Instance.AttackTypes["Charge"] == true)
+            {
+                SaveAndLoadManager.Instance.SaveUnits(UnitsManager.Instance.AllUnits, "autosave");
+            }
+
             UnitsWithActionsLeft[unit] -= 2;
 
             Debug.Log($"<color=green> {unit.GetComponent<Stats>().Name} wykonał/a akcję podwójną. </color>");
 
-            SaveAndLoadManager.Instance.SaveUnits(UnitsManager.Instance.AllUnits, "autosave");
             if (!_useFortunePointsButton.activeSelf)
             {
                 _useFortunePointsButton.SetActive(true);
