@@ -24,7 +24,8 @@ At the moment only Polish language is supported.
 - 16 different weapons (with quality to choose),
 - 5 offensive spells,
 - 6 different game modes (including automatic combat mode),
-- save and load system.
+- save and load system,
+- and more...
 
 # Tutorial
 
