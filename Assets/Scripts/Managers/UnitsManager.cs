@@ -6,7 +6,6 @@ using TMPro;
 using UnityEngine.UIElements;
 using System.Reflection;
 using System;
-using UnityEditor.U2D.Aseprite;
 
 public class UnitsManager : MonoBehaviour
 {

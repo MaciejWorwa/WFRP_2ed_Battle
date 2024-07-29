@@ -7,11 +7,7 @@ using UnityEngine.UI;
 using UnityEngine.UIElements;
 using System.Linq;
 using static SimpleFileBrowser.FileBrowser;
-using Unity.VisualScripting;
 using UnityEditor;
-using static UnityEngine.GraphicsBuffer;
-using UnityEditor.Experimental.GraphView;
-using static UnityEngine.UI.CanvasScaler;
 
 public class CombatManager : MonoBehaviour
 {
