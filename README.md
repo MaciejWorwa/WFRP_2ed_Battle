@@ -12,7 +12,9 @@ Execute the `WarhammerBattle.exe` executable file which is located in the `WFRP_
 
 # Environment
 
-The game was developed in Unity Engine. At the moment only Windows operating system is supported.
+The game was developed in Unity Engine. List of supported OS:
+- [x] Windows
+- [x] Linux
 
 # Language Pack
 
@@ -20,13 +22,13 @@ At the moment only Polish language is supported.
 
 # Features
 
-- battlefield editor with 18 unique map elements,
+- Battlefield editor with 18 unique map elements,
 - 18 different races to choose,
 - 16 different weapons (with quality to choose),
 - 5 offensive spells,
 - 6 different game modes (including automatic combat mode),
-- save and load system,
-- and more...
+- Save and load system,
+- And more...
 
 # Tutorial
 
