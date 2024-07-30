@@ -1,0 +1,39 @@
+name: Unity Activation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  activate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Cache Unity Library
+        uses: actions/cache@v2
+        with:
+          path: ~/Library/Unity
+          key: ${{ runner.os }}-unity-${{ hashFiles('**/ProjectVersion.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-unity-
+
+      - name: Unity - Activate
+        uses: game-ci/unity-activate@v2.0.0
+        with:
+          unityVersion: '2023.1.17f1'
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          unityEmail: ${{ secrets.UNITY_EMAIL }}
+          unityPassword: ${{ secrets.UNITY_PASSWORD }}
+          unitySerial: ${{ secrets.UNITY_SERIAL }}
+
+      - name: Build project
+        run: |
+          echo "Placeholder for build commands"
+          # Tu dodaj komendy do zbudowania projektu Unity
