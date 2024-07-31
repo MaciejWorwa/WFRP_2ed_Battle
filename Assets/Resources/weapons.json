@@ -32,24 +32,27 @@
     {
       "Id": 4,
       "Name": "Broń naturalna",
-      "Type": ["melee", "natural-weapon"],
+      "Type": ["melee"],
       "AttackRange": 1.5,
-      "S": 0
+      "S": 0,
+      "NaturalWeapon": true
     },
     {
       "Id": 5,
       "Name": "Broń naturalna - druzgocząca",
-      "Type": ["melee", "natural-weapon"],
+      "Type": ["melee"],
       "AttackRange": 1.5,
       "S": 0,
+      "NaturalWeapon": true,
       "Impact": true
     },
     {
       "Id": 6,
       "Name": "Broń naturalna - ignorująca zbroję",
-      "Type": ["melee", "natural-weapon"],
+      "Type": ["melee"],
       "AttackRange": 1.5,
       "S": 0,
+      "NaturalWeapon": true,
       "ArmourIgnoring": true
     },
     {
