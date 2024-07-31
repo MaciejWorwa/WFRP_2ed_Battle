@@ -11,6 +11,7 @@ TagManager:
   - SidePanel
   - Attribute
   - MapElement
+  - WeaponAttribute
   layers:
   - Default
   - TransparentFX

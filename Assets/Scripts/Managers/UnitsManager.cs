@@ -418,19 +418,16 @@ public class UnitsManager : MonoBehaviour
             int value = int.TryParse(textInput.GetComponent<TMP_InputField>().text, out int inputValue) ? inputValue : 0;
 
             field.SetValue(unit.GetComponent<Stats>(), value);
-            //Debug.Log($"Atrybut {field.Name} zmieniony na {value}");
         }
-        else if (field.FieldType == typeof(int) && textInput.GetComponent<UnityEngine.UI.Slider>() != null) // to działa dla umiejętnościami
+        else if (field.FieldType == typeof(int) && textInput.GetComponent<UnityEngine.UI.Slider>() != null) // to działa z umiejętnościami
         {
             int value = (int)textInput.GetComponent<UnityEngine.UI.Slider>().value;
             field.SetValue(unit.GetComponent<Stats>(), value);
-            //Debug.Log($"Atrybut {field.Name} zmieniony na {value}");
         }
         else if (field.FieldType == typeof(bool)) 
         {
             bool boolValue = textInput.GetComponent<UnityEngine.UI.Toggle>().isOn; 
             field.SetValue(unit.GetComponent<Stats>(), boolValue);
-            //Debug.Log($"Atrybut {field.Name} zmieniony na {boolValue}");
         }
         else
         {

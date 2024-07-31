@@ -7,6 +7,8 @@ using TMPro;
 using System.Reflection;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
+using UnityEngine.Windows;
+using UnityEngine.TextCore.Text;
 
 public class InventoryManager : MonoBehaviour
 {
@@ -56,7 +58,7 @@ public class InventoryManager : MonoBehaviour
     #region Inventory panel managing
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.I) && Unit.SelectedUnit != null && !GameManager.Instance.IsAnyInputFieldFocused())
+        if(UnityEngine.Input.GetKeyDown(KeyCode.I) && Unit.SelectedUnit != null && !GameManager.Instance.IsAnyInputFieldFocused())
         {
             GameManager.Instance.HideActivePanels();
             GameManager.Instance.ShowPanel(_inventoryPanel);
@@ -308,6 +310,151 @@ public class InventoryManager : MonoBehaviour
     }
     #endregion
 
+    #region Edit weapon stats
+    public void EditWeaponAttribute(GameObject textInput)
+    {
+        if (Unit.SelectedUnit == null) return;
+
+        GameObject unit = Unit.SelectedUnit;
+
+        // Pobiera pole ze statystyk postaci o nazwie takiej samej jak nazwa textInputa (z wyłączeniem słowa "input")
+        string attributeName = textInput.name.Replace("_input", "");
+
+        int selectedIndex = InventoryScrollViewContent.GetComponent<CustomDropdown>().GetSelectedIndex();
+        if (selectedIndex == 0)
+        {
+            Debug.Log("Musisz wybrać broń, którą chcesz zmodyfikować.");
+            return;
+        }
+
+        //Wybiera broń z ekwipunku na podstawie wartości dropdowna
+        Weapon selectedWeapon = unit.GetComponent<Inventory>().AllWeapons[selectedIndex - 1];
+
+        FieldInfo field = selectedWeapon.GetType().GetField(attributeName);
+
+        if (field == null) return;
+
+        // Zmienia wartść cechy
+        if (field.FieldType == typeof(int))
+        {
+            // Pobiera wartość inputa, starając się przekonwertować ją na int
+            int value = int.TryParse(textInput.GetComponent<TMP_InputField>().text, out int inputValue) ? inputValue : 0;
+
+            field.SetValue(selectedWeapon, value);
+        }
+        else if (field.FieldType == typeof(float))
+        {
+            // Pobiera wartość inputa, starając się przekonwertować ją na float
+            float value = float.TryParse(textInput.GetComponent<TMP_InputField>().text, out float inputValue) ? inputValue : 0;
+
+            if (value > 3)
+                field.SetValue(selectedWeapon, value / 2); // dzieli wartosc na 2, zeby ustawic zasieg w polach a nie metrach
+            else
+                field.SetValue(selectedWeapon, 1.5f); // gdy ktos poda zasieg mniejszy niz 3 metry to ustawia domyslna wartosc zasiegu do walki wrecz
+        }
+        else if (field.FieldType == typeof(bool))
+        {
+            bool boolValue = textInput.GetComponent<UnityEngine.UI.Toggle>().isOn;
+            field.SetValue(selectedWeapon, boolValue);
+        }
+        else if (field.FieldType == typeof(string) && textInput.GetComponent<TMP_Dropdown>() != null)
+        {
+            string value = textInput.GetComponent<TMP_Dropdown>().options[textInput.GetComponent<TMP_Dropdown>().value].text;
+            field.SetValue(selectedWeapon, value);
+        }
+        else if (field.FieldType == typeof(string))
+        {
+            string value = textInput.GetComponent<TMP_InputField>().text;
+            field.SetValue(selectedWeapon, value);
+        }
+        else
+        {
+            Debug.Log($"Nie udało się zmienić wartości cechy.");
+        }
+    }
+
+    public void LoadWeaponAttributes()
+    {
+        if (Unit.SelectedUnit == null) return;
+
+        GameObject unit = Unit.SelectedUnit;
+
+        // Wyszukuje wszystkie pola tekstowe i przyciski do ustalania statystyk broni wewnatrz gry
+        GameObject[] attributeInputFields = GameObject.FindGameObjectsWithTag("WeaponAttribute");
+
+        int selectedIndex = InventoryScrollViewContent.GetComponent<CustomDropdown>().GetSelectedIndex();
+        if (selectedIndex == 0)
+        {
+            Debug.Log("Musisz wybrać broń, którą chcesz zmodyfikować.");
+            return;
+        }
+
+        //Wybiera broń z ekwipunku na podstawie wartości dropdowna
+        Weapon selectedWeapon = unit.GetComponent<Inventory>().AllWeapons[selectedIndex - 1];
+
+        foreach (var inputField in attributeInputFields)
+        {
+            // Pobiera pole ze statystyk postaci o nazwie takiej samej jak nazwa textInputa (z wyłączeniem słowa "input")
+            string attributeName = inputField.name.Replace("_input", "");
+            FieldInfo field = selectedWeapon.GetType().GetField(attributeName);
+
+            if (field == null) continue;
+
+            // Jeśli znajdzie takie pole, to zmienia wartość wyświetlanego tekstu na wartość tej cechy
+            if (field.FieldType == typeof(int))
+            {
+                int value = (int)field.GetValue(selectedWeapon);
+
+                if (inputField.GetComponent<TMPro.TMP_InputField>() != null)
+                {
+                    inputField.GetComponent<TMPro.TMP_InputField>().text = value.ToString();
+                }
+            }
+            else if (field.FieldType == typeof(float))
+            {
+                float value = (float)field.GetValue(selectedWeapon);
+
+                if (inputField.GetComponent<TMPro.TMP_InputField>() != null)
+                {
+                    if (value > 1.5f)
+                    {
+                        inputField.GetComponent<TMPro.TMP_InputField>().text = (value * 2).ToString(); // mnoży x2 żeby podać zasięg w metrach a nie polach
+                    }
+                    else
+                    {
+                        inputField.GetComponent<TMPro.TMP_InputField>().text = "1"; // w przypadku broni do walki w zwarciu wyświetla wartość "1"
+                    }
+                }
+            }
+            else if (field.FieldType == typeof(bool)) // to działa dla cech opisywanych wartościami bool
+            {
+                bool value = (bool)field.GetValue(selectedWeapon);
+                inputField.GetComponent<UnityEngine.UI.Toggle>().isOn = value;
+            }
+            else if (field.FieldType == typeof(string) && inputField.GetComponent<TMP_Dropdown>() != null) // to działa dla cech opisywanych dropdownem
+            {
+                string value = (string)field.GetValue(selectedWeapon);
+                TMP_Dropdown dropdown = inputField.GetComponent<TMP_Dropdown>();
+
+                int index = dropdown.options.FindIndex(option => option.text == value);
+                if (index >= 0)
+                {
+                    dropdown.value = index;
+                }
+            }
+            else if (field.FieldType == typeof(string)) // to działa dla cech opisywanych wartościami string
+            {
+                string value = (string)field.GetValue(selectedWeapon);
+
+                if (inputField.GetComponent<TMPro.TMP_InputField>() != null)
+                {
+                    inputField.GetComponent<TMPro.TMP_InputField>().text = value;
+                }
+            }
+        }
+    }
+    #endregion
+
     #region Inventory dropdown list managing
     public void UpdateInventoryDropdown(List<Weapon> weapons)
     {
@@ -348,6 +495,15 @@ public class InventoryManager : MonoBehaviour
                 InventoryScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(buttonIndex + 1); // Wybiera element i aktualizuje jego wygląd
             });
         }
+
+        //Domyślnie zaznacza pierwszą pozycję na liście
+        if(weapons.Count > 0)
+        {
+            InventoryScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(1);
+        }
+
+        //Aktualizuje panel edycji broni, w przypadku gdyby był otwarty
+        LoadWeaponAttributes();
 
         //Ponowna inicjalizacja przycisków po dodaniu/usunięciu przycisków z listy Buttons
         InventoryScrollViewContent.GetComponent<CustomDropdown>().InitializeButtons();
