@@ -155,7 +155,7 @@ public class RoundsManager : MonoBehaviour
             UnitsWithActionsLeft[unit]--;
             DisplayActionsLeft(unit);
 
-            Debug.Log($"<color=green> {unit.GetComponent<Stats>().Name} wykonał/a akcję pojedynczą. </color>");
+            Debug.Log($"<color=green>{unit.GetComponent<Stats>().Name} wykonał/a akcję pojedynczą. </color>");
 
             //Zresetowanie szarży lub biegu, jeśli były aktywne (po zużyciu jednej akcji szarża i bieg nie mogą być możliwe)
             MovementManager.Instance.UpdateMovementRange(1);
@@ -188,7 +188,7 @@ public class RoundsManager : MonoBehaviour
             UnitsWithActionsLeft[unit] -= 2;
             DisplayActionsLeft(unit);
 
-            Debug.Log($"<color=green> {unit.GetComponent<Stats>().Name} wykonał/a akcję podwójną. </color>");
+            Debug.Log($"<color=green>{unit.GetComponent<Stats>().Name} wykonał/a akcję podwójną. </color>");
 
             //Aktualizuje aktywną postać na kolejce inicjatywy, bo obecna postać wykonała wszystkie akcje w tej rundzie. Wyjątkiem jest atak wielokrotny
             if (!CombatManager.Instance.AttackTypes["SwiftAttack"])
@@ -219,7 +219,7 @@ public class RoundsManager : MonoBehaviour
             _actionsLeftInfo.SetActive(true);
             _actionsLeftText.text = UnitsWithActionsLeft[unit].ToString();
 
-            if(_isFortunePointSpent != true)
+            if (_isFortunePointSpent != true && UnitsWithActionsLeft[unit] != 2)
             {
                 _useFortunePointsButton.SetActive(true);
             }
