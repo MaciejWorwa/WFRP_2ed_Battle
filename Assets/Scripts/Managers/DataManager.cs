@@ -493,6 +493,7 @@ public class WeaponData
     public string[] Type;
     public string Quality;
     public bool TwoHanded;
+    public bool NaturalWeapon;
     public float AttackRange;
     public int S;
     public int ReloadTime;

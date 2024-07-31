@@ -8,6 +8,7 @@ using UnityEngine.UIElements;
 using System.Linq;
 using static SimpleFileBrowser.FileBrowser;
 using UnityEditor;
+using System.Drawing;
 
 public class CombatManager : MonoBehaviour
 {
@@ -173,13 +174,13 @@ public class CombatManager : MonoBehaviour
 
     public void UpdateAttackTypeButtonsColor()
     {
-        _standardAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["StandardAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
-        _allOutAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["AllOutAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
-        _guardedAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["GuardedAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
-        _swiftAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["SwiftAttack"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
-        _feintButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Feint"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
-        _stunButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Stun"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
-        _disarmButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Disarm"] ? new Color(0.15f, 1f, 0.45f) : Color.white;
+        _standardAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["StandardAttack"] ? new UnityEngine.Color(0.15f, 1f, 0.45f) : UnityEngine.Color.white;
+        _allOutAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["AllOutAttack"] ? new UnityEngine.Color(0.15f, 1f, 0.45f) : UnityEngine.Color.white;
+        _guardedAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["GuardedAttack"] ? new UnityEngine.Color(0.15f, 1f, 0.45f) : UnityEngine.Color.white;
+        _swiftAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["SwiftAttack"] ? new UnityEngine.Color(0.15f, 1f, 0.45f) : UnityEngine.Color.white;
+        _feintButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Feint"] ? new UnityEngine.Color(0.15f, 1f, 0.45f) : UnityEngine.Color.white;
+        _stunButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Stun"] ? new UnityEngine.Color(0.15f, 1f, 0.45f) : UnityEngine.Color.white;
+        _disarmButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Disarm"] ? new UnityEngine.Color(0.15f, 1f, 0.45f) : UnityEngine.Color.white;
     }
 
     #endregion
@@ -204,7 +205,7 @@ public class CombatManager : MonoBehaviour
         Stats targetStats = target.Stats;
 
         Weapon attackerWeapon = InventoryManager.Instance.ChooseWeaponToAttack(attacker.gameObject);
-        Weapon targetWeapon = target.GetComponent<Weapon>();
+        Weapon targetWeapon = InventoryManager.Instance.ChooseWeaponToAttack(target.gameObject);
 
         //Liczy dystans pomiedzy walczącymi
         _attackDistance = CalculateDistance(attacker.gameObject, target.gameObject);
@@ -353,7 +354,11 @@ public class CombatManager : MonoBehaviour
                 _isSuccessful = CheckAttackEffectiveness(rollResult, attackerStats, attackerWeapon, target);
 
                 //Niepowodzenie przy pechu
-                if(rollResult >= 96) _isSuccessful = false;
+                if (rollResult >= 96)
+                {
+                    Debug.Log($"<color=red>{attackerStats.Name} wyrzucił pecha na trafienie!</color>");
+                    _isSuccessful = false;
+                }
             }         
 
             //Zresetowanie bonusu do trafienia
@@ -442,7 +447,7 @@ public class CombatManager : MonoBehaviour
             //Rozbrajanie
             if (AttackTypes["Disarm"] == true)
             {
-                Disarm(attackerStats, targetStats, targetStats.GetComponent<Weapon>());
+                Disarm(attackerStats, targetStats, InventoryManager.Instance.ChooseWeaponToAttack(target.gameObject));
                 return; //Kończy akcję ataku, żeby nie przechodzić do dalszych etapów jak np. zadanie obrażeń
             }
 
@@ -853,11 +858,11 @@ public class CombatManager : MonoBehaviour
     {
         if(Unit.SelectedUnit.GetComponent<Unit>().AimingBonus != 0)
         {
-            _aimButton.GetComponent<UnityEngine.UI.Image>().color = Color.green;
+            _aimButton.GetComponent<UnityEngine.UI.Image>().color = UnityEngine.Color.green;
         }
         else
         {
-            _aimButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;
+            _aimButton.GetComponent<UnityEngine.UI.Image>().color = UnityEngine.Color.white;
         }
     }
     #endregion
@@ -994,11 +999,11 @@ public class CombatManager : MonoBehaviour
     {
         if(Unit.SelectedUnit.GetComponent<Unit>().DefensiveBonus > 0)
         {
-            _defensiveStanceButton.GetComponent<UnityEngine.UI.Image>().color = Color.green;
+            _defensiveStanceButton.GetComponent<UnityEngine.UI.Image>().color = UnityEngine.Color.green;
         }
         else
         {
-            _defensiveStanceButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;
+            _defensiveStanceButton.GetComponent<UnityEngine.UI.Image>().color = UnityEngine.Color.white;
         }
     }
     #endregion
@@ -1089,11 +1094,16 @@ public class CombatManager : MonoBehaviour
         if (rollResult <= targetStats.WW + parryModifier && rollResult < 96)
         {
             return true;
-        }      
+        }
+        else if (rollResult >= 96)
+        {
+            Debug.Log($"<color=red>{targetStats.Name} wyrzucił pecha na parowanie!</color>");
+            return false;
+        }
         else
         {
             return false;
-        }        
+        }
     }
 
     private bool Dodge(Stats targetStats)
@@ -1109,6 +1119,11 @@ public class CombatManager : MonoBehaviour
         {
             return true;
         }      
+        else if (rollResult >= 96)
+        {
+            Debug.Log($"<color=red>{targetStats.Name} wyrzucił pecha na unik!</color>");
+            return false;
+        }
         else
         {
             return false;
@@ -1257,7 +1272,7 @@ public class CombatManager : MonoBehaviour
     #region Disarm
     private void Disarm(Stats attackerStats, Stats targetStats, Weapon targetWeapon)
     {
-        if (targetWeapon.Type.Contains("natural-weapon"))
+        if (targetWeapon.NaturalWeapon == true)
         {
             Debug.Log("Próba rozbrojenia nie powiodła się. Nie można rozbrajać jednostek walczących bronią naturalną.");
             return;

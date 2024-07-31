@@ -348,9 +348,16 @@ public class InventoryManager : MonoBehaviour
             float value = float.TryParse(textInput.GetComponent<TMP_InputField>().text, out float inputValue) ? inputValue : 0;
 
             if (value > 3)
+            {
                 field.SetValue(selectedWeapon, value / 2); // dzieli wartosc na 2, zeby ustawic zasieg w polach a nie metrach
+                selectedWeapon.Type[0] = "ranged"; // Zmiana typu broni na dystansowy
+            }
             else
+            {
                 field.SetValue(selectedWeapon, 1.5f); // gdy ktos poda zasieg mniejszy niz 3 metry to ustawia domyslna wartosc zasiegu do walki wrecz
+                selectedWeapon.Type[0] = "melee"; // Zmiana typu broni na broń do walki w zwarciu
+            }
+
         }
         else if (field.FieldType == typeof(bool))
         {
