@@ -5,6 +5,8 @@ using System.Linq;
 using TMPro;
 using UnityEngine.UI;
 using System.IO;
+using Unity.VisualScripting;
+using static UnityEngine.UI.CanvasScaler;
 
 public class RoundsManager : MonoBehaviour
 {   
@@ -34,7 +36,10 @@ public class RoundsManager : MonoBehaviour
     [SerializeField] private TMP_Text _roundNumberDisplay;
     [SerializeField] private TMP_Text _nextRoundButtonText;
     public Dictionary <Unit, int> UnitsWithActionsLeft = new Dictionary<Unit, int>();
+    [SerializeField] private GameObject _actionsLeftInfo;
+    [SerializeField] private TMP_Text _actionsLeftText;
     [SerializeField] private GameObject _useFortunePointsButton;
+    private bool _isFortunePointSpent; //informacja o tym, że punkt szczęścia został zużyty, aby nie można było ponownie go użyć do wczytania tego samego autozapisu
 
     private void Start()
     {
@@ -42,6 +47,7 @@ public class RoundsManager : MonoBehaviour
         _roundNumberDisplay.text = "Zaczynamy?";
         _nextRoundButtonText.text = "Start";
 
+        _actionsLeftInfo.SetActive(false);
         _useFortunePointsButton.SetActive(false);
     }
 
@@ -86,6 +92,12 @@ public class RoundsManager : MonoBehaviour
 
         //Wykonuje testy grozy i strachu jeśli na polu bitwy są jednostki straszne lub przerażające
         UnitsManager.Instance.LookForScaryUnits();
+
+        //Aktualizuje wyświetlane dostępne akcje
+        if(Unit.SelectedUnit != null)
+        {
+            DisplayActionsLeft(Unit.SelectedUnit.GetComponent<Unit>());
+        }
 
         InitiativeQueueManager.Instance.UpdateInitiativeQueue();
 
@@ -137,16 +149,13 @@ public class RoundsManager : MonoBehaviour
             if(unit.Stats.PS > 0)
             {
                 SaveAndLoadManager.Instance.SaveUnits(UnitsManager.Instance.AllUnits, "autosave");
+                _isFortunePointSpent = false;
             }
 
             UnitsWithActionsLeft[unit]--;
+            DisplayActionsLeft(unit);
 
             Debug.Log($"<color=green> {unit.GetComponent<Stats>().Name} wykonał/a akcję pojedynczą. </color>");
-
-            if(!_useFortunePointsButton.activeSelf)
-            {
-                _useFortunePointsButton.SetActive(true);
-            }
 
             //Zresetowanie szarży lub biegu, jeśli były aktywne (po zużyciu jednej akcji szarża i bieg nie mogą być możliwe)
             MovementManager.Instance.UpdateMovementRange(1);
@@ -173,16 +182,13 @@ public class RoundsManager : MonoBehaviour
             if (unit.Stats.PS > 0 && !CombatManager.Instance.AttackTypes["Charge"] == true)
             {
                 SaveAndLoadManager.Instance.SaveUnits(UnitsManager.Instance.AllUnits, "autosave");
+                _isFortunePointSpent = false;
             }
 
             UnitsWithActionsLeft[unit] -= 2;
+            DisplayActionsLeft(unit);
 
             Debug.Log($"<color=green> {unit.GetComponent<Stats>().Name} wykonał/a akcję podwójną. </color>");
-
-            if (!_useFortunePointsButton.activeSelf)
-            {
-                _useFortunePointsButton.SetActive(true);
-            }
 
             //Aktualizuje aktywną postać na kolejce inicjatywy, bo obecna postać wykonała wszystkie akcje w tej rundzie. Wyjątkiem jest atak wielokrotny
             if (!CombatManager.Instance.AttackTypes["SwiftAttack"])
@@ -197,6 +203,44 @@ public class RoundsManager : MonoBehaviour
             Debug.Log("Ta jednostka nie może w tej rundzie wykonać akcji podwójnej.");
             return false;
         }     
+    }
+
+    public void DisplayActionsLeft(Unit unit)
+    {
+        if (!UnitsWithActionsLeft.ContainsKey(unit)) return;
+
+        if(Unit.SelectedUnit == null)
+        {
+            _actionsLeftInfo.SetActive(false);
+            _useFortunePointsButton.SetActive(false);
+        }
+        else
+        {
+            _actionsLeftInfo.SetActive(true);
+            _actionsLeftText.text = UnitsWithActionsLeft[unit].ToString();
+
+            if(_isFortunePointSpent != true)
+            {
+                _useFortunePointsButton.SetActive(true);
+            }
+        }
+    }
+
+    public void ChangeActionsLeft(int value)
+    {
+        if (Unit.SelectedUnit == null) return;
+
+        Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
+ 
+        if (!UnitsWithActionsLeft.ContainsKey(unit)) return;
+
+        UnitsWithActionsLeft[unit] += value;
+
+        //Limitem dolnym jest 0, a górnym 2
+        if (UnitsWithActionsLeft[unit] < 0) UnitsWithActionsLeft[unit] = 0;
+        else if (UnitsWithActionsLeft[unit] > 2) UnitsWithActionsLeft[unit] = 2;
+
+        DisplayActionsLeft(unit);
     }
 
     public void UseFortunePoint()
@@ -217,6 +261,7 @@ public class RoundsManager : MonoBehaviour
             return;
         }
         stats.PS--;
+        _isFortunePointSpent = true;
 
         SaveAndLoadManager.Instance.SaveFortunePoints("autosave", stats, stats.PS);
         SaveAndLoadManager.Instance.LoadAllUnits("autosave");
