@@ -1,7 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using TMPro;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
 using UnityEngine.UI;
@@ -36,11 +39,14 @@ public class MagicManager : MonoBehaviour
     public List <Spell> SpellBook = new List<Spell>();
     public static bool IsTargetSelecting;
     private float _spellDistance;
+    private List<Stats> _targets;
 
     void Start()
     {
         //Wczytuje listę wszystkich zaklęć
         DataManager.Instance.LoadAndUpdateSpells();
+
+        _targets = new List<Stats>();
     }
 
     public void ChannelingMagic()
@@ -104,6 +110,8 @@ public class MagicManager : MonoBehaviour
         IsTargetSelecting = true;
         DataManager.Instance.LoadAndUpdateSpells(_spellbookDropdown.GetSelectedIndex());
 
+        _targets.Clear();
+
         //Zmienia kolor przycisku na aktywny
         _castSpellButton.GetComponent<Image>().color = Color.green;
 
@@ -145,6 +153,18 @@ public class MagicManager : MonoBehaviour
             return;
         }
 
+        // W przypadku zaklęć, które atakują wiele celów naraz pozwala na wybranie kilku celów zanim zacznie rzucać zaklęcie
+        if (spell.Type.Contains("multiple-targets") && spell.Type.Contains("magic-level-related") && _targets.Count < spellcasterStats.Mag)
+        {
+            _targets.Add(allTargets[0].GetComponent<Stats>());
+
+            if (_targets.Count < spellcasterStats.Mag)
+            {
+                Debug.Log("Przy pomocy prawego przycisku myszy wybierz kolejną jednostkę, która ma być celem zaklęcia. Możesz kilkukrotnie wskazać tę samą jednostkę.");
+                return;
+            }
+        }
+
         //Wykonuje akcję
         if (spell.CastingTime >= 2 && RoundsManager.Instance.UnitsWithActionsLeft[spellcasterUnit] == 2)
         {
@@ -167,7 +187,41 @@ public class MagicManager : MonoBehaviour
             return;
         }
 
-        bool isSuccessful = CastingNumberRoll(spellcasterStats, spell.CastingNumber) >= spell.CastingNumber ? true : false;
+        bool isSuccessful = true;
+
+        //Czary dotykowe (ofensywne)
+        if (spell.Range <= 1.5f && spell.Type.Contains("offensive"))
+        {
+            // Rzut na trafienie
+            int rollResult = Random.Range(1, 101);
+
+            //Uwzględnienie zdolności Dotyk Mocy
+            int modifier = spellcasterStats.FastHands ? 20 : 0;
+
+            Debug.Log($"{spellcasterStats.Name} próbuje dotknąć {target.GetComponent<Stats>().Name}. Wynik rzutu: {rollResult}. Wartość WW: {spellcasterStats.WW}. Modyfikator: {modifier}");
+
+            if (rollResult > spellcasterStats.WW + modifier)
+            {
+                Debug.Log($"{spellcasterStats.Name} chybił.");
+                isSuccessful = false;
+            }
+            else
+            {
+                //Zresetowanie broni, aby zaklęcie dotykowe było wykonywane przy pomocy rąk
+                spellcasterUnit.GetComponent<Weapon>().ResetWeapon();
+                Weapon attackerWeapon = spellcasterUnit.GetComponent<Weapon>();
+
+                // Próba parowania lub uniku
+                Weapon targetWeapon = InventoryManager.Instance.ChooseWeaponToAttack(target.gameObject);
+                isSuccessful = CombatManager.Instance.CheckForParryAndDodge(attackerWeapon, targetWeapon, target.GetComponent<Stats>(), target.GetComponent<Unit>(), true);
+            }
+        }
+
+        // Test poziomu mocy zaklęcia
+        if (isSuccessful != false)
+        {
+            isSuccessful = CastingNumberRoll(spellcasterStats, spell.CastingNumber) >= spell.CastingNumber ? true : false;
+        }
 
         ResetSpellCasting();
         spell.CastingTimeLeft = spell.CastingTime;
@@ -176,14 +230,24 @@ public class MagicManager : MonoBehaviour
         if (isSuccessful == false)
         {
             Debug.Log("Rzucanie zaklęcia nie powiodło się.");
+            _targets.Clear();
             return;
         }
 
-        if (spell.Type.Contains("offensive"))
+        if (spell.Type.Contains("multiple-targets"))
         {
-            foreach(var collider in allTargets)
+            foreach (var targetStats in _targets)
             {
-                DealMagicDamage(spellcasterStats, collider.GetComponent<Unit>(), spell);
+                Debug.Log(targetStats.Name);
+                HandleSpellEffect(spellcasterStats, targetStats, spell);
+            }
+            _targets.Clear();
+        }
+        else
+        {
+            foreach (var collider in allTargets)
+            {
+                HandleSpellEffect(spellcasterStats, collider.GetComponent<Stats>(), spell);
             }
         }
     }
@@ -260,13 +324,111 @@ public class MagicManager : MonoBehaviour
         }
 
         stats.GetComponent<Unit>().CanCastSpell = false;
+
         return castingNumber+ Unit.SelectedUnit.GetComponent<Unit>().CastingNumberBonus;
     }
 
-    private void DealMagicDamage(Stats spellcasterStats, Unit target, Spell spell)
+    private void HandleSpellEffect(Stats spellcasterStats, Stats targetStats, Spell spell)
     {
+        //Uwzględnienie testu obronnego
+        if (spell.SaveTestRequiring == true && spell.Attribute.Length > 0)
+        {
+            //Szuka odpowiedniej cechy w statystykach celu
+            FieldInfo field = targetStats.GetType().GetField(spell.Attribute[0]);
+
+            if (field == null || field.FieldType != typeof(int)) return;
+
+            int value = (int)field.GetValue(targetStats);
+
+            int saveRollResult = Random.Range(1, 101);
+
+            if (saveRollResult > value)
+            {
+                Debug.Log($"{targetStats.Name} wykonał test na {spell.Attribute[0]} i wyrzucił {saveRollResult}. Wartość cechy: {value}. Nie udało mu się przeciwstawić zaklęciu.");
+            }
+            else
+            {
+                Debug.Log($"{targetStats.Name} wykonał test na {spell.Attribute[0]} i wyrzucił {saveRollResult}. Wartość cechy: {value}. Udało mu się przeciwstawić zaklęciu.");
+                return;
+            }
+        }
+        else if (spell.Attribute != null && spell.Attribute.Length > 0) // Zaklęcia wpływające na cechy, np. Uzdrowienie (TEN OBSZAR JEST DO DALSZEGO ROZWOJU I MODYFIKACJI, BO NA RAZIE OBSŁUGUJE TYLKO JEDNO ZAKLĘCIE czyli UZDROWIENIE)
+        {
+            //Szuka odpowiedniej cechy w statystykach celu
+            FieldInfo field = targetStats.GetType().GetField(spell.Attribute[0]);
+
+            if (field == null || field.FieldType != typeof(int)) return;
+
+            int value = spell.Strength;
+
+            if (spell.Type.Contains("magic-level-related"))
+            {
+                value += spellcasterStats.Mag;
+            }
+
+            // Zaklęcia leczące
+            if (spell.Attribute[0] == "TempHealth")
+            {
+                // Zapobiega leczeniu ponad maksymalną wartość żywotności
+                if (value + targetStats.TempHealth > targetStats.MaxHealth)
+                {
+                    value = targetStats.MaxHealth - targetStats.TempHealth;
+                }
+
+                field.SetValue(targetStats, (int)field.GetValue(targetStats) + value);
+
+                //Zaktualizowanie punktów żywotności
+                targetStats.GetComponent<Unit>().DisplayUnitHealthPoints();
+
+                Debug.Log($"{targetStats.Name} odzyskał {value} punktów Żywotności.");
+            }
+        }
+
+        // Zaklęcia ogłuszające lub usypiające/paraliżujące
+        if (spell.Paralyzing == true || spell.Stunning == true)
+        {
+            int duration = spell.Duration;
+
+            RoundsManager.Instance.UnitsWithActionsLeft[targetStats.GetComponent<Unit>()] = 0;
+
+            if (spell.Type.Contains("random-duration"))
+            {
+                duration = Random.Range(1, 11);
+            }
+
+            if (spell.Paralyzing == true)
+            {
+                targetStats.GetComponent<Unit>().HelplessDuration += duration;
+                Debug.Log($"{targetStats.Name} zostaje sparaliżowany/uśpiony na {duration} rund/y.");
+            }
+            else if (spell.Stunning == true)
+            {
+                targetStats.GetComponent<Unit>().StunDuration += duration;
+                Debug.Log($"{targetStats.Name} zostaje ogłuszony na {duration} rund/y.");
+            }
+        }
+
+        //Zaklęcia zadające obrażenia
+        if (!spell.Type.Contains("no-damage") && spell.Type.Contains("offensive"))
+        {
+            DealMagicDamage(spellcasterStats, targetStats, spell);
+        }
+
+    }
+
+    private void DealMagicDamage(Stats spellcasterStats, Stats targetStats, Spell spell)
+    {
+
         int rollResult = Random.Range(1, 11);
         int damage = rollResult + spell.Strength;
+
+        int armor = CalculateArmor(targetStats);
+
+        //Uwzględnienie zdolności Ignorujący Zbroję
+        if (spell.ArmourIgnoring == true)
+        {
+            armor = 0;
+        }
 
         //Uwzględnienie zdolności Morderczy Pocisk
         if (spell.Type.Contains("magic-missile") && spellcasterStats.MightyMissile == true)
@@ -276,9 +438,6 @@ public class MagicManager : MonoBehaviour
 
         Debug.Log($"{spellcasterStats.Name} wyrzucił {rollResult} i zadał {damage} obrażeń.");
 
-        Stats targetStats = target.GetComponent<Stats>();
-        int armor = CalculateArmor(targetStats);
-
         //Zadanie obrażeń
         if (damage > (targetStats.Wt + armor))
         {
@@ -287,7 +446,7 @@ public class MagicManager : MonoBehaviour
             Debug.Log(targetStats.Name + " znegował " + (targetStats.Wt + armor) + " obrażeń.");
 
             //Zaktualizowanie punktów żywotności
-            target.GetComponent<Unit>().DisplayUnitHealthPoints();
+            targetStats.GetComponent<Unit>().DisplayUnitHealthPoints();
             Debug.Log($"Punkty żywotności {targetStats.Name}: {targetStats.TempHealth}/{targetStats.MaxHealth}");
         }
         else
@@ -298,7 +457,7 @@ public class MagicManager : MonoBehaviour
         //Śmierć
         if (targetStats.TempHealth < 0 && GameManager.IsAutoKillMode)
         {
-            UnitsManager.Instance.DestroyUnit(target.gameObject);
+            UnitsManager.Instance.DestroyUnit(targetStats.gameObject);
 
             //Aktualizuje podświetlenie pól w zasięgu ruchu atakującego (inaczej pozostanie puste pole w miejscu usuniętego przeciwnika)
             GridManager.Instance.HighlightTilesInMovementRange(spellcasterStats);

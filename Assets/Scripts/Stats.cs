@@ -55,6 +55,7 @@ public class Stats : MonoBehaviour
     public bool Ambidextrous; // Oburęczność
     public bool Disarm; // Rozbrojenie
     public bool Ethereal; // Eteryczny
+    public bool FastHands; //Dotyk mocy
     public bool Fearless; // Nieustraszony
     public bool Frightening; // Straszny (test Fear)
     public bool LightningParry; // Błyskawiczny blok

@@ -446,6 +446,7 @@ public class StatsData
     public bool Ambidextrous; // Oburęczność
     public bool Disarm; // Rozbrojenie
     public bool Ethereal; // Eteryczny
+    public bool FastHands; //Dotyk mocy
     public bool Fearless; // Nieustraszony
     public bool Frightening; // Straszny (test Fear)
     public bool LightningParry; // Błyskawiczny blok
@@ -540,6 +541,14 @@ public class SpellData
     public int CastingTime;
     public int CastingTimeLeft;
     public int Duration;
+
+    public bool SaveTestRequiring; // określa, czy zaklęcie powoduje konieczność wykonania testu obronnego
+    public string[] Attribute; // określa cechę, jaka jest testowana podczas próby oparcia się zaklęciu lub cechę na którą wpływa zaklęcie (np. podnosi ją lub obniża). Czasami jest to więcej cech, np. Pancerz Etery wpływa na każdą z lokalizacji
+
+    public bool ArmourIgnoring; // ignorujący zbroję
+    public bool WtIgnoring; // ignorujący wytrzymałość
+    public bool Stunning;  // ogłuszający
+    public bool Paralyzing; // wprowadzający w stan bezbronności
 
     public SpellData(Spell spell)
     {

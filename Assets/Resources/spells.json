@@ -45,6 +45,64 @@
       "Range": 18,
       "Strength": 4,
       "CastingTime": 1
+    },
+    {
+      "Id": 6,
+      "Name": "Ognista kula",
+      "Type": ["offensive", "magic-level-related", "magic-missile", "multiple-targets"],
+      "CastingNumber": 12,
+      "Range": 24,
+      "Strength": 3,
+      "CastingTime": 1
+    },
+    {
+      "Id": 7,
+      "Name": "Pancerz Eteru",
+      "Type": ["buff", "magic-level-related", "self-only"],
+      "CastingNumber": 5,
+      "Range": 1,
+      "CastingTime": 1,
+      "Duration": 6,
+      "Attribute": ["Armor_head",  "Armor_arms", "Armor_torso", "Armor_legs"]
+    },
+    {
+      "Id": 8,
+      "Name": "Srebrzyste strzały Arha",
+      "Type": ["offensive", "magic-level-related", "magic-missile", "multiple-targets"],
+      "CastingNumber": 13,
+      "Range": 24,
+      "Strength": 3,
+      "CastingTime": 1
+    },
+    {
+      "Id": 9,
+      "Name": "Sztylety cienia",
+      "Type": ["offensive", "magic-level-related", "magic-missile", "multiple-targets"],
+      "CastingNumber": 21,
+      "Range": 24,
+      "Strength": 3,
+      "CastingTime": 1,
+      "ArmourIgnoring": true
+    },
+    {
+      "Id": 10,
+      "Name": "Uśpienie",
+      "Type": ["offensive", "random-duration", "no-damage"],
+      "CastingNumber": 6,
+      "Range": 1.5,
+      "CastingTime": 1,
+      "SaveTestRequiring": true,
+      "Attribute": ["SW"],
+      "Paralyzing": true
+    },
+    {
+      "Id": 11,
+      "Name": "Uzdrowienie",
+      "Type": ["magic-level-related"],
+      "CastingNumber": 10,
+      "Range": 1.5,
+      "CastingTime": 1,
+      "Attribute": ["TempHealth"]
     }
   ]
 }

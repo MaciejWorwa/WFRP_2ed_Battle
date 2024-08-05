@@ -405,14 +405,14 @@ public class CombatManager : MonoBehaviour
                         Debug.Log("Wybierz reakcję atakowanej postaci.");
                         yield return new WaitUntil(() => _parryAndDodgePanel.activeSelf == false);
 
-                        _isSuccessful = CheckForParryAndDodge(attackerWeapon, targetWeapon, targetStats, target);
+                        _isSuccessful = CheckForParryAndDodge(attackerWeapon, targetWeapon, targetStats, target, false);
                         ExecuteAttack(attacker, target, attackerWeapon);
                     }
                     _parryOrDodge = "";
                     return;
                 }
 
-                _isSuccessful = CheckForParryAndDodge(attackerWeapon, targetWeapon, targetStats, target);
+                _isSuccessful = CheckForParryAndDodge(attackerWeapon, targetWeapon, targetStats, target, false);
             }
 
             //Zresetowanie finty
@@ -1009,16 +1009,24 @@ public class CombatManager : MonoBehaviour
     #endregion
 
     #region Parry and dodge
-    private bool CheckForParryAndDodge(Weapon attackerWeapon, Weapon targetWeapon, Stats targetStats, Unit targetUnit)
+    public bool CheckForParryAndDodge(Weapon attackerWeapon, Weapon targetWeapon, Stats targetStats, Unit targetUnit, bool isTouchSpellAttack)
     {
         bool targetIsDefended = false;
 
         //Sprawdza, czy atakowany ma jakieś modifykatory do parowania
         int parryModifier = 0;
-        if (targetWeapon.Defensive) parryModifier += 10;
-        if (attackerWeapon.Slow) parryModifier += 10;
-        if (attackerWeapon.Fast) parryModifier -= 10;
-        if (Unit.SelectedUnit.GetComponent<Stats>().PowerfulBlow) parryModifier -= 30;
+        if(isTouchSpellAttack)
+        {
+            parryModifier -= 20;
+        }
+        else
+        {
+            if (targetWeapon.Defensive) parryModifier += 10;
+            if (attackerWeapon.Slow) parryModifier += 10;
+            if (attackerWeapon.Fast) parryModifier -= 10;
+            if (Unit.SelectedUnit.GetComponent<Stats>().PowerfulBlow) parryModifier -= 30;
+        }
+
         if (targetUnit.GuardedAttackBonus != 0) parryModifier += targetUnit.GuardedAttackBonus;
 
         if(GameManager.IsAutoDefenseMode == false)
