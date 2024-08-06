@@ -88,6 +88,15 @@ public class RoundsManager : MonoBehaviour
                 UnitsWithActionsLeft[key] = 0;
                 key.HelplessDuration--;
             }
+            if (key.SpellDuration > 0)
+            {
+                key.SpellDuration--;
+
+                if (key.SpellDuration == 0)
+                {
+                    MagicManager.Instance.ResetSpellEffect(key);
+                }
+            }
         }
 
         //Wykonuje testy grozy i strachu jeśli na polu bitwy są jednostki straszne lub przerażające

@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using TMPro;
-using Unity.VisualScripting.Antlr3.Runtime.Misc;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
 using UnityEngine.UI;
+using System;
 
 public class MagicManager : MonoBehaviour
 {
@@ -39,14 +38,16 @@ public class MagicManager : MonoBehaviour
     public List <Spell> SpellBook = new List<Spell>();
     public static bool IsTargetSelecting;
     private float _spellDistance;
-    private List<Stats> _targets;
+
+    private List<Stats> _targetsStats; // Lista jednostek, które są wybierane jako cele zaklęcia, które pozwala wybrać więcej niż jeden cel
+    private List<Stats> _unitsStatsAffectedBySpell; // Lista jednostek, na które w danym momencie wpływa jakieś zaklęcie z czasem trwania, np. Pancerz Eteru
 
     void Start()
     {
         //Wczytuje listę wszystkich zaklęć
         DataManager.Instance.LoadAndUpdateSpells();
 
-        _targets = new List<Stats>();
+        _targetsStats = new List<Stats>();
     }
 
     public void ChannelingMagic()
@@ -72,7 +73,7 @@ public class MagicManager : MonoBehaviour
         bool canDoAction = RoundsManager.Instance.DoHalfAction(Unit.SelectedUnit.GetComponent<Unit>());
         if(!canDoAction) return;   
 
-        int rollResult = Random.Range(1, 101);
+        int rollResult = UnityEngine.Random.Range(1, 101);
         int modifier = 0;
         if (stats.MagicSense) modifier += 10; //modyfikator za zmysł magii
         modifier += (stats.Channeling * 10) - 10; //modyfikator za umiejętność splatania magii
@@ -110,7 +111,7 @@ public class MagicManager : MonoBehaviour
         IsTargetSelecting = true;
         DataManager.Instance.LoadAndUpdateSpells(_spellbookDropdown.GetSelectedIndex());
 
-        _targets.Clear();
+        _targetsStats.Clear();
 
         //Zmienia kolor przycisku na aktywny
         _castSpellButton.GetComponent<Image>().color = Color.green;
@@ -140,8 +141,8 @@ public class MagicManager : MonoBehaviour
         // Usuwa wszystkie collidery, które nie są jednostkami
         for (int i = allTargets.Count - 1; i >= 0; i--)
         {
-            //Usuwa collidery, które nie są jednostkami oraz rzucającego zaklęcie w przypadku zaklęć ofensywnych 
-            if (allTargets[i].GetComponent<Unit>() == null || (allTargets[i].gameObject == Unit.SelectedUnit && spell.Type.Contains("offensive")))
+            //Usuwa collidery, które nie są jednostkami oraz rzucającego zaklęcie w przypadku zaklęć ofensywnych. Uwzględnia także zaklęcia, które czarodziej może rzucić tylko na siebie, usuwając wszelkie jednostki, które nim nie są.
+            if (allTargets[i].GetComponent<Unit>() == null || (allTargets[i].gameObject == Unit.SelectedUnit && spell.Type.Contains("offensive")) || (allTargets[i].gameObject != Unit.SelectedUnit && spell.Type.Contains("self-only")))
             {
                 allTargets.RemoveAt(i);
             }
@@ -149,18 +150,25 @@ public class MagicManager : MonoBehaviour
 
         if (allTargets.Count == 0)
         {
-            Debug.Log($"W obszarze działania zaklęcia musi znaleźć się jakaś jednostka.");
+            Debug.Log($"W obszarze działania zaklęcia musi znaleźć się odpowiedni cel.");
+            return;
+        }
+
+        //Zablokowanie możliwości rzucenia Pancerza Eteru jednostkom w zbroi
+        if (spell.Name == "Pancerz Eteru" && (allTargets[0].GetComponent<Stats>().Armor_head > 0 || allTargets[0].GetComponent<Stats>().Armor_arms > 0 || allTargets[0].GetComponent<Stats>().Armor_torso > 0 || allTargets[0].GetComponent<Stats>().Armor_legs > 0))
+        {
+            Debug.Log($"Jednostki noszące zbroję nie mogą używać Pancerzu Eteru.");
             return;
         }
 
         // W przypadku zaklęć, które atakują wiele celów naraz pozwala na wybranie kilku celów zanim zacznie rzucać zaklęcie
-        if (spell.Type.Contains("multiple-targets") && spell.Type.Contains("magic-level-related") && _targets.Count < spellcasterStats.Mag)
+        if (spell.Type.Contains("multiple-targets") && spell.Type.Contains("magic-level-related") && _targetsStats.Count < spellcasterStats.Mag)
         {
-            _targets.Add(allTargets[0].GetComponent<Stats>());
+            _targetsStats.Add(allTargets[0].GetComponent<Stats>());
 
-            if (_targets.Count < spellcasterStats.Mag)
+            if (_targetsStats.Count < spellcasterStats.Mag)
             {
-                Debug.Log("Przy pomocy prawego przycisku myszy wybierz kolejną jednostkę, która ma być celem zaklęcia. Możesz kilkukrotnie wskazać tę samą jednostkę.");
+                Debug.Log("Wskaż prawym przyciskiem myszy kolejny cel. Możesz wskakać kilkukrotnie tę samą jednostkę.");
                 return;
             }
         }
@@ -193,7 +201,7 @@ public class MagicManager : MonoBehaviour
         if (spell.Range <= 1.5f && spell.Type.Contains("offensive"))
         {
             // Rzut na trafienie
-            int rollResult = Random.Range(1, 101);
+            int rollResult = UnityEngine.Random.Range(1, 101);
 
             //Uwzględnienie zdolności Dotyk Mocy
             int modifier = spellcasterStats.FastHands ? 20 : 0;
@@ -230,18 +238,21 @@ public class MagicManager : MonoBehaviour
         if (isSuccessful == false)
         {
             Debug.Log("Rzucanie zaklęcia nie powiodło się.");
-            _targets.Clear();
+            _targetsStats.Clear();
             return;
+        }
+        else
+        {
+            Debug.Log("Rzucanie zaklęcia powiodło się.");
         }
 
         if (spell.Type.Contains("multiple-targets"))
         {
-            foreach (var targetStats in _targets)
+            foreach (var targetStats in _targetsStats)
             {
-                Debug.Log(targetStats.Name);
                 HandleSpellEffect(spellcasterStats, targetStats, spell);
             }
-            _targets.Clear();
+            _targetsStats.Clear();
         }
         else
         {
@@ -259,6 +270,35 @@ public class MagicManager : MonoBehaviour
         _castSpellButton.GetComponent<Image>().color = Color.white;
     }
 
+    public void ResetSpellEffect(Unit unit)
+    {
+        for (int i = 0; i < _unitsStatsAffectedBySpell.Count; i++)
+        {
+            if (unit.UnitId == _unitsStatsAffectedBySpell[i].GetComponent<Unit>().UnitId)
+            {
+                // Przywraca pierwotne wartości (sprzed działania zaklęcia) dla wszystkich cech. Celowo pomija obecne punkty żywotności, bo mogły ulec zmianie w trakcie działania zaklęcia.
+                FieldInfo[] fields = typeof(Stats).GetFields(BindingFlags.Public | BindingFlags.Instance);
+                foreach (FieldInfo field in fields)
+                {
+                    if (field.FieldType == typeof(int) && field.Name != "TempHealth")
+                    {
+                        int currentValue = (int)field.GetValue(unit.GetComponent<Stats>());
+                        int otherValue = (int)field.GetValue(_unitsStatsAffectedBySpell[i]);
+
+                        if (currentValue != otherValue)
+                        {
+                            field.SetValue(unit.GetComponent<Stats>(), otherValue);
+                        }
+                    }
+                }
+
+                _unitsStatsAffectedBySpell.RemoveAt(i);
+            }
+        }
+
+        UnitsManager.Instance.UpdateUnitPanel(Unit.SelectedUnit);
+    }
+
     private int CastingNumberRoll(Stats stats, int spellCastingNumber)
     {
         // Zresetowanie poziomu mocy
@@ -273,18 +313,44 @@ public class MagicManager : MonoBehaviour
         // Rzuty na poziom mocy w zależności od wartości Magii
         for (int i = 0; i < stats.Mag; i++)
         {
-            int rollResult = Random.Range(1, 11);
+            int rollResult = UnityEngine.Random.Range(1, 11);
             allRollResults.Add(rollResult);
             castingNumber += rollResult;
 
             resultString += $"kość {i+1}: <color=green>{rollResult}</color> ";
         }
 
+        //Modyfikator do poziomu mocy
+        int modifier = 0;
+
         //Uwzględnienie splecenia magii
-        castingNumber += Unit.SelectedUnit.GetComponent<Unit>().CastingNumberBonus;
+        modifier += Unit.SelectedUnit.GetComponent<Unit>().CastingNumberBonus;
+
+        bool etherArmor = false;
+
+        if(_unitsStatsAffectedBySpell != null && _unitsStatsAffectedBySpell.Count > 0)
+        {
+            //Przeszukanie statystyk jednostek, na które działają zaklęcia czasowe
+            for (int i = 0; i < _unitsStatsAffectedBySpell.Count; i++)
+            {
+                //Jeżeli wcześniejsza wartość zbroi (w tym przypadku na głowie, ale to może być dowolna lokalizacja) jest inna niż obecna, świadczy to o użyciu Pancerzu Eteru
+                if (_unitsStatsAffectedBySpell[i].Name == stats.Name && _unitsStatsAffectedBySpell[i].Armor_head != stats.Armor_head)
+                {
+                    etherArmor = true;
+                }
+            }
+        }
+
+        //Uwzględnienie ujemnego modyfikatora za zbroję (z wyjątkiem Pancerza Eteru)
+        if (etherArmor == false)
+        {
+            modifier -= Math.Max(Math.Max(stats.Armor_head, stats.Armor_arms), Math.Max(stats.Armor_legs, stats.Armor_legs));
+        }
+
+        castingNumber += modifier;
 
         Debug.Log(resultString);
-        Debug.Log($"Uzyskany poziom mocy: {castingNumber}. Wymagany poziom mocy: {spellCastingNumber}");
+        Debug.Log($"Uzyskany poziom mocy na kościach: {castingNumber - modifier}. Modyfikator: {modifier}. Wymagany poziom mocy: {spellCastingNumber}");
 
         // Liczenie dubletów
         foreach (int rollResult in allRollResults)
@@ -307,7 +373,7 @@ public class MagicManager : MonoBehaviour
             if (count == 1) continue;
 
             int value = kvp.Key;
-            int rollResult = Random.Range(1, 101);
+            int rollResult = UnityEngine.Random.Range(1, 101);
 
             if (count == 2)
             {  
@@ -330,6 +396,22 @@ public class MagicManager : MonoBehaviour
 
     private void HandleSpellEffect(Stats spellcasterStats, Stats targetStats, Spell spell)
     {
+        Unit targetUnit = targetStats.GetComponent<Unit>();
+
+        //Uwzględnienie czasu trwania zaklęcia
+        if(spell.Duration != 0)
+        {
+            //Zakończenie wpływu poprzedniego zaklęcia, jeżeli na wybraną jednostkę już jakieś działało. JEST TO ZROBIONE TYMCZASOWO. TEN LIMIT ZOSTAŁ WPROWADZONY DLA UPROSZCZENIA KODU.
+            if(_unitsStatsAffectedBySpell != null && _unitsStatsAffectedBySpell.Any(stat => stat.GetComponent<Unit>().UnitId == targetUnit.UnitId))
+            {
+                ResetSpellEffect(targetUnit);
+                Debug.Log($"Poprzednie zaklęcie wpływające na {targetStats.Name} zostało zresetowane. W obecnej wersji symulatora nie ma możliwości kumulowania efektów wielu zaklęć.");
+            }
+
+            targetUnit.SpellDuration = spell.Duration;
+            _unitsStatsAffectedBySpell.Add(targetStats.Clone());
+        }
+
         //Uwzględnienie testu obronnego
         if (spell.SaveTestRequiring == true && spell.Attribute.Length > 0)
         {
@@ -340,7 +422,7 @@ public class MagicManager : MonoBehaviour
 
             int value = (int)field.GetValue(targetStats);
 
-            int saveRollResult = Random.Range(1, 101);
+            int saveRollResult = UnityEngine.Random.Range(1, 101);
 
             if (saveRollResult > value)
             {
@@ -352,36 +434,44 @@ public class MagicManager : MonoBehaviour
                 return;
             }
         }
-        else if (spell.Attribute != null && spell.Attribute.Length > 0) // Zaklęcia wpływające na cechy, np. Uzdrowienie (TEN OBSZAR JEST DO DALSZEGO ROZWOJU I MODYFIKACJI, BO NA RAZIE OBSŁUGUJE TYLKO JEDNO ZAKLĘCIE czyli UZDROWIENIE)
+        else if (spell.Attribute != null && spell.Attribute.Length > 0) // Zaklęcia wpływające na cechy, np. Uzdrowienie i Pancerz Eteru
         {
-            //Szuka odpowiedniej cechy w statystykach celu
-            FieldInfo field = targetStats.GetType().GetField(spell.Attribute[0]);
-
-            if (field == null || field.FieldType != typeof(int)) return;
-
-            int value = spell.Strength;
-
-            if (spell.Type.Contains("magic-level-related"))
+            for (int i = 0; i < spell.Attribute.Length; i++)
             {
-                value += spellcasterStats.Mag;
-            }
+                //Szuka odpowiedniej cechy w statystykach celu
+                FieldInfo field = targetStats.GetType().GetField(spell.Attribute[i]);
 
-            // Zaklęcia leczące
-            if (spell.Attribute[0] == "TempHealth")
-            {
-                // Zapobiega leczeniu ponad maksymalną wartość żywotności
-                if (value + targetStats.TempHealth > targetStats.MaxHealth)
+                if (field == null || field.FieldType != typeof(int)) return;
+
+                int value = spell.Strength;
+
+                if (spell.Type.Contains("magic-level-related"))
                 {
-                    value = targetStats.MaxHealth - targetStats.TempHealth;
+                    value += spellcasterStats.Mag;
+                }
+
+                // Zaklęcia leczące
+                if (spell.Attribute[0] == "TempHealth")
+                {
+                    // Zapobiega leczeniu ponad maksymalną wartość żywotności
+                    if (value + targetStats.TempHealth > targetStats.MaxHealth)
+                    {
+                        value = targetStats.MaxHealth - targetStats.TempHealth;
+                    }
+
+                    field.SetValue(targetStats, (int)field.GetValue(targetStats) + value);
+
+                    //Zaktualizowanie punktów żywotności
+                    targetStats.GetComponent<Unit>().DisplayUnitHealthPoints();
+
+                    Debug.Log($"{targetStats.Name} odzyskał {value} punktów Żywotności.");
+                    return;
                 }
 
                 field.SetValue(targetStats, (int)field.GetValue(targetStats) + value);
-
-                //Zaktualizowanie punktów żywotności
-                targetStats.GetComponent<Unit>().DisplayUnitHealthPoints();
-
-                Debug.Log($"{targetStats.Name} odzyskał {value} punktów Żywotności.");
             }
+
+            UnitsManager.Instance.UpdateUnitPanel(Unit.SelectedUnit);
         }
 
         // Zaklęcia ogłuszające lub usypiające/paraliżujące
@@ -389,21 +479,21 @@ public class MagicManager : MonoBehaviour
         {
             int duration = spell.Duration;
 
-            RoundsManager.Instance.UnitsWithActionsLeft[targetStats.GetComponent<Unit>()] = 0;
+            RoundsManager.Instance.UnitsWithActionsLeft[targetUnit] = 0;
 
             if (spell.Type.Contains("random-duration"))
             {
-                duration = Random.Range(1, 11);
+                duration = UnityEngine.Random.Range(1, 11);
             }
 
             if (spell.Paralyzing == true)
             {
-                targetStats.GetComponent<Unit>().HelplessDuration += duration;
+                targetUnit.HelplessDuration += duration;
                 Debug.Log($"{targetStats.Name} zostaje sparaliżowany/uśpiony na {duration} rund/y.");
             }
             else if (spell.Stunning == true)
             {
-                targetStats.GetComponent<Unit>().StunDuration += duration;
+                targetUnit.StunDuration += duration;
                 Debug.Log($"{targetStats.Name} zostaje ogłuszony na {duration} rund/y.");
             }
         }
@@ -419,7 +509,7 @@ public class MagicManager : MonoBehaviour
     private void DealMagicDamage(Stats spellcasterStats, Stats targetStats, Spell spell)
     {
 
-        int rollResult = Random.Range(1, 11);
+        int rollResult = UnityEngine.Random.Range(1, 11);
         int damage = rollResult + spell.Strength;
 
         int armor = CalculateArmor(targetStats);
@@ -466,7 +556,7 @@ public class MagicManager : MonoBehaviour
 
     private int CalculateArmor(Stats targetStats)
     {
-        int attackLocalization = Random.Range(1, 101);
+        int attackLocalization = UnityEngine.Random.Range(1, 101);
         int armor = 0;
 
         switch (attackLocalization)

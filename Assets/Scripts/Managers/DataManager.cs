@@ -38,6 +38,7 @@ public class DataManager : MonoBehaviour
     [SerializeField] private GameObject _buttonPrefab; // Przycisk odpowiadający każdej z broni
     [SerializeField] private Transform _weaponScrollViewContent; // Lista wszystkich dostępnych broni
     [SerializeField] private Transform _spellbookScrollViewContent; // Lista wszystkich dostępnych zaklęć
+    [SerializeField] private TMP_Dropdown _spellLoresDropdown; // Lista tradycji magii potrzebna do sortowania listy zaklęć
     [SerializeField] private TMP_Dropdown _weaponQualityDropdown; // Lista jakości broni
     [SerializeField] private Transform _unitScrollViewContent; // Lista wszystkich dostępnych ras (jednostek)
 
@@ -240,10 +241,10 @@ public class DataManager : MonoBehaviour
         }
 
         // Deserializacja danych JSON
-        SpellData[] spellsArray = null;
-        spellsArray = JsonHelper.FromJson<SpellData>(jsonFile.text);
+        List <SpellData> spellsList = null;
+        spellsList = JsonHelper.FromJson<SpellData>(jsonFile.text).ToList();
 
-        if (spellsArray == null)
+        if (spellsList == null)
         {
             Debug.LogError("Deserializacja JSON nie powiodła się. Sprawdź strukturę JSON.");
             return;
@@ -257,7 +258,16 @@ public class DataManager : MonoBehaviour
             //spellToUpdate.Id = spellId;
         }
 
-        foreach (var spell in spellsArray)
+        //  TO JEST DO OGARNIĘCIA W WOLNYM CZASIE. POWIĄZANE Z FILTROWANIEM. BYĆ MOŻĘ TRZEBA ZROBIĆ TAK JAK W PRZYPADKU USUWANIA BRONI Z EKWIPUNKU, CZYLI Z UŻYCIEM POOL'A
+        /*
+        //Czyści obecną listę
+        foreach (Transform child in _spellbookScrollViewContent.transform)
+        {
+            Destroy(child.gameObject);
+        }
+        */
+
+        foreach (var spell in spellsList)
         {
             if (spellToUpdate != null && spell.Id == spellId)
             {
@@ -279,7 +289,16 @@ public class DataManager : MonoBehaviour
 
             bool buttonExists = _spellbookScrollViewContent.GetComponentsInChildren<TextMeshProUGUI>().Any(t => t.text == spell.Name);
 
-            if(buttonExists == false)
+            //  TO JEST DO OGARNIĘCIA W WOLNYM CZASIE
+            /*
+            //Filtrowanie listy zaklęć wg wybranej tradycji
+            string selectedLore = _spellLoresDropdown.options[_spellLoresDropdown.value].text;
+
+            Debug.Log($"spell.Lore {spell.Lore} i selected lore {selectedLore}");
+            if (spell.Lore != selectedLore && selectedLore != "Wszystkie zaklęcia") continue;
+            */
+
+            if (buttonExists == false)
             {
                 //Dodaje zaklęcie do ScrollViewContent w postaci buttona
                 GameObject buttonObj = Instantiate(_buttonPrefab, _spellbookScrollViewContent);
@@ -363,6 +382,8 @@ public class TokenData
 [System.Serializable]
 public class UnitData
 {
+    public int UnitId; // Unikalny Id jednostki
+
     public string Tag;
     public string TokenFilePath;
     public float[] position;
@@ -373,6 +394,7 @@ public class UnitData
     public int HelplessDuration; // Czas stanu bezbronności (podany w rundach). Wartość 0 oznacza, że postać nie jest bezbronna
     public bool IsScared; // Jest przestraszony
     public bool IsFearTestPassed; // Zdał test strachu
+    public int SpellDuration; // Czas trwania zaklęcia mającego wpływ na tą jednostkę
     public int StunDuration; // Czas ogłuszenia (podany w rundach). Wartość 0 oznacza, że postać nie jest ogłuszona
     public bool Trapped; // Unieruchomiony
     //public int TrappedDuration; // Czas unieruchomienia (podany w rundach). Wartość 0 oznacza, że postać nie jest unieruchomiona
@@ -533,6 +555,7 @@ public class SpellData
 {
     public int Id;
     public string Name;
+    public string Lore;
     public string[] Type;
     public int CastingNumber; //poziom mocy
     public float Range;

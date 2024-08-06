@@ -8,6 +8,8 @@ using System.IO;
 
 public class Unit : MonoBehaviour
 {
+    public int UnitId; // Unikalny Id jednostki
+
     public static GameObject SelectedUnit;
     public static GameObject LastSelectedUnit;
     public string TokenFilePath;
@@ -19,6 +21,7 @@ public class Unit : MonoBehaviour
     public int HelplessDuration; // Czas stanu bezbronności (podany w rundach). Wartość 0 oznacza, że postać nie jest bezbronna
     public bool IsScared; // Jest przestraszony
     public bool IsFearTestPassed; // Zdał test strachu
+    public int SpellDuration; // Czas trwania zaklęcia mającego wpływ na tą jednostkę
     public int StunDuration; // Czas ogłuszenia (podany w rundach). Wartość 0 oznacza, że postać nie jest ogłuszona
     public bool Trapped; // Unieruchomiony
     //public int TrappedDuration; // Czas unieruchomienia (podany w rundach). Wartość 0 oznacza, że postać nie jest unieruchomiona

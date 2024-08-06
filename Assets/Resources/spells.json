@@ -2,7 +2,31 @@
   "Spells": [
     {
       "Id": 1,
+      "Name": "Błogosławieństwo siły",
+      "Lore": "Magia prosta - kapłańska",
+      "Type": ["buff"],
+      "Strength": 5,
+      "CastingNumber": 6,
+      "Range": 1.5,
+      "CastingTime": 1,
+      "Duration": 6,
+      "Attribute": ["WW", "K"]
+    },
+    {
+      "Id": 2,
+      "Name": "Błogosławieństwo uzdrawiania",
+      "Lore": "Magia prosta - kapłańska",
+      "Type": ["buff"],
+      "Strength": 1,
+      "CastingNumber": 5,
+      "Range": 1.5,
+      "CastingTime": 1,
+      "Attribute": ["TempHealth"]
+    },
+    {
+      "Id": 3,
       "Name": "Błyskawica",
+      "Lore": "Tradycja Niebios",
       "Type": ["offensive", "magic-missile"],
       "CastingNumber": 10,
       "Range": 18,
@@ -10,8 +34,9 @@
       "CastingTime": 1
     },
     {
-      "Id": 2,
+      "Id": 4,
       "Name": "Gorejący wzrok",
+      "Lore": "Tradycja Światła",
       "Type": ["offensive", "magic-missile"],
       "CastingNumber": 7,
       "Range": 8,
@@ -19,8 +44,9 @@
       "CastingTime": 2
     },
     {
-      "Id": 3,
+      "Id": 5,
       "Name": "Magiczne żądło",
+      "Lore": "Magia prosta - tajemna",
       "Type": ["offensive", "magic-missile"],
       "CastingNumber": 6,
       "Range": 8,
@@ -28,8 +54,9 @@
       "CastingTime": 1
     },
     {
-      "Id": 4,
+      "Id": 6,
       "Name": "Nawałnica",
+      "Lore": "Tradycja Niebios",
       "Type": ["offensive"],
       "CastingNumber": 25,
       "Range": 24,
@@ -38,8 +65,9 @@
       "CastingTime": 2
     },
     {
-      "Id": 5,
+      "Id": 7,
       "Name": "Ogień U'zhul",
+      "Lore": "Tradycja Ognia",
       "Type": ["offensive", "magic-missile"],
       "CastingNumber": 6,
       "Range": 18,
@@ -47,8 +75,9 @@
       "CastingTime": 1
     },
     {
-      "Id": 6,
+      "Id": 8,
       "Name": "Ognista kula",
+      "Lore": "Tradycja Ognia",
       "Type": ["offensive", "magic-level-related", "magic-missile", "multiple-targets"],
       "CastingNumber": 12,
       "Range": 24,
@@ -56,8 +85,9 @@
       "CastingTime": 1
     },
     {
-      "Id": 7,
+      "Id": 9,
       "Name": "Pancerz Eteru",
+      "Lore": "Magia powszechna",
       "Type": ["buff", "magic-level-related", "self-only"],
       "CastingNumber": 5,
       "Range": 1,
@@ -66,8 +96,9 @@
       "Attribute": ["Armor_head",  "Armor_arms", "Armor_torso", "Armor_legs"]
     },
     {
-      "Id": 8,
+      "Id": 10,
       "Name": "Srebrzyste strzały Arha",
+      "Lore": "Tradycja Metalu",
       "Type": ["offensive", "magic-level-related", "magic-missile", "multiple-targets"],
       "CastingNumber": 13,
       "Range": 24,
@@ -75,8 +106,9 @@
       "CastingTime": 1
     },
     {
-      "Id": 9,
+      "Id": 11,
       "Name": "Sztylety cienia",
+      "Lore": "Tradycja Cienia",
       "Type": ["offensive", "magic-level-related", "magic-missile", "multiple-targets"],
       "CastingNumber": 21,
       "Range": 24,
@@ -85,8 +117,9 @@
       "ArmourIgnoring": true
     },
     {
-      "Id": 10,
+      "Id": 12,
       "Name": "Uśpienie",
+      "Lore": "Magia prosta - tajemna",
       "Type": ["offensive", "random-duration", "no-damage"],
       "CastingNumber": 6,
       "Range": 1.5,
@@ -96,8 +129,9 @@
       "Paralyzing": true
     },
     {
-      "Id": 11,
+      "Id": 13,
       "Name": "Uzdrowienie",
+      "Lore": "Tradycja Światła",
       "Type": ["magic-level-related"],
       "CastingNumber": 10,
       "Range": 1.5,

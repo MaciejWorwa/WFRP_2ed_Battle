@@ -6,6 +6,7 @@ public class Spell : MonoBehaviour
 {
     public int Id;
     public string Name;
+    public string Lore;
     public string[] Type; // np. offensive, buff, magic-level-related, magic-missile, healing (?) 
     public int CastingNumber; //poziom mocy
     public float Range; // zasiêg

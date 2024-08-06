@@ -10,6 +10,8 @@ public class Stats : MonoBehaviour
 {
     public int Id;
 
+    public int Index;
+
     [Header("Imię")]
     public string Name;
 
@@ -150,6 +152,12 @@ public class Stats : MonoBehaviour
 
             Debug.Log($"{Name} zregenerował {woundsToHeal} żywotności.");
         }
+    }
+
+    //Zwraca kopię tej klasy
+    public Stats Clone()
+    {
+        return (Stats)this.MemberwiseClone();
     }
 
 }

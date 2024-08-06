@@ -185,6 +185,9 @@ public class UnitsManager : MonoBehaviour
         // Aktualizuje liczbę wszystkich postaci
         AllUnits.Add(newUnit.GetComponent<Unit>());
 
+        //Ustala unikalne Id jednostki
+        newUnit.GetComponent<Unit>().UnitId = AllUnits.Count;
+
         //Wczytuje statystyki dla danego typu jednostki
         DataManager.Instance.LoadAndUpdateStats(newUnit);
 
