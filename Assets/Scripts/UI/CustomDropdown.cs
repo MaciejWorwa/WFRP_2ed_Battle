@@ -17,6 +17,29 @@ public class CustomDropdown : MonoBehaviour
         InitializeButtons();
     }
 
+
+
+
+
+
+    public void ClearButtons()
+    {
+        foreach (var button in Buttons)
+        {
+            Destroy(button.gameObject);
+        }
+        Buttons.Clear();
+        SelectedIndex = 0;
+        SelectedButton = null;
+    }
+
+
+
+
+
+
+
+
     public void InitializeButtons()
     {
         for (int i = 0; i < Buttons.Count; i++)

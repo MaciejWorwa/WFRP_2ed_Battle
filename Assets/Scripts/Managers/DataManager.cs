@@ -230,7 +230,7 @@ public class DataManager : MonoBehaviour
     #endregion
 
     #region Loading spells
-    public void LoadAndUpdateSpells(int spellId = 0)
+    public void LoadAndUpdateSpells(string spellName = null)
     {
         // Ładowanie danych JSON
         TextAsset jsonFile = Resources.Load<TextAsset>("spells");
@@ -252,26 +252,42 @@ public class DataManager : MonoBehaviour
 
         //Odniesienie do klasy spell postaci
         Spell spellToUpdate = null;
-        if(Unit.SelectedUnit != null && Unit.SelectedUnit.GetComponent<Spell>() != null && spellId != 0)
+        if(Unit.SelectedUnit != null && Unit.SelectedUnit.GetComponent<Spell>() != null && !string.IsNullOrEmpty(spellName))
         {
             spellToUpdate = Unit.SelectedUnit.GetComponent<Spell>();
-            //spellToUpdate.Id = spellId;
         }
 
-        //  TO JEST DO OGARNIĘCIA W WOLNYM CZASIE. POWIĄZANE Z FILTROWANIEM. BYĆ MOŻĘ TRZEBA ZROBIĆ TAK JAK W PRZYPADKU USUWANIA BRONI Z EKWIPUNKU, CZYLI Z UŻYCIEM POOL'A
-        /*
-        //Czyści obecną listę
-        foreach (Transform child in _spellbookScrollViewContent.transform)
-        {
-            Destroy(child.gameObject);
-        }
-        */
+
+
+
+
+
+
+
+
+
+
+        // Czyści obecną listę
+        _spellbookScrollViewContent.GetComponent<CustomDropdown>().ClearButtons();
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         foreach (var spell in spellsList)
         {
-            if (spellToUpdate != null && spell.Id == spellId)
+            if (spellToUpdate != null && spell.Name == spellName)
             {
-                if(spellToUpdate.Id == spell.Id) return;
+                if (spellToUpdate.Name == spell.Name) return;
 
                 // Używanie refleksji do aktualizacji wartości wszystkich pól w klasie Spell
                 FieldInfo[] fields = typeof(SpellData).GetFields(BindingFlags.Instance | BindingFlags.Public);
@@ -287,19 +303,34 @@ public class DataManager : MonoBehaviour
                 spellToUpdate.CastingTimeLeft = spell.CastingTime;
             }
 
-            bool buttonExists = _spellbookScrollViewContent.GetComponentsInChildren<TextMeshProUGUI>().Any(t => t.text == spell.Name);
+            //bool buttonExists = _spellbookScrollViewContent.GetComponentsInChildren<TextMeshProUGUI>().Any(t => t.text == spell.Name);
 
-            //  TO JEST DO OGARNIĘCIA W WOLNYM CZASIE
-            /*
+
+
+
+
+
+
+
+
+
+
+
             //Filtrowanie listy zaklęć wg wybranej tradycji
             string selectedLore = _spellLoresDropdown.options[_spellLoresDropdown.value].text;
-
-            Debug.Log($"spell.Lore {spell.Lore} i selected lore {selectedLore}");
             if (spell.Lore != selectedLore && selectedLore != "Wszystkie zaklęcia") continue;
-            */
 
-            if (buttonExists == false)
-            {
+
+
+
+
+
+
+
+
+
+            //if (buttonExists == false)
+            //{
                 //Dodaje zaklęcie do ScrollViewContent w postaci buttona
                 GameObject buttonObj = Instantiate(_buttonPrefab, _spellbookScrollViewContent);
                 TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
@@ -323,7 +354,7 @@ public class DataManager : MonoBehaviour
                 {
                     _spellbookScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(currentIndex); // Wybiera element i aktualizuje jego wygląd
                 });
-            }
+           // }
         }
     }
 

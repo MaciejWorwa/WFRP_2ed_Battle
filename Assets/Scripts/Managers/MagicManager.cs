@@ -106,10 +106,19 @@ public class MagicManager : MonoBehaviour
             return;
         }
 
+        if (_spellbookDropdown.SelectedButton == null)
+        {
+            Debug.Log("Musisz najpierw wybrać zaklęcie z listy.");
+            return;
+        }
+
         GridManager.Instance.ResetColorOfTilesInMovementRange();
 
         IsTargetSelecting = true;
-        DataManager.Instance.LoadAndUpdateSpells(_spellbookDropdown.GetSelectedIndex());
+
+        string selectedSpellName = _spellbookDropdown.SelectedButton.GetComponentInChildren<TextMeshProUGUI>().text;
+        DataManager.Instance.LoadAndUpdateSpells(selectedSpellName);
+        //DataManager.Instance.LoadAndUpdateSpells(_spellbookDropdown.GetSelectedIndex());
 
         _targetsStats.Clear();
 
@@ -137,6 +146,12 @@ public class MagicManager : MonoBehaviour
 
         //Sprawdza wszystkie jednostki w obszarze działania zaklęcia
         List<Collider2D> allTargets = Physics2D.OverlapCircleAll(target.transform.position, spell.AreaSize / 2).ToList();
+
+        if (allTargets == null)
+        {
+            Debug.Log($"W obszarze działania zaklęcia musi znaleźć się odpowiedni cel.");
+            return;
+        }
 
         // Usuwa wszystkie collidery, które nie są jednostkami
         for (int i = allTargets.Count - 1; i >= 0; i--)
@@ -409,6 +424,27 @@ public class MagicManager : MonoBehaviour
             }
 
             targetUnit.SpellDuration = spell.Duration;
+
+
+
+
+
+
+
+
+
+            if (_unitsStatsAffectedBySpell == null) Debug.Log("_unitsStatsAffectedBySpell== null");
+            if (targetStats == null) Debug.Log("targetStats == null");
+
+
+
+
+
+
+
+
+
+
             _unitsStatsAffectedBySpell.Add(targetStats.Clone());
         }
 
@@ -463,6 +499,7 @@ public class MagicManager : MonoBehaviour
 
                     //Zaktualizowanie punktów żywotności
                     targetStats.GetComponent<Unit>().DisplayUnitHealthPoints();
+                    UnitsManager.Instance.UpdateUnitPanel(Unit.SelectedUnit);
 
                     Debug.Log($"{targetStats.Name} odzyskał {value} punktów Żywotności.");
                     return;
