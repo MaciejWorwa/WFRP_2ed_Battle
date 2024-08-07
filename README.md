@@ -25,7 +25,7 @@ At the moment only Polish language is supported.
 - Battlefield editor with 18 unique map elements,
 - 18 different races to choose,
 - 16 different weapons (with quality to choose),
-- 5 offensive spells,
+- 13 different spells,
 - 6 different game modes (including automatic combat mode),
 - Save and load system,
 - And more...
