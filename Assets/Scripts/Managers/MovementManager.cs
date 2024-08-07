@@ -307,9 +307,9 @@ public class MovementManager : MonoBehaviour
     }
 
 
-    private void ChangeButtonColor(int modifier) // Tymczasowa funkcja, do testów przycisków szarży i biegu. DODAĆ, ŻEBY RESETOWALO KOLOR PRZYCISKOW PO ZMIANIE POSTACI
+    private void ChangeButtonColor(int modifier)
     {  
-        _chargeButton.GetComponent<Image>().color = modifier == 1 ? Color.white : modifier == 2 ? Color.green : Color.white;
+        //_chargeButton.GetComponent<Image>().color = modifier == 1 ? Color.white : modifier == 2 ? Color.green : Color.white;
         _runButton.GetComponent<Image>().color = modifier == 1 ? Color.white : modifier == 3 ? Color.green : Color.white;
     }
     #endregion

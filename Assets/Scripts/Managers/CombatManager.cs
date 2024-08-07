@@ -41,6 +41,7 @@ public class CombatManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button _aimButton;
     [SerializeField] private UnityEngine.UI.Button _defensiveStanceButton;
     [SerializeField] private UnityEngine.UI.Button _standardAttackButton;
+    [SerializeField] private UnityEngine.UI.Button _chargeButton;
     [SerializeField] private UnityEngine.UI.Button _allOutAttackButton;
     [SerializeField] private UnityEngine.UI.Button _guardedAttackButton;
     [SerializeField] private UnityEngine.UI.Button _swiftAttackButton;
@@ -175,6 +176,7 @@ public class CombatManager : MonoBehaviour
     public void UpdateAttackTypeButtonsColor()
     {
         _standardAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["StandardAttack"] ? new UnityEngine.Color(0.15f, 1f, 0.45f) : UnityEngine.Color.white;
+        _chargeButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Charge"] ? new UnityEngine.Color(0.15f, 1f, 0.45f) : UnityEngine.Color.white;
         _allOutAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["AllOutAttack"] ? new UnityEngine.Color(0.15f, 1f, 0.45f) : UnityEngine.Color.white;
         _guardedAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["GuardedAttack"] ? new UnityEngine.Color(0.15f, 1f, 0.45f) : UnityEngine.Color.white;
         _swiftAttackButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["SwiftAttack"] ? new UnityEngine.Color(0.15f, 1f, 0.45f) : UnityEngine.Color.white;
@@ -375,7 +377,7 @@ public class CombatManager : MonoBehaviour
             if (_isSuccessful && attackerWeapon.Type.Contains("melee") && (attacker.Feinted != true || AttackTypes["StandardAttack"] != true))
             {
                 //Sprawdzenie, czy jest aktywny tryb automatycznej obrony
-                if (!GameManager.IsAutoDefenseMode && (target.CanParry || target.CanDodge))
+                if (!GameManager.IsAutoDefenseMode && ((target.CanParry && (RoundsManager.Instance.UnitsWithActionsLeft[target] >= 1 || targetStats.LightningParry) || target.CanDodge)))
                 {
                     _parryAndDodgePanel.SetActive(true);
 
