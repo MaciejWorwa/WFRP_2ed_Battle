@@ -97,6 +97,11 @@ public class RoundsManager : MonoBehaviour
                     MagicManager.Instance.ResetSpellEffect(key);
                 }
             }
+            if(key.Trapped)
+            {
+                UnitsWithActionsLeft[key] = 0;
+                CombatManager.Instance.EscapeFromTheSnare(key);
+            }
         }
 
         //Wykonuje testy grozy i strachu jeśli na polu bitwy są jednostki straszne lub przerażające
@@ -109,6 +114,12 @@ public class RoundsManager : MonoBehaviour
         }
 
         InitiativeQueueManager.Instance.UpdateInitiativeQueue();
+
+        //Odświeża panel jednostki, aby zaktualizowac ewentualną informację o długości trwania stanu (np. ogłuszenia) wybranej jednostki
+        if(Unit.SelectedUnit != null)
+        {
+            UnitsManager.Instance.UpdateUnitPanel(Unit.SelectedUnit);
+        }
 
         //Wybiera jednostkę zgodnie z kolejką inicjatywy, jeśli ten tryb jest włączony
         if (GameManager.IsAutoSelectUnitMode && InitiativeQueueManager.Instance.ActiveUnit != null)

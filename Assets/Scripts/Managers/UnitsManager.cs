@@ -35,6 +35,7 @@ public class UnitsManager : MonoBehaviour
     [SerializeField] private GameObject _unitPanel;
     [SerializeField] private GameObject _spellbookButton;
     [SerializeField] private GameObject _actionsPanel;
+    [SerializeField] private GameObject _statesPanel; //Panel opisujący obecny stan postaci, np. unieruchomienie
     [SerializeField] private TMP_Text _nameDisplay;
     [SerializeField] private TMP_Text _raceDisplay;
     [SerializeField] private TMP_Text _initiativeDisplay;
@@ -454,16 +455,62 @@ public class UnitsManager : MonoBehaviour
     #region Update unit panel (at the top of the screen)
     public void UpdateUnitPanel(GameObject unit)
     {
-        if(unit == null || SaveAndLoadManager.Instance.IsLoading)
+        _actionsPanel.SetActive(false);
+        _statesPanel.SetActive(false);
+
+        if (unit == null || SaveAndLoadManager.Instance.IsLoading)
         {
             _unitPanel.SetActive(false);
-            _actionsPanel.SetActive(false);
             return;
         }
         else
         {
             _unitPanel.SetActive(true);
-            _actionsPanel.SetActive(true);
+
+            Unit unitComponent = unit.GetComponent<Unit>();
+
+            if(unitComponent.StunDuration == 0 && unitComponent.HelplessDuration == 0 && unitComponent.Trapped == false && unitComponent.IsScared == false)
+            {
+                _actionsPanel.SetActive(true);
+            }
+            else
+            {
+                _statesPanel.SetActive(true);
+
+                string state = "";
+                int duration = 0;
+
+                if(unitComponent.StunDuration > 0)
+                {
+                    state = "ogłuszenia";
+                    duration = unitComponent.StunDuration;
+                }
+                else if (unitComponent.HelplessDuration > 0)
+                {
+                    state = "bezbronności";
+                    duration = unitComponent.HelplessDuration;
+                }
+                else if (unitComponent.Trapped)
+                {
+                    state = "unieruchomienia";
+                    duration = 0;
+                }
+                else if (unitComponent.IsScared)
+                {
+                    state = "strachu";
+                    duration = 0;
+                }
+
+                string currentStateString = $"Wybrana jednostka nie może wykonywać akcji, ponieważ jest w stanie {state}.";
+                string currentStateDurationString = $" Stan ten potrwa jeszcze {duration} rund/y.";
+
+                if(duration == 0)
+                {
+                    currentStateDurationString = "";
+                }
+
+                _statesPanel.GetComponentInChildren<TMP_Text>().text = currentStateString + currentStateDurationString;
+            }
         }
 
         Stats stats = unit.GetComponent<Stats>();
@@ -642,20 +689,29 @@ public class UnitsManager : MonoBehaviour
 
         int rollResult = UnityEngine.Random.Range(1, 101);
 
+        string stringResult = "";
+
         if (rollResult <= (unitStats.SW + rollModifier))
         {
             unit.IsScared = false;
             unit.IsFearTestPassed = true;
-            Debug.Log($"<color=green>{unitStats.Name} zdał test strachu. Wynik rzutu: {rollResult} </color>");
+
+            stringResult = $"<color=green>{unitStats.Name} zdał test strachu. Wynik rzutu: {rollResult}. Wartość cechy: {unitStats.SW}.";
         }
         else
         {
             RoundsManager.Instance.UnitsWithActionsLeft[unit] = 0;
             unit.IsScared = true;
 
-            Debug.Log($"<color=red>{unitStats.Name} nie zdał testu strachu. Wynik rzutu: {rollResult} </color>");
+            stringResult = $"<color=red>{unitStats.Name} nie zdał testu strachu. Wynik rzutu: {rollResult}. Wartość cechy: {unitStats.SW}.";
         }
 
+        if (rollModifier != 0)
+        {
+            stringResult += $" Modyfikator: {rollModifier}";
+        }
+
+        Debug.Log($"{stringResult}</color>");
     }
 
     private void AllUnitsTerrorRoll(string unitTag)

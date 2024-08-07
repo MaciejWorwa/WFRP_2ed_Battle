@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.TextCore.Text;
 using UnityEngine.UI;
 using System;
+using static UnityEngine.GraphicsBuffer;
 
 public class MagicManager : MonoBehaviour
 {
@@ -78,15 +79,21 @@ public class MagicManager : MonoBehaviour
         if (stats.MagicSense) modifier += 10; //modyfikator za zmysł magii
         modifier += (stats.Channeling * 10) - 10; //modyfikator za umiejętność splatania magii
 
+        string message = $"Wynik rzutu: {rollResult}. Wartość cechy: {stats.SW}.";
+        if (modifier != 0)
+        {
+            message += $"  Modyfikator: {modifier}.";
+        }
+
         if (stats.SW + modifier >= rollResult)
         {
             Unit.SelectedUnit.GetComponent<Unit>().CastingNumberBonus += stats.Mag;
-            Debug.Log($"Wynik rzutu: {rollResult}. Wartość cechy: {stats.SW}. Modyfikator: {modifier}. Splatanie magii zakończone sukcesem.");
+            Debug.Log($"{message} Splatanie magii zakończone sukcesem.");
         }
         else
         {
             Unit.SelectedUnit.GetComponent<Unit>().CastingNumberBonus = 0;
-            Debug.Log($"Wynik rzutu: {rollResult}. Wartość cechy: {stats.SW}. Modyfikator: {modifier}. Splatanie magii zakończone niepowodzeniem.");
+            Debug.Log($"{message} Splatanie magii zakończone niepowodzeniem.");
         }
     }
 
@@ -118,7 +125,6 @@ public class MagicManager : MonoBehaviour
 
         string selectedSpellName = _spellbookDropdown.SelectedButton.GetComponentInChildren<TextMeshProUGUI>().text;
         DataManager.Instance.LoadAndUpdateSpells(selectedSpellName);
-        //DataManager.Instance.LoadAndUpdateSpells(_spellbookDropdown.GetSelectedIndex());
 
         _targetsStats.Clear();
 
@@ -221,7 +227,12 @@ public class MagicManager : MonoBehaviour
             //Uwzględnienie zdolności Dotyk Mocy
             int modifier = spellcasterStats.FastHands ? 20 : 0;
 
-            Debug.Log($"{spellcasterStats.Name} próbuje dotknąć {target.GetComponent<Stats>().Name}. Wynik rzutu: {rollResult}. Wartość WW: {spellcasterStats.WW}. Modyfikator: {modifier}");
+            string message = $"{spellcasterStats.Name} próbuje dotknąć {target.GetComponent<Stats>().Name}. Wynik rzutu: {rollResult}. Wartość WW: {spellcasterStats.WW}.";
+            if (modifier != 0)
+            {
+                message += $"  Modyfikator: {modifier}";
+            }
+            Debug.Log(message);
 
             if (rollResult > spellcasterStats.WW + modifier)
             {
@@ -364,8 +375,14 @@ public class MagicManager : MonoBehaviour
 
         castingNumber += modifier;
 
+        string modifierString = "";
+        if(modifier != 0)
+        {
+            modifierString = $" Modyfikator: {modifier}.";
+        }
+
         Debug.Log(resultString);
-        Debug.Log($"Uzyskany poziom mocy na kościach: {castingNumber - modifier}. Modyfikator: {modifier}. Wymagany poziom mocy: {spellCastingNumber}");
+        Debug.Log($"Uzyskany poziom mocy na kościach: {castingNumber - modifier}.{modifierString} Wymagany poziom mocy: {spellCastingNumber}");
 
         // Liczenie dubletów
         foreach (int rollResult in allRollResults)

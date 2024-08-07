@@ -457,6 +457,8 @@ public class CombatManager : MonoBehaviour
                 if (target.Trapped == false)
                 {
                     target.Trapped = true;
+                    RoundsManager.Instance.UnitsWithActionsLeft[target] = 0;
+
                     Debug.Log($"{attackerStats.Name} unieruchomił {targetStats.Name} przy pomocy {attackerWeapon.Name}");
                 }
 
@@ -478,13 +480,15 @@ public class CombatManager : MonoBehaviour
                 //Bonus do obrażeń w przypadku atakowania postaci bezbronnej
                 if (target.HelplessDuration > 0)
                 {
-                    damage += Random.Range(1, 11);
+                    int extraRoll = Random.Range(1, 11);
+                    damage += extraRoll;
+                    Debug.Log($"Rzut na dodatkowe obrażenia z powodu atakowania bezbronnej jednostki: {extraRoll}");
                 }
 
                 //Uwzględnienie strzału przebijającego zbroję (zdolność)
                 if (attackerStats.SureShot && _attackDistance <= 1.5f && attackerWeapon.Type.Contains("ranged") && armor > 0) armor--;
 
-                Debug.Log($"{attackerStats.Name} wyrzucił {damageRollResult} i zadał {damage} obrażeń.");
+                Debug.Log($"{attackerStats.Name} zadał {damage} obrażeń.");
 
                 //Zadanie obrażeń
                 if (damage > (targetStats.Wt + armor))
@@ -1252,9 +1256,9 @@ public class CombatManager : MonoBehaviour
     //Próba uwolnienia się z unieruchomienia
     public void EscapeFromTheSnare(Unit unit)
     {
-        bool canDoAction = RoundsManager.Instance.DoFullAction(unit);
+        //bool canDoAction = RoundsManager.Instance.DoFullAction(unit);
 
-        if (!canDoAction) return;
+        //if (!canDoAction) return;
 
         Stats unitStats = unit.GetComponent<Stats>();
 

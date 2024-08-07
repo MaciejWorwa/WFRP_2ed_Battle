@@ -257,34 +257,39 @@ public class DataManager : MonoBehaviour
             spellToUpdate = Unit.SelectedUnit.GetComponent<Spell>();
         }
 
-
-
-
-
-
-
-
-
-
-
         // Czyści obecną listę
         _spellbookScrollViewContent.GetComponent<CustomDropdown>().ClearButtons();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
         foreach (var spell in spellsList)
         {
+            //Filtrowanie listy zaklęć wg wybranej tradycji
+            string selectedLore = _spellLoresDropdown.options[_spellLoresDropdown.value].text;
+            if (spell.Lore != selectedLore && selectedLore != "Wszystkie zaklęcia") continue;
+
+            //Dodaje zaklęcie do ScrollViewContent w postaci buttona
+            GameObject buttonObj = Instantiate(_buttonPrefab, _spellbookScrollViewContent);
+            TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
+            //Ustala text buttona
+            buttonText.text = spell.Name;
+
+            UnityEngine.UI.Button button = buttonObj.GetComponent<UnityEngine.UI.Button>();
+
+            CustomDropdown spellbookDropdown = _spellbookScrollViewContent.GetComponent<CustomDropdown>();
+
+            //Dodaje opcję do CustomDropdowna ze wszystkimi zaklęciami
+            spellbookDropdown.Buttons.Add(button);
+
+            // Wyświetla przy zaklęciu wymagany poziom mocy
+            DisplayCastingNumberInfo(button, spell.CastingNumber);
+
+            int currentIndex = _spellbookScrollViewContent.GetComponent<CustomDropdown>().Buttons.Count; // Pobiera indeks nowego przycisku
+
+            // Zdarzenie po kliknięciu na konkretny item z listy
+            button.onClick.AddListener(() =>
+            {
+                _spellbookScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(currentIndex); // Wybiera element i aktualizuje jego wygląd
+            });
+
             if (spellToUpdate != null && spell.Name == spellName)
             {
                 if (spellToUpdate.Name == spell.Name) return;
@@ -296,65 +301,12 @@ public class DataManager : MonoBehaviour
                     var targetField = typeof(Spell).GetField(field.Name, BindingFlags.Instance | BindingFlags.Public);
                     if (targetField != null)
                     {
-                        targetField.SetValue(spellToUpdate, field.GetValue(spell));             
+                        targetField.SetValue(spellToUpdate, field.GetValue(spell));
                     }
                 }
 
                 spellToUpdate.CastingTimeLeft = spell.CastingTime;
             }
-
-            //bool buttonExists = _spellbookScrollViewContent.GetComponentsInChildren<TextMeshProUGUI>().Any(t => t.text == spell.Name);
-
-
-
-
-
-
-
-
-
-
-
-
-            //Filtrowanie listy zaklęć wg wybranej tradycji
-            string selectedLore = _spellLoresDropdown.options[_spellLoresDropdown.value].text;
-            if (spell.Lore != selectedLore && selectedLore != "Wszystkie zaklęcia") continue;
-
-
-
-
-
-
-
-
-
-
-            //if (buttonExists == false)
-            //{
-                //Dodaje zaklęcie do ScrollViewContent w postaci buttona
-                GameObject buttonObj = Instantiate(_buttonPrefab, _spellbookScrollViewContent);
-                TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
-                //Ustala text buttona
-                buttonText.text = spell.Name;
-
-                UnityEngine.UI.Button button = buttonObj.GetComponent<UnityEngine.UI.Button>();
-
-                CustomDropdown spellbookDropdown = _spellbookScrollViewContent.GetComponent<CustomDropdown>();
-
-                //Dodaje opcję do CustomDropdowna ze wszystkimi zaklęciami
-                spellbookDropdown.Buttons.Add(button);
-
-                // Wyświetla przy zaklęciu wymagany poziom mocy
-                DisplayCastingNumberInfo(button, spell.CastingNumber);
-
-                int currentIndex = _spellbookScrollViewContent.GetComponent<CustomDropdown>().Buttons.Count; // Pobiera indeks nowego przycisku
-
-                // Zdarzenie po kliknięciu na konkretny item z listy
-                button.onClick.AddListener(() =>
-                {
-                    _spellbookScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(currentIndex); // Wybiera element i aktualizuje jego wygląd
-                });
-           // }
         }
     }
 
