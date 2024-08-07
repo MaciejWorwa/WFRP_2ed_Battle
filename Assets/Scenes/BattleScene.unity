@@ -5691,6 +5691,7 @@ MonoBehaviour:
   _aimButton: {fileID: 1329112724}
   _defensiveStanceButton: {fileID: 2125052386}
   _standardAttackButton: {fileID: 32159177}
+  _chargeButton: {fileID: 1357246452}
   _allOutAttackButton: {fileID: 1502800989}
   _guardedAttackButton: {fileID: 1785146498}
   _swiftAttackButton: {fileID: 1492147386}
