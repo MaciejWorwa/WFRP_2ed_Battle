@@ -57,7 +57,7 @@ public class MapEditor : MonoBehaviour
             for (int y = 0; y < GridManager.Height; y++)
             {
                 Vector3 worldPosition = gridTransform.TransformPoint(new Vector3(x, y, 0));
-                Collider2D collider = Physics2D.OverlapCircle(worldPosition, 0.1f);
+                Collider2D collider = Physics2D.OverlapPoint(worldPosition);
 
                 if (collider != null && collider.gameObject.CompareTag("Tile"))
                 {
@@ -83,7 +83,7 @@ public class MapEditor : MonoBehaviour
         // Sprawdza, czy wskaźnik znajduje się nad GUI, lub nie wybrano żadnego obiektu
         if (/*EventSystem.current.IsPointerOverGameObject() ||*/ MapElementUI.SelectedElement == null) return;
 
-        Collider2D collider = Physics2D.OverlapCircle(position, 0.1f);
+        Collider2D collider = Physics2D.OverlapPoint(position);
 
         if (collider != null && collider.gameObject.CompareTag("Tile"))
         {
@@ -127,15 +127,10 @@ public class MapEditor : MonoBehaviour
 
     public void RemoveElement(Vector3 position)
     {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(position, 0.1f);
+        Collider2D collider = Physics2D.OverlapPoint(position);
 
-        // Usuwa przeszkody z klikniętego miejsca
-        for (int i = 0; i < colliders.Length; i++)
-        {
-            //if (colliders[i].CompareTag("Tile")) continue;
-
-            Destroy(colliders[i].gameObject);
-        }
+        // Usuwa przeszkodę z klikniętego miejsca
+        Destroy(collider.gameObject);
     }
 
     public void RemoveElementsOutsideTheGrid()

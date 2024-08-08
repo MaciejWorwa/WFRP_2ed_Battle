@@ -270,6 +270,10 @@ public class UnitsManager : MonoBehaviour
         {
             //Resetuje podświetlenie pól w zasięgu ruchu jeżeli usuwana postać jest obecnie aktywną
             GridManager.Instance.ResetColorOfTilesInMovementRange();
+
+            //Wyłącza panel górny i dolny, a także wszystkie aktywne panele
+            UpdateUnitPanel(null);
+            GameManager.Instance.HideActivePanels();  
         }
 
         //Usunięcie jednostki z kolejki inicjatywy
@@ -279,10 +283,6 @@ public class UnitsManager : MonoBehaviour
 
         //Usuwa jednostkę z listy wszystkich jednostek
         AllUnits.Remove(unit.GetComponent<Unit>());
-
-        //Wyłącza panel górny i dolny, a także wszystkie aktywne panele
-        UpdateUnitPanel(null);
-        GameManager.Instance.HideActivePanels();   
 
         Destroy(unit);
         IsUnitRemoving = false;

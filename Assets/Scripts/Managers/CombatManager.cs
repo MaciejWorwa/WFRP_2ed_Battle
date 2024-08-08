@@ -665,7 +665,7 @@ public class CombatManager : MonoBehaviour
 
         foreach (var pos in positions)
         {
-            Collider2D collider = Physics2D.OverlapCircle(pos, 0.1f);
+            Collider2D collider = Physics2D.OverlapPoint(pos);
 
             if(collider != null && collider.CompareTag(target.tag))
             {
@@ -853,9 +853,9 @@ public class CombatManager : MonoBehaviour
             }
 
             //Dodaje modyfikator do trafienia uzwględniając strzał mierzony w przypadku ataków dystansowych
-            unit.AimingBonus += Unit.SelectedUnit.GetComponent<Stats>().Sharpshooter && attackerWeapon.Type.Contains("ranged") ? 20 : 10; 
+            unit.AimingBonus += unit.GetComponent<Stats>().Sharpshooter && attackerWeapon.Type.Contains("ranged") ? 20 : 10; 
 
-            Debug.Log("Przycelowanie");
+            Debug.Log($"{unit.GetComponent<Stats>().Name} przycelowuje.");
         }
 
         UpdateAimButtonColor();
@@ -958,6 +958,8 @@ public class CombatManager : MonoBehaviour
 
             path = MovementManager.Instance.FindPath(attacker.transform.position, pos, attacker.GetComponent<Stats>().TempSz);
 
+            if(path.Count == 0) continue;
+
             // Aktualizuje najkrótszą drogę
             if (path.Count < shortestPathLength)
             {
@@ -990,7 +992,7 @@ public class CombatManager : MonoBehaviour
             bool canDoAction = RoundsManager.Instance.DoFullAction(unit);
             if(!canDoAction) return;   
 
-            Debug.Log("Pozycja obronna.");
+            Debug.Log($"{unit.GetComponent<Stats>().Name} przyjmuje pozycja obronną.");
 
             unit.DefensiveBonus = 20;
         }

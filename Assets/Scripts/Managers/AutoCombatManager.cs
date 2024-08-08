@@ -31,6 +31,8 @@ public class AutoCombatManager : MonoBehaviour
         }
     }
 
+    public Tile TargetTile;
+
     public void Act(Unit unit)
     {
         Weapon weapon = InventoryManager.Instance.ChooseWeaponToAttack(unit.gameObject);
@@ -182,13 +184,14 @@ public class AutoCombatManager : MonoBehaviour
         else
         {
             Debug.Log($"{unit.GetComponent<Stats>().Name} nie jest w stanie podejść do {closestOpponent.GetComponent<Stats>().Name}.");
-            MovementManager.Instance.UpdateMovementRange(1);
+            WaitForMovementOrAttackOpportunity(unit);
+
             return;
         }
 
         //Ścieżka ruchu atakującego
-        List<Vector3> path = MovementManager.Instance.FindPath(unit.transform.position, targetTilePosition, unit.GetComponent<Stats>().TempSz); //liczba 100 została użyta aby nie ograniczać możliwości ruchu w stronę pola, które znajduje się zbyt daleko
-
+        List<Vector3> path = MovementManager.Instance.FindPath(unit.transform.position, targetTilePosition, unit.GetComponent<Stats>().TempSz); 
+        
         if (unit.CanAttack == true && path.Count <= unit.GetComponent<Stats>().Sz * 2 && path.Count >= 3 && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) // Jeśli rywal jest w zasięgu szarży to wykonuje szarżę
         {
             Debug.Log($"{unit.GetComponent<Stats>().Name} szarżuje na {closestOpponent.GetComponent<Stats>().Name}.");
@@ -198,12 +201,12 @@ public class AutoCombatManager : MonoBehaviour
 
             CombatManager.Instance.Attack(unit, closestOpponent.GetComponent<Unit>(), false);
         }
-        else if (path.Count < 3 && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) //Wykonuje ruch w kierunku przeciwnika, a następnie atak
+        else if (path.Count < 3 && path.Count > 0 && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) //Wykonuje ruch w kierunku przeciwnika, a następnie atak
         {
             // Uruchomia korutynę odpowiedzialną za ruch i atak
             StartCoroutine(MoveAndAttack(unit, targetTile, closestOpponent.GetComponent<Unit>()));
         }
-        else //Wykonuje ruch w kierunku przeciwnika
+        else if (path.Count > 0) //Wykonuje ruch w kierunku przeciwnika
         {
             if (RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) //Wykonuje bieg
             {
@@ -217,6 +220,10 @@ public class AutoCombatManager : MonoBehaviour
             }
 
             MovementManager.Instance.MoveSelectedUnit(targetTile, unit.gameObject);
+        }
+        else //Gdy nie jest w stanie podejść do najbliższego przeciwnika, a stoi on poza zasięgiem jego ataku
+        {
+            WaitForMovementOrAttackOpportunity(unit);
         }
 
         // Synchronizuje collidery
@@ -238,6 +245,44 @@ public class AutoCombatManager : MonoBehaviour
 
         // Atak
         CombatManager.Instance.Attack(unit, closestOpponent, false);
+    }
+
+    public void WaitForMovementOrAttackOpportunity(Unit unit)
+    {
+        //Resetuje szybkość jednostki
+        MovementManager.Instance.UpdateMovementRange(1);
+
+        if (RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) 
+        {
+            //Przyjmuje pozycję obronną
+            CombatManager.Instance.DefensiveStance();
+        }
+        else if (RoundsManager.Instance.UnitsWithActionsLeft[unit] == 1) 
+        {
+            // Przycelowuje
+            CombatManager.Instance.SetAim();
+        }
+    }
+
+    public void CheckForTargetTileOccupancy(GameObject unit)
+    {
+        //Zaznacza jako zajęte faktyczne pole, na którym jednostka zakończy ruch, a nie pole do którego próbowała dojść
+        if(TargetTile != null)
+        {
+            Vector3 unitPos = new Vector3(unit.transform.position.x, unit.transform.position.y, 1);
+            if(TargetTile.transform.position != unitPos)
+            {
+                TargetTile.IsOccupied = false;
+
+                // Ignoruje warstwę "Unit" podczas wykrywania kolizji, skupiając się tylko na warstiwe 0 (default)
+                Collider2D collider = Physics2D.OverlapPoint(unitPos, 0);
+                if(collider != null && collider.GetComponent<Tile>() != null)
+                {
+                    collider.GetComponent<Tile>().IsOccupied = true;
+                }
+            }
+        }
+        TargetTile = null;
     }
 
 
