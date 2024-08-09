@@ -97,7 +97,7 @@ public class Unit : MonoBehaviour
 
             //Odświeża listę ekwipunku
             InventoryManager.Instance.InventoryScrollViewContent.GetComponent<CustomDropdown>().SelectedIndex = 0;
-            InventoryManager.Instance.UpdateInventoryDropdown(SelectedUnit.GetComponent<Inventory>().AllWeapons);
+            InventoryManager.Instance.UpdateInventoryDropdown(SelectedUnit.GetComponent<Inventory>().AllWeapons, true);
         }
         else if (SelectedUnit == this.gameObject)
         {
@@ -134,7 +134,7 @@ public class Unit : MonoBehaviour
 
             //Odświeża listę ekwipunku
             InventoryManager.Instance.InventoryScrollViewContent.GetComponent<CustomDropdown>().SelectedIndex = 0;
-            InventoryManager.Instance.UpdateInventoryDropdown(SelectedUnit.GetComponent<Inventory>().AllWeapons);
+            InventoryManager.Instance.UpdateInventoryDropdown(SelectedUnit.GetComponent<Inventory>().AllWeapons, true);
         }
         IsSelected = !IsSelected;
         ChangeUnitColor(this.gameObject);

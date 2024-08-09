@@ -117,7 +117,7 @@ public class InventoryManager : MonoBehaviour
         //Sortuje listę alfabetycznie
         unit.GetComponent<Inventory>().AllWeapons.Sort((x, y) => x.Name.CompareTo(y.Name));
 
-        UpdateInventoryDropdown(unit.GetComponent<Inventory>().AllWeapons);
+        UpdateInventoryDropdown(unit.GetComponent<Inventory>().AllWeapons, true);
 
         if(!SaveAndLoadManager.Instance.IsLoading) //Zapobiega wypisywaniu wszystkich broni podczas wczytywania stanu gry
         {
@@ -165,7 +165,7 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
-        UpdateInventoryDropdown(unit.GetComponent<Inventory>().AllWeapons);
+        UpdateInventoryDropdown(unit.GetComponent<Inventory>().AllWeapons, true);
 
         Debug.Log($"Przedmiot {selectedWeapon.Name} został usunięty z ekwipunku {unit.GetComponent<Stats>().Name}.");
     }
@@ -313,7 +313,7 @@ public class InventoryManager : MonoBehaviour
     #region Edit weapon stats
     public void EditWeaponAttribute(GameObject textInput)
     {
-        if (Unit.SelectedUnit == null) return;
+        if (Unit.SelectedUnit == null || Unit.SelectedUnit.GetComponent<Inventory>().AllWeapons.Count == 0) return;
 
         GameObject unit = Unit.SelectedUnit;
 
@@ -378,11 +378,14 @@ public class InventoryManager : MonoBehaviour
         {
             Debug.Log($"Nie udało się zmienić wartości cechy.");
         }
+
+        //Odświeża listę ekwipunku
+        UpdateInventoryDropdown(Unit.SelectedUnit.GetComponent<Inventory>().AllWeapons, false);
     }
 
     public void LoadWeaponAttributes()
     {
-        if (Unit.SelectedUnit == null) return;
+        if (Unit.SelectedUnit == null || Unit.SelectedUnit.GetComponent<Inventory>().AllWeapons.Count == 0) return;
 
         GameObject unit = Unit.SelectedUnit;
 
@@ -463,7 +466,7 @@ public class InventoryManager : MonoBehaviour
     #endregion
 
     #region Inventory dropdown list managing
-    public void UpdateInventoryDropdown(List<Weapon> weapons)
+    public void UpdateInventoryDropdown(List<Weapon> weapons, bool reloadEditWeaponPanel)
     {
         //Ustala wyświetlaną nazwę właściciela ekwipunku
         _inventoryPanel.transform.Find("inventory_name").GetComponent<TMP_Text>().text = "Ekwipunek " + Unit.SelectedUnit.GetComponent<Stats>().Name;
@@ -503,14 +506,16 @@ public class InventoryManager : MonoBehaviour
             });
         }
 
-        //Domyślnie zaznacza pierwszą pozycję na liście
-        if(weapons.Count > 0)
-        {
-            InventoryScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(1);
-        }
-
         //Aktualizuje panel edycji broni, w przypadku gdyby był otwarty
-        LoadWeaponAttributes();
+        if(reloadEditWeaponPanel == true)
+        {
+            //Domyślnie zaznacza pierwszą pozycję na liście
+            if(weapons.Count > 0)
+            {
+                InventoryScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(1);
+            }
+            LoadWeaponAttributes();
+        }
 
         //Ponowna inicjalizacja przycisków po dodaniu/usunięciu przycisków z listy Buttons
         InventoryScrollViewContent.GetComponent<CustomDropdown>().InitializeButtons();

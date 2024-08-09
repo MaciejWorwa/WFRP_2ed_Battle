@@ -126,6 +126,7 @@ public class CombatManager : MonoBehaviour
             {
                 AttackTypes[attackTypeName] = false;
                 AttackTypes["StandardAttack"] = true;
+                MovementManager.Instance.UpdateMovementRange(1);
             }
 
             if(AttackTypes["SwiftAttack"] == true)
@@ -161,12 +162,22 @@ public class CombatManager : MonoBehaviour
                 Debug.Log("Rozbrajanie mogą wykonywać tylko jednostki posiadające tą zdolność.");
             }
 
-            //Ograniczenie finty do ataków w zwarciu
-            if ((AttackTypes["Feint"] || AttackTypes["Stun"] || AttackTypes["Disarm"]) == true && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type.Contains("ranged"))
+            //Ograniczenie finty, ogłuszania i rozbrajania do ataków w zwarciu
+            if ((AttackTypes["Feint"] || AttackTypes["Stun"] || AttackTypes["Disarm"] || AttackTypes["Charge"]) == true && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type.Contains("ranged"))
             {
                 AttackTypes[attackTypeName] = false;
                 AttackTypes["StandardAttack"] = true;
                 Debug.Log("Jednostka walcząca bronią dystansową nie może wykonać tej akcji.");
+            }
+            else if ((AttackTypes["AllOutAttack"] || AttackTypes["GuardedAttack"] || AttackTypes["Charge"]) == true && RoundsManager.Instance.UnitsWithActionsLeft[unit] < 2)
+            {
+                AttackTypes[attackTypeName] = false;
+                AttackTypes["StandardAttack"] = true;
+                Debug.Log("Ta jednostka nie może w tej rundzie wykonać akcji podwójnej.");
+            }
+            else if (AttackTypes["Charge"] == true && !unit.IsCharging)
+            {
+                MovementManager.Instance.UpdateMovementRange(2);
             }
         }
 

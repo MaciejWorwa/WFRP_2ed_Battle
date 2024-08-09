@@ -17,11 +17,6 @@ public class CustomDropdown : MonoBehaviour
         InitializeButtons();
     }
 
-
-
-
-
-
     public void ClearButtons()
     {
         foreach (var button in Buttons)
@@ -32,13 +27,6 @@ public class CustomDropdown : MonoBehaviour
         SelectedIndex = 0;
         SelectedButton = null;
     }
-
-
-
-
-
-
-
 
     public void InitializeButtons()
     {

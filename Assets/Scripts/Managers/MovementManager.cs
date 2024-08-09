@@ -292,12 +292,12 @@ public class MovementManager : MonoBehaviour
             return;
         }
 
-        //Sprawdzenie, czy postać walczy bronia dystansową. Jeśli tak, to szarża nie jest możliwa
-        if(modifier == 2 && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type.Contains("ranged"))
-        {
-            Debug.Log("Jednostka walcząca bronią dystansową nie może wykonywać szarży.");
-            return;
-        }
+        // //Sprawdzenie, czy postać walczy bronia dystansową. Jeśli tak, to szarża nie jest możliwa
+        // if(modifier == 2 && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type.Contains("ranged"))
+        // {
+        //     Debug.Log("Jednostka walcząca bronią dystansową nie może wykonywać szarży.");
+        //     return;
+        // }
 
         //Aktualizuje obecny tryb poruszania postaci
         unit.IsCharging = modifier == 2; //operator trójargumentowegy. Jeśli modifier == 2 to wartość == true, jeśli nie to wartość == false
