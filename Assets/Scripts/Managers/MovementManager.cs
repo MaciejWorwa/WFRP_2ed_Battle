@@ -84,6 +84,12 @@ public class MovementManager : MonoBehaviour
             // Oznacza wybrane pole jako zajęte (gdyż trochę potrwa, zanim postać tam dojdzie i gdyby nie zaznaczyć, to można na nie ruszyć inną postacią)
             selectedTile.GetComponent<Tile>().IsOccupied = true;
 
+            //Zapobiega zaznaczeniu jako zajęte pola docelowego, do którego jednostka w trybie automatycznej walki niekoniecznie da radę dojść
+            if(GameManager.IsAutoCombatMode)
+            {
+                AutoCombatManager.Instance.TargetTile = selectedTile.GetComponent<Tile>();
+            }
+
             // Resetuje kolor pól w zasięgu ruchu na czas jego wykonywania
             GridManager.Instance.ResetColorOfTilesInMovementRange();
 
@@ -135,6 +141,12 @@ public class MovementManager : MonoBehaviour
         {
             IsMoving = false;
             GridManager.Instance.HighlightTilesInMovementRange(Unit.SelectedUnit.GetComponent<Stats>());
+        }
+
+        //Zaznacza jako zajęte faktyczne pole, na którym jednostka zakończy ruch, a nie pole do którego próbowała dojść
+        if(GameManager.IsAutoCombatMode)
+        {
+            AutoCombatManager.Instance.CheckForTargetTileOccupancy(unit);
         }
     }
 
@@ -202,7 +214,7 @@ public class MovementManager : MonoBehaviour
                 }
 
                 // Sprawdza, czy na miejscu sąsiada występuje inny collider niż tile
-                Collider2D collider = Physics2D.OverlapCircle(neighbor.Position, 0.1f);
+                Collider2D collider = Physics2D.OverlapPoint(neighbor.Position);
 
                 if (collider != null)
                 {
@@ -287,12 +299,12 @@ public class MovementManager : MonoBehaviour
             return;
         }
 
-        //Sprawdzenie, czy postać walczy bronia dystansową. Jeśli tak, to szarża nie jest możliwa
-        if(modifier == 2 && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type.Contains("ranged"))
-        {
-            Debug.Log("Jednostka walcząca bronią dystansową nie może wykonywać szarży.");
-            return;
-        }
+        // //Sprawdzenie, czy postać walczy bronia dystansową. Jeśli tak, to szarża nie jest możliwa
+        // if(modifier == 2 && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type.Contains("ranged"))
+        // {
+        //     Debug.Log("Jednostka walcząca bronią dystansową nie może wykonywać szarży.");
+        //     return;
+        // }
 
         //Aktualizuje obecny tryb poruszania postaci
         unit.IsCharging = modifier == 2; //operator trójargumentowegy. Jeśli modifier == 2 to wartość == true, jeśli nie to wartość == false
@@ -360,7 +372,7 @@ public class MovementManager : MonoBehaviour
         {
             foreach (Vector3 tilePosition in path)
             {
-                Collider2D collider = Physics2D.OverlapCircle(tilePosition, 0.1f);
+                Collider2D collider = Physics2D.OverlapPoint(tilePosition);
                 collider.gameObject.GetComponent<Tile>().HighlightTile();
             }
         }

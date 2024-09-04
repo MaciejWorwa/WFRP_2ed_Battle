@@ -28,7 +28,7 @@ public class MapElement : MonoBehaviour
             MapEditor.Instance.AllElements.Remove(gameObject);
             Destroy(gameObject);
 
-            Collider2D collider = Physics2D.OverlapCircle(transform.position, 0.1f);
+            Collider2D collider = Physics2D.OverlapPoint(transform.position);
 
             if (collider != null && collider.gameObject.CompareTag("Tile"))
             {

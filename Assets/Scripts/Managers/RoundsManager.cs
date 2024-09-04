@@ -53,9 +53,6 @@ public class RoundsManager : MonoBehaviour
 
     public void NextRound()
     {
-        //Zapobiega zmienianiu rundy podczas niedokończonej akcji jakiejś jednostki
-        if (MovementManager.Instance.IsMoving) return;
-
         RoundNumber++;
         _roundNumberDisplay.text = "Runda: " + RoundNumber;
         _nextRoundButtonText.text = "Następna runda";
@@ -155,6 +152,9 @@ public class RoundsManager : MonoBehaviour
 
     IEnumerator AutoCombat()
     {
+        _nextRoundButtonText.transform.parent.gameObject.SetActive(false);
+        _useFortunePointsButton.SetActive(false);
+
         // Posortowanie wszystkich jednostek wg inicjatywy
         List<Unit> AllUnitsSorted = UnitsManager.Instance.AllUnits
             .OrderByDescending(unit => unit.GetComponent<Stats>().Initiative)
@@ -177,6 +177,9 @@ public class RoundsManager : MonoBehaviour
             yield return new WaitUntil(() => MovementManager.Instance.IsMoving == false);
             yield return new WaitForSeconds(0.5f);
         }
+
+        _nextRoundButtonText.transform.parent.gameObject.SetActive(true);
+        _useFortunePointsButton.SetActive(true);
     }
 
     #region Units actions
@@ -185,7 +188,7 @@ public class RoundsManager : MonoBehaviour
         if (UnitsWithActionsLeft.ContainsKey(unit) && UnitsWithActionsLeft[unit] >= 1)
         {
             // Automatyczny zapis, aby możliwe było użycie punktów szczęścia. Jeżeli jednostka ich nie posiada to zapis nie jest wykonywany
-            if(unit.Stats.PS > 0)
+            if(unit.Stats.PS > 0 && !GameManager.IsAutoCombatMode)
             {
                 SaveAndLoadManager.Instance.SaveUnits(UnitsManager.Instance.AllUnits, "autosave");
                 _isFortunePointSpent = false;
@@ -218,7 +221,7 @@ public class RoundsManager : MonoBehaviour
         if (UnitsWithActionsLeft.ContainsKey(unit) && UnitsWithActionsLeft[unit] == 2)
         {
             // Automatyczny zapis, aby możliwe było użycie punktów szczęścia. Jeżeli jednostka ich nie posiada to zapis nie jest wykonywany. W przypadku szarży gra jest zapisywana przed wykonaniem ruchu (w klasie CombatManager), a nie w momencie zużywania akcji
-            if (unit.Stats.PS > 0 && !CombatManager.Instance.AttackTypes["Charge"] == true)
+            if (unit.Stats.PS > 0 && !CombatManager.Instance.AttackTypes["Charge"] == true && !GameManager.IsAutoCombatMode)
             {
                 SaveAndLoadManager.Instance.SaveUnits(UnitsManager.Instance.AllUnits, "autosave");
                 _isFortunePointSpent = false;
@@ -258,7 +261,7 @@ public class RoundsManager : MonoBehaviour
             _actionsLeftInfo.SetActive(true);
             _actionsLeftText.text = UnitsWithActionsLeft[unit].ToString();
 
-            if (_isFortunePointSpent != true && UnitsWithActionsLeft[unit] != 2)
+            if (_isFortunePointSpent != true && UnitsWithActionsLeft[unit] != 2 && !GameManager.IsAutoCombatMode)
             {
                 _useFortunePointsButton.SetActive(true);
             }

@@ -126,6 +126,7 @@ public class CombatManager : MonoBehaviour
             {
                 AttackTypes[attackTypeName] = false;
                 AttackTypes["StandardAttack"] = true;
+                MovementManager.Instance.UpdateMovementRange(1);
             }
 
             if(AttackTypes["SwiftAttack"] == true)
@@ -161,12 +162,22 @@ public class CombatManager : MonoBehaviour
                 Debug.Log("Rozbrajanie mogą wykonywać tylko jednostki posiadające tą zdolność.");
             }
 
-            //Ograniczenie finty do ataków w zwarciu
-            if ((AttackTypes["Feint"] || AttackTypes["Stun"] || AttackTypes["Disarm"]) == true && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type.Contains("ranged"))
+            //Ograniczenie finty, ogłuszania i rozbrajania do ataków w zwarciu
+            if ((AttackTypes["Feint"] || AttackTypes["Stun"] || AttackTypes["Disarm"] || AttackTypes["Charge"]) == true && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type.Contains("ranged"))
             {
                 AttackTypes[attackTypeName] = false;
                 AttackTypes["StandardAttack"] = true;
                 Debug.Log("Jednostka walcząca bronią dystansową nie może wykonać tej akcji.");
+            }
+            else if ((AttackTypes["AllOutAttack"] || AttackTypes["GuardedAttack"] || AttackTypes["Charge"]) == true && RoundsManager.Instance.UnitsWithActionsLeft[unit] < 2)
+            {
+                AttackTypes[attackTypeName] = false;
+                AttackTypes["StandardAttack"] = true;
+                Debug.Log("Ta jednostka nie może w tej rundzie wykonać akcji podwójnej.");
+            }
+            else if (AttackTypes["Charge"] == true && !unit.IsCharging)
+            {
+                MovementManager.Instance.UpdateMovementRange(2);
             }
         }
 
@@ -671,7 +682,7 @@ public class CombatManager : MonoBehaviour
 
         foreach (var pos in positions)
         {
-            Collider2D collider = Physics2D.OverlapCircle(pos, 0.1f);
+            Collider2D collider = Physics2D.OverlapPoint(pos);
 
             if(collider != null && collider.CompareTag(target.tag))
             {
@@ -859,9 +870,9 @@ public class CombatManager : MonoBehaviour
             }
 
             //Dodaje modyfikator do trafienia uzwględniając strzał mierzony w przypadku ataków dystansowych
-            unit.AimingBonus += Unit.SelectedUnit.GetComponent<Stats>().Sharpshooter && attackerWeapon.Type.Contains("ranged") ? 20 : 10; 
+            unit.AimingBonus += unit.GetComponent<Stats>().Sharpshooter && attackerWeapon.Type.Contains("ranged") ? 20 : 10; 
 
-            Debug.Log("Przycelowanie");
+            Debug.Log($"{unit.GetComponent<Stats>().Name} przycelowuje.");
         }
 
         UpdateAimButtonColor();
@@ -964,6 +975,8 @@ public class CombatManager : MonoBehaviour
 
             path = MovementManager.Instance.FindPath(attacker.transform.position, pos, attacker.GetComponent<Stats>().TempSz);
 
+            if(path.Count == 0) continue;
+
             // Aktualizuje najkrótszą drogę
             if (path.Count < shortestPathLength)
             {
@@ -996,7 +1009,7 @@ public class CombatManager : MonoBehaviour
             bool canDoAction = RoundsManager.Instance.DoFullAction(unit);
             if(!canDoAction) return;   
 
-            Debug.Log("Pozycja obronna.");
+            Debug.Log($"{unit.GetComponent<Stats>().Name} przyjmuje pozycja obronną.");
 
             unit.DefensiveBonus = 20;
         }
