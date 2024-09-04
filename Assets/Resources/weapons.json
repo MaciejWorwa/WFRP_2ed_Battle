@@ -2,6 +2,16 @@
   "Weapons": [
     {
       "Id": 1,
+      "Name": "Arkan",
+      "Type": ["ranged", "short-range-only", "no-damage"],
+      "TwoHanded": false,
+      "AttackRange": 4,
+      "ReloadTime": 1,
+      "ReloadLeft": 0,
+      "Snare": true
+    },
+    {
+      "Id": 2,
       "Name": "Bicz",
       "Type": ["ranged", "short-range-only", "strength-based"],
       "TwoHanded": false,
@@ -13,7 +23,18 @@
       "Snare": true
     },
     {
-      "Id": 2,
+      "Id": 3,
+      "Name": "Bolas",
+      "Type": ["ranged", "throwing"],
+      "TwoHanded": false,
+      "AttackRange": 4,
+      "S": 1,
+      "ReloadTime": 1,
+      "ReloadLeft": 0,
+      "Snare": true
+    },
+    {
+      "Id": 4,
       "Name": "Broń dwuręczna",
       "Type": ["melee"],
       "TwoHanded": true,
@@ -23,14 +44,14 @@
       "Slow": true
     },
     {
-      "Id": 3,
+      "Id": 5,
       "Name": "Broń jednoręczna",
       "Type": ["melee"],
       "AttackRange": 1.5,
       "S": 0
     },
     {
-      "Id": 4,
+      "Id": 6,
       "Name": "Broń naturalna",
       "Type": ["melee"],
       "AttackRange": 1.5,
@@ -38,7 +59,7 @@
       "NaturalWeapon": true
     },
     {
-      "Id": 5,
+      "Id": 7,
       "Name": "Broń naturalna - druzgocząca",
       "Type": ["melee"],
       "AttackRange": 1.5,
@@ -47,7 +68,7 @@
       "Impact": true
     },
     {
-      "Id": 6,
+      "Id": 8,
       "Name": "Broń naturalna - ignorująca zbroję",
       "Type": ["melee"],
       "AttackRange": 1.5,
@@ -56,7 +77,7 @@
       "ArmourIgnoring": true
     },
     {
-      "Id": 7,
+      "Id": 9,
       "Name": "Długi łuk",
       "Type": ["ranged"],
       "TwoHanded": true,
@@ -67,7 +88,7 @@
       "ArmourPiercing": true
     },
     {
-      "Id": 8,
+      "Id": 10,
       "Name": "Elfi łuk",
       "Type": ["ranged"],
       "TwoHanded": true,
@@ -78,7 +99,7 @@
       "ArmourPiercing": true
     },
     {
-      "Id": 9,
+      "Id": 11,
       "Name": "Kusza",
       "Type": ["ranged"],
       "TwoHanded": true,
@@ -88,7 +109,7 @@
       "ReloadLeft": 0
     },
     {
-      "Id": 10,
+      "Id": 12,
       "Name": "Łuk",
       "Type": ["ranged"],
       "TwoHanded": true,
@@ -98,7 +119,7 @@
       "ReloadLeft": 0
     },
     {
-      "Id": 11,
+      "Id": 13,
       "Name": "Puklerz",
       "Type": ["melee", "shield"],
       "AttackRange": 1.5,
@@ -108,7 +129,7 @@
       "Pummelling": true
     },
     {
-      "Id": 12,
+      "Id": 14,
       "Name": "Rapier",
       "Type": ["melee"],
       "AttackRange": 1.5,
@@ -116,9 +137,9 @@
       "Fast": true
     },
     {
-      "Id": 13,
+      "Id": 15,
       "Name": "Sieć",
-      "Type": ["ranged", "no-damage"],
+      "Type": ["ranged", "no-damage", "throwing"],
       "TwoHanded": false,
       "AttackRange": 2,
       "ReloadTime": 2,
@@ -126,14 +147,14 @@
       "Snare": true
     },
     {
-      "Id": 14,
+      "Id": 16,
       "Name": "Sztylet",
       "Type": ["melee"],
       "AttackRange": 1.5,
       "S": -3
     },
     {
-      "Id": 15,
+      "Id": 17,
       "Name": "Tarcza",
       "Type": ["melee", "shield"],
       "AttackRange": 1.5,
@@ -141,7 +162,7 @@
       "Defensive": true
     },
     {
-      "Id": 16,
+      "Id": 18,
       "Name": "Włócznia",
       "Type": ["melee"],
       "AttackRange": 1.5,

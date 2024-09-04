@@ -186,8 +186,26 @@ public class UnitsManager : MonoBehaviour
         // Aktualizuje liczbę wszystkich postaci
         AllUnits.Add(newUnit.GetComponent<Unit>());
 
-        //Ustala unikalne Id jednostki
-        newUnit.GetComponent<Unit>().UnitId = AllUnits.Count;
+        // Ustala unikalne Id jednostki
+        int newUnitId = 1;
+        bool idExists;
+        // Pętla sprawdzająca, czy inne jednostki mają takie samo Id
+        do
+        {
+            idExists = false;
+
+            foreach (var unit in AllUnits)
+            {
+                if (unit.GetComponent<Unit>().UnitId == newUnitId)
+                {
+                    idExists = true;
+                    newUnitId++; // Zwiększa id i sprawdza ponownie
+                    break;
+                }
+            }
+        }
+        while (idExists);
+        newUnit.GetComponent<Unit>().UnitId = newUnitId;
 
         //Wczytuje statystyki dla danego typu jednostki
         DataManager.Instance.LoadAndUpdateStats(newUnit);
@@ -195,7 +213,7 @@ public class UnitsManager : MonoBehaviour
         //Ustala nazwę GameObjectu jednostki
         if(unitName.Length < 1)
         {
-            newUnit.name = newUnit.GetComponent<Stats>().Race + $" {AllUnits.Count}";
+            newUnit.name = newUnit.GetComponent<Stats>().Race + $" {newUnitId}";
         }
         else
         {
@@ -270,12 +288,26 @@ public class UnitsManager : MonoBehaviour
         {
             //Resetuje podświetlenie pól w zasięgu ruchu jeżeli usuwana postać jest obecnie aktywną
             GridManager.Instance.ResetColorOfTilesInMovementRange();
+
+            Unit.SelectedUnit = null;
         }
 
         //Usunięcie jednostki z kolejki inicjatywy
         InitiativeQueueManager.Instance.RemoveUnitFromInitiativeQueue(unit.GetComponent<Unit>());
         //Aktualizuje kolejkę inicjatywy
         InitiativeQueueManager.Instance.UpdateInitiativeQueue();
+
+        //Uwolnienie jednostki uwięzionej przez jednostkę, która umiera
+        if(unit.GetComponent<Unit>().TrappedUnitId != 0)
+        {
+            foreach (var u in AllUnits)
+            {
+                if (u.UnitId == unit.GetComponent<Unit>().TrappedUnitId && u.Trapped == true)
+                {
+                    u.Trapped = false;
+                }
+            }
+        }
 
         //Usuwa jednostkę z listy wszystkich jednostek
         AllUnits.Remove(unit.GetComponent<Unit>());
@@ -469,7 +501,7 @@ public class UnitsManager : MonoBehaviour
 
             Unit unitComponent = unit.GetComponent<Unit>();
 
-            if(unitComponent.StunDuration == 0 && unitComponent.HelplessDuration == 0 && unitComponent.Trapped == false && unitComponent.IsScared == false)
+            if(unitComponent.StunDuration == 0 && unitComponent.HelplessDuration == 0 && unitComponent.Trapped == false && unitComponent.IsScared == false && unitComponent.TrappedUnitId == 0)
             {
                 _actionsPanel.SetActive(true);
             }
@@ -499,6 +531,10 @@ public class UnitsManager : MonoBehaviour
                 {
                     state = "strachu";
                     duration = 0;
+                }
+                else if (unitComponent.TrappedUnitId != 0)
+                {
+                    state = "unieruchamiania innej jednostki swoją bronią.";
                 }
 
                 string currentStateString = $"Wybrana jednostka nie może wykonywać akcji, ponieważ jest w stanie {state}.";

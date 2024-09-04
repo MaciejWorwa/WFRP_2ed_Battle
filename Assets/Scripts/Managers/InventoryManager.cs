@@ -132,6 +132,7 @@ public class InventoryManager : MonoBehaviour
         if(Unit.SelectedUnit == null || InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons.Count == 0) return;
 
         GameObject unit = Unit.SelectedUnit;
+
         int selectedIndex = InventoryScrollViewContent.GetComponent<CustomDropdown>().GetSelectedIndex();
 
         if (selectedIndex > unit.GetComponent<Inventory>().AllWeapons.Count || selectedIndex == 0) return;

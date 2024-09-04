@@ -268,6 +268,13 @@ public class MovementManager : MonoBehaviour
         Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
         Stats stats = Unit.SelectedUnit.GetComponent<Stats>();
 
+        //Uwzględnia, że Zombie nie mogą biegać
+        if(stats.Race == "Zombie" && modifier == 3)
+        {
+            Debug.Log("Ta jednostka nie może wykonywać akcji biegu.");
+            return;
+        }
+
         //Jeżeli postać już jest w trybie szarży lub biegu, resetuje je
         if (unit.IsCharging && modifier == 2 || unit.IsRunning && modifier == 3)
         {

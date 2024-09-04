@@ -3,7 +3,7 @@
     {
       "Id": 1,
       "Race": "Człowiek",
-      "PrimaryWeaponId": 3,
+      "PrimaryWeaponId": 5,
       "WW": 20,
       "US": 20,
       "K": 20,
@@ -19,7 +19,7 @@
     {
       "Id": 2,
       "Race": "Elf",
-      "PrimaryWeaponId": 3,
+      "PrimaryWeaponId": 5,
       "WW": 20,
       "US": 30,
       "K": 20,
@@ -35,7 +35,7 @@
     {
       "Id": 3,
       "Race": "Krasnolud",
-      "PrimaryWeaponId": 3,
+      "PrimaryWeaponId": 5,
       "WW": 30,
       "US": 20,
       "K": 20,
@@ -52,7 +52,7 @@
     {
       "Id": 4,
       "Race": "Niziołek",
-      "PrimaryWeaponId": 3,
+      "PrimaryWeaponId": 5,
       "WW": 10,
       "US": 30,
       "K": 10,
@@ -68,7 +68,7 @@
     {
       "Id": 5,
       "Race": "Goblin",
-      "PrimaryWeaponId": 14,
+      "PrimaryWeaponId": 18,
       "WW": 25,
       "US": 30,
       "K": 30,
@@ -88,7 +88,7 @@
     {
       "Id": 6,
       "Race": "Minotaur",
-      "PrimaryWeaponId": 2,
+      "PrimaryWeaponId": 4,
       "WW": 42,
       "US": 25,
       "K": 48,
@@ -110,7 +110,7 @@
     {
       "Id": 7,
       "Race": "Ogr",
-      "PrimaryWeaponId": 2,
+      "PrimaryWeaponId": 4,
       "WW": 31,
       "US": 21,
       "K": 46,
@@ -135,7 +135,7 @@
     {
       "Id": 8,
       "Race": "Olbrzym",
-      "PrimaryWeaponId": 5,
+      "PrimaryWeaponId": 7,
       "WW": 33,
       "US": 25,
       "K": 69,
@@ -160,7 +160,7 @@
     {
       "Id": 9,
       "Race": "Olbrzymi wilk",
-      "PrimaryWeaponId": 4,
+      "PrimaryWeaponId": 6,
       "WW": 36,
       "US": 0,
       "K": 35,
@@ -180,7 +180,7 @@
     {
       "Id": 10,
       "Race": "Ork zwyczajny",
-      "PrimaryWeaponId": 3,
+      "PrimaryWeaponId": 5,
       "WW": 35,
       "US": 35,
       "K": 35,
@@ -202,7 +202,7 @@
     {
       "Id": 11,
       "Race": "Skaven - klanbrat",
-      "PrimaryWeaponId": 3,
+      "PrimaryWeaponId": 5,
       "WW": 30,
       "US": 25,
       "K": 30,
@@ -222,7 +222,7 @@
     {
       "Id": 12,
       "Race": "Szczurogr",
-      "PrimaryWeaponId": 4,
+      "PrimaryWeaponId": 6,
       "WW": 36,
       "US": 0,
       "K": 54,
@@ -246,7 +246,7 @@
     {
       "Id": 13,
       "Race": "Smok",
-      "PrimaryWeaponId": 5,
+      "PrimaryWeaponId": 7,
       "WW": 59,
       "US": 0,
       "K": 65,
@@ -271,7 +271,7 @@
     {
       "Id": 14,
       "Race": "Szkielet",
-      "PrimaryWeaponId": 3,
+      "PrimaryWeaponId": 5,
       "WW": 25,
       "US": 20,
       "K": 30,
@@ -292,7 +292,7 @@
     {
       "Id": 15,
       "Race": "Troll",
-      "PrimaryWeaponId": 2,
+      "PrimaryWeaponId": 4,
       "WW": 37,
       "US": 15,
       "K": 51,
@@ -313,8 +313,28 @@
     },
     {
       "Id": 16,
-      "Race": "Zjawa",
+      "Race": "Wampir Strzygoń",
       "PrimaryWeaponId": 6,
+      "WW": 63,
+      "US": 31,
+      "K": 67,
+      "Odp": 66,
+      "Zr": 65,
+      "Int": 39,
+      "SW": 67,
+      "Ogd": 17,
+      "A": 2,
+      "Sz": 6,
+      "MaxHealth": 24,
+      "Mag": 1,
+      "Frightening": true,
+      "StrikeMightyBlow": true,
+      "Dodge": 1
+    },
+    {
+      "Id": 17,
+      "Race": "Zjawa",
+      "PrimaryWeaponId": 8,
       "WW": 42,
       "US": 0,
       "K": 40,
@@ -330,9 +350,28 @@
       "Frightening": true
     },
     {
-      "Id": 17,
+      "Id": 18,
+      "Race": "Zombie",
+      "PrimaryWeaponId": 5,
+      "WW": 25,
+      "US": 0,
+      "K": 35,
+      "Odp": 35,
+      "Zr": 10,
+      "Int": 0,
+      "SW": 0,
+      "Ogd": 0,
+      "A": 1,
+      "Sz": 4,
+      "MaxHealth": 12,
+      "Armor_torso": 1,
+      "Armor_arms": 1,
+      "Frightening": true
+    },
+    {
+      "Id": 19,
       "Race": "Zwierzoczłek - bestigor",
-      "PrimaryWeaponId": 2,
+      "PrimaryWeaponId": 4,
       "WW": 45,
       "US": 25,
       "K": 41,
@@ -352,9 +391,9 @@
       "StrikeMightyBlow": true
     },
     {
-      "Id": 18,
+      "Id": 20,
       "Race": "Zwierzoczłek - gor",
-      "PrimaryWeaponId": 3,
+      "PrimaryWeaponId": 5,
       "WW": 40,
       "US": 25,
       "K": 35,

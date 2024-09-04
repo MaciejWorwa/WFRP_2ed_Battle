@@ -102,6 +102,25 @@ public class RoundsManager : MonoBehaviour
                 UnitsWithActionsLeft[key] = 0;
                 CombatManager.Instance.EscapeFromTheSnare(key);
             }
+
+            if (key.TrappedUnitId != 0)
+            {
+                bool trappedUnitExist = false;
+
+                foreach (var unit in UnitsManager.Instance.AllUnits)
+                {
+                    if(unit.UnitId == key.TrappedUnitId && unit.Trapped == true)
+                    {
+                        UnitsWithActionsLeft[key] = 0;
+                        trappedUnitExist = true;
+                    }
+                }
+
+                if (!trappedUnitExist)
+                {
+                    key.TrappedUnitId = 0;
+                }
+            }
         }
 
         //Wykonuje testy grozy i strachu jeśli na polu bitwy są jednostki straszne lub przerażające

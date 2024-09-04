@@ -460,8 +460,14 @@ public class CombatManager : MonoBehaviour
                 {
                     target.Trapped = true;
                     RoundsManager.Instance.UnitsWithActionsLeft[target] = 0;
-
+                  
                     Debug.Log($"{attackerStats.Name} unieruchomił {targetStats.Name} przy pomocy {attackerWeapon.Name}");
+
+                    if (!attackerWeapon.Type.Contains("throwing")) //Związanie atakującego z celem (np. pochwycenie przez bicz). Wtedy atakujący również nie może wykonywać innych akcji
+                    {
+                        attacker.TrappedUnitId = target.UnitId;
+                        RoundsManager.Instance.UnitsWithActionsLeft[attacker] = 0;
+                    }
                 }
 
                 if (attackerWeapon.Type.Contains("no-damage")) return; //Jeśli broń nie powoduje obrażeń, np. sieć, to pomijamy dalszą część kodu
@@ -1258,10 +1264,6 @@ public class CombatManager : MonoBehaviour
     //Próba uwolnienia się z unieruchomienia
     public void EscapeFromTheSnare(Unit unit)
     {
-        //bool canDoAction = RoundsManager.Instance.DoFullAction(unit);
-
-        //if (!canDoAction) return;
-
         Stats unitStats = unit.GetComponent<Stats>();
 
         int rollResult = Random.Range(1, 101);

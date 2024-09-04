@@ -24,6 +24,7 @@ public class Unit : MonoBehaviour
     public int SpellDuration; // Czas trwania zaklęcia mającego wpływ na tą jednostkę
     public int StunDuration; // Czas ogłuszenia (podany w rundach). Wartość 0 oznacza, że postać nie jest ogłuszona
     public bool Trapped; // Unieruchomiony
+    public int TrappedUnitId; // Cel unieruchomienia
     //public int TrappedDuration; // Czas unieruchomienia (podany w rundach). Wartość 0 oznacza, że postać nie jest unieruchomiona
     public int AimingBonus;
     public int CastingNumberBonus;
