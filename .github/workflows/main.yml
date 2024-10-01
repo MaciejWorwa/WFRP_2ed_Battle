@@ -31,7 +31,7 @@ jobs:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Test Results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: Test Results
@@ -62,7 +62,7 @@ jobs:
           targetPlatform: StandaloneWindows64
 
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: Build-Windows
           path: build
@@ -92,7 +92,7 @@ jobs:
           targetPlatform: StandaloneLinux64
 
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: Build-Linux
           path: build
@@ -122,7 +122,7 @@ jobs:
           targetPlatform: StandaloneOSX
 
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: Build-macOS
           path: build
