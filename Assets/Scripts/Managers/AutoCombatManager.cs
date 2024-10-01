@@ -83,7 +83,7 @@ public class AutoCombatManager : MonoBehaviour
             // Jeśli broń nie wymaga naladowania to wykonuje atak, w przeciwnym razie wykonuje ładowanie
             if (weapon.ReloadLeft == 0)
             {
-                if (RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2 && unit.GetComponent<Stats>().RapidReload)
+                if (RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2 && weapon.ReloadTime == 1 && unit.GetComponent<Stats>().RapidReload)
                 {
                     CombatManager.Instance.SetAim();
                 }

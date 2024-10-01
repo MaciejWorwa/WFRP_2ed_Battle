@@ -120,6 +120,17 @@
     },
     {
       "Id": 13,
+      "Name": "Pistolet",
+      "Type": ["ranged", "gunpowder"],
+      "TwoHanded": false,
+      "AttackRange": 4,
+      "S": 4,
+      "Impact": true,
+      "ReloadTime": 4,
+      "ReloadLeft": 0
+    },
+    {
+      "Id": 14,
       "Name": "Puklerz",
       "Type": ["melee", "shield"],
       "AttackRange": 1.5,
@@ -129,7 +140,7 @@
       "Pummelling": true
     },
     {
-      "Id": 14,
+      "Id": 15,
       "Name": "Rapier",
       "Type": ["melee"],
       "AttackRange": 1.5,
@@ -137,7 +148,18 @@
       "Fast": true
     },
     {
-      "Id": 15,
+      "Id": 16,
+      "Name": "Rusznica",
+      "Type": ["ranged", "gunpowder"],
+      "TwoHanded": true,
+      "AttackRange": 12,
+      "S": 4,
+      "Impact": true,
+      "ReloadTime": 4,
+      "ReloadLeft": 0
+    },
+    {
+      "Id": 17,
       "Name": "Sieć",
       "Type": ["ranged", "no-damage", "throwing"],
       "TwoHanded": false,
@@ -147,14 +169,14 @@
       "Snare": true
     },
     {
-      "Id": 16,
+      "Id": 18,
       "Name": "Sztylet",
       "Type": ["melee"],
       "AttackRange": 1.5,
       "S": -3
     },
     {
-      "Id": 17,
+      "Id": 19,
       "Name": "Tarcza",
       "Type": ["melee", "shield"],
       "AttackRange": 1.5,
@@ -162,7 +184,7 @@
       "Defensive": true
     },
     {
-      "Id": 18,
+      "Id": 20,
       "Name": "Włócznia",
       "Type": ["melee"],
       "AttackRange": 1.5,

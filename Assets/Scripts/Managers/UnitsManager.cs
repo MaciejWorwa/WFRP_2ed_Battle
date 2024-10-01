@@ -713,6 +713,9 @@ public class UnitsManager : MonoBehaviour
     {
         Stats unitStats = unit.GetComponent<Stats>();
 
+        //Jednostki z SW równym 0, np. Zombie są istotami bez własnej woli, których nie dotyczą testy tej cechy
+        if (unitStats.SW == 0) return;
+
         //Uwzględnia zdolność Odwaga
         int rollModifier = unitStats.StoutHearted ? 10 : 0;
 
@@ -763,6 +766,9 @@ public class UnitsManager : MonoBehaviour
     private void TerrorRoll(Unit unit)
     {
         Stats unitStats = unit.GetComponent<Stats>();
+
+        //Jednostki z SW równym 0, np. Zombie są istotami bez własnej woli, których nie dotyczą testy tej cechy
+        if (unitStats.SW == 0) return;
 
         int rollResult = UnityEngine.Random.Range(1, 101);
 

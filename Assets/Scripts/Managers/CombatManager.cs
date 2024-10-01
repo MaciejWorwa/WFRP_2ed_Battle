@@ -1209,6 +1209,18 @@ public class CombatManager : MonoBehaviour
         {
             attackerWeapon.ReloadLeft--;   
         }
+
+        //Uwzględnia zdolność Artylerzysta
+        if (attackerStats.MasterGunner == true && attackerWeapon.Type.Contains("gunpowder"))
+        {
+            attackerWeapon.ReloadLeft--;
+        }
+
+        //Zapobiega ujemnej wartości czasu przeładowania
+        if(attackerWeapon.ReloadLeft < 0)
+        {
+            attackerWeapon.ReloadLeft = 0;
+        }
     }
     #endregion
 
