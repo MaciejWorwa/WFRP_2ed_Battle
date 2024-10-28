@@ -49402,9 +49402,13 @@ MonoBehaviour:
       m_Image: {fileID: 0}
     - m_Text: Magia powszechna
       m_Image: {fileID: 0}
+    - m_Text: Tradycja Chaosu
+      m_Image: {fileID: 0}
     - m_Text: Tradycja Cienia
       m_Image: {fileID: 0}
     - m_Text: Tradycja Metalu
+      m_Image: {fileID: 0}
+    - m_Text: Tradycja Nekromancji
       m_Image: {fileID: 0}
     - m_Text: Tradycja Niebios
       m_Image: {fileID: 0}

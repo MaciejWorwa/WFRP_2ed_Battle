@@ -43,8 +43,21 @@
       "Strength": 6,
       "CastingTime": 2
     },
+    
     {
       "Id": 5,
+      "Name": "Łaska Chaosu",
+      "Lore": "Tradycja Chaosu",
+      "Type": ["buff", "self-only"],
+      "Strength": 10,
+      "CastingNumber": 9,
+      "Range": 1,
+      "CastingTime": 2,
+      "Duration": 6,
+      "Attribute": ["WW", "Odp", "SW", "Ogd"]
+    },
+    {
+      "Id": 6,
       "Name": "Magiczne żądło",
       "Lore": "Magia prosta - tajemna",
       "Type": ["offensive", "magic-missile"],
@@ -54,7 +67,7 @@
       "CastingTime": 1
     },
     {
-      "Id": 6,
+      "Id": 7,
       "Name": "Nawałnica",
       "Lore": "Tradycja Niebios",
       "Type": ["offensive"],
@@ -65,7 +78,7 @@
       "CastingTime": 2
     },
     {
-      "Id": 7,
+      "Id": 8,
       "Name": "Ogień U'zhul",
       "Lore": "Tradycja Ognia",
       "Type": ["offensive", "magic-missile"],
@@ -75,7 +88,7 @@
       "CastingTime": 1
     },
     {
-      "Id": 8,
+      "Id": 9,
       "Name": "Ognista kula",
       "Lore": "Tradycja Ognia",
       "Type": ["offensive", "magic-level-related", "magic-missile", "multiple-targets"],
@@ -85,7 +98,17 @@
       "CastingTime": 1
     },
     {
-      "Id": 9,
+      "Id": 10,
+      "Name": "Paląca krew",
+      "Lore": "Tradycja Chaosu",
+      "Type": ["offensive", "magic-level-related", "magic-missile", "multiple-targets"],
+      "CastingNumber": 13,
+      "Range": 12,
+      "Strength": 4,
+      "CastingTime": 1
+    },
+    {
+      "Id": 11,
       "Name": "Pancerz Eteru",
       "Lore": "Magia powszechna",
       "Type": ["buff", "magic-level-related", "self-only"],
@@ -96,7 +119,7 @@
       "Attribute": ["Armor_head",  "Armor_arms", "Armor_torso", "Armor_legs"]
     },
     {
-      "Id": 10,
+      "Id": 12,
       "Name": "Srebrzyste strzały Arha",
       "Lore": "Tradycja Metalu",
       "Type": ["offensive", "magic-level-related", "magic-missile", "multiple-targets"],
@@ -106,7 +129,7 @@
       "CastingTime": 1
     },
     {
-      "Id": 11,
+      "Id": 13,
       "Name": "Sztylety cienia",
       "Lore": "Tradycja Cienia",
       "Type": ["offensive", "magic-level-related", "magic-missile", "multiple-targets"],
@@ -117,7 +140,7 @@
       "ArmourIgnoring": true
     },
     {
-      "Id": 12,
+      "Id": 14,
       "Name": "Uśpienie",
       "Lore": "Magia prosta - tajemna",
       "Type": ["offensive", "random-duration", "no-damage"],
@@ -129,7 +152,7 @@
       "Paralyzing": true
     },
     {
-      "Id": 13,
+      "Id": 15,
       "Name": "Uzdrowienie",
       "Lore": "Tradycja Światła",
       "Type": ["magic-level-related"],
@@ -137,6 +160,19 @@
       "Range": 1.5,
       "CastingTime": 1,
       "Attribute": ["TempHealth"]
+    },
+    {
+      "Id": 16,
+      "Name": "Wizja męki",
+      "Lore": "Tradycja Chaosu",
+      "Type": ["offensive", "no-damage"],
+      "CastingNumber": 7,
+      "Range": 12,
+      "CastingTime": 1,
+      "Duration": 1,
+      "SaveTestRequiring": true,
+      "Attribute": ["SW"],
+      "Stunning": true
     }
   ]
 }

@@ -49,6 +49,7 @@ public class MagicManager : MonoBehaviour
         DataManager.Instance.LoadAndUpdateSpells();
 
         _targetsStats = new List<Stats>();
+        _unitsStatsAffectedBySpell = new List<Stats>();
     }
 
     public void ChannelingMagic()
@@ -430,8 +431,8 @@ public class MagicManager : MonoBehaviour
     {
         Unit targetUnit = targetStats.GetComponent<Unit>();
 
-        //Uwzględnienie czasu trwania zaklęcia
-        if(spell.Duration != 0)
+        //Uwzględnienie czasu trwania zaklęcia, które wpływa na statystyki postaci
+        if(spell.Duration != 0 && spell.Type.Contains("buff"))
         {
             //Zakończenie wpływu poprzedniego zaklęcia, jeżeli na wybraną jednostkę już jakieś działało. JEST TO ZROBIONE TYMCZASOWO. TEN LIMIT ZOSTAŁ WPROWADZONY DLA UPROSZCZENIA KODU.
             if(_unitsStatsAffectedBySpell != null && _unitsStatsAffectedBySpell.Any(stat => stat.GetComponent<Unit>().UnitId == targetUnit.UnitId))
@@ -532,23 +533,29 @@ public class MagicManager : MonoBehaviour
         if (spell.Paralyzing == true || spell.Stunning == true)
         {
             int duration = spell.Duration;
-
-            RoundsManager.Instance.UnitsWithActionsLeft[targetUnit] = 0;
+            int initialDuration = duration; // Przechowuje oryginalną wartość czasu trwania zaklęcia
 
             if (spell.Type.Contains("random-duration"))
             {
                 duration = UnityEngine.Random.Range(1, 11);
+                initialDuration = duration; // Aktualizuje, jeśli jest losowa długość
+            }
+
+            if (RoundsManager.Instance.UnitsWithActionsLeft[targetUnit] > 0)
+            {
+                RoundsManager.Instance.UnitsWithActionsLeft[targetUnit] = 0;
+                duration--; // Zapobiega temu, żeby cel zaklęcia stracił dodatkową rundę, jeśli jego inicjatywa jest mniejsza niż rzucającego zaklęcie
             }
 
             if (spell.Paralyzing == true)
             {
                 targetUnit.HelplessDuration += duration;
-                Debug.Log($"{targetStats.Name} zostaje sparaliżowany/uśpiony na {duration} rund/y.");
+                Debug.Log($"{targetStats.Name} zostaje sparaliżowany/uśpiony na {initialDuration} rund/y.");
             }
             else if (spell.Stunning == true)
             {
                 targetUnit.StunDuration += duration;
-                Debug.Log($"{targetStats.Name} zostaje ogłuszony na {duration} rund/y.");
+                Debug.Log($"{targetStats.Name} zostaje ogłuszony na {initialDuration} rund/y.");
             }
         }
 

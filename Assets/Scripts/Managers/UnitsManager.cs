@@ -122,7 +122,7 @@ public class UnitsManager : MonoBehaviour
 
     public GameObject CreateUnit(int unitId, string unitName, Vector2 position)
     {
-        if(_unitsDropdown.SelectedButton == null && SaveAndLoadManager.Instance.IsLoading != true)
+        if (_unitsDropdown.SelectedButton == null && SaveAndLoadManager.Instance.IsLoading != true)
         {
             Debug.Log("Wybierz jednostkę z listy.");
             return null;
