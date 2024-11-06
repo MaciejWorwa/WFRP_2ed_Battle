@@ -104,6 +104,7 @@ MonoBehaviour:
   _highlightColor: {r: 0.7497849, g: 0.8773585, b: 0.72377473, a: 1}
   _rangeColor: {r: 0, g: 0, b: 0, a: 0.9019608}
   _highlightRangeColor: {r: 0.7490196, g: 0.8784314, b: 0.7254902, a: 0.9019608}
+  IsOccupied: 0
 --- !u!61 &-8791847887227988554
 BoxCollider2D:
   m_ObjectHideFlags: 0

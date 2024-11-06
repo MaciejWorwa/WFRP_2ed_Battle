@@ -8,17 +8,44 @@ public class MapElement : MonoBehaviour
 {
     public bool IsHighObstacle;
     public bool IsLowObstacle;
+    public bool IsCollider;
 
     void Awake()
     {
         DontDestroyOnLoad(gameObject);
     }
+
+    public void SetColliderState(bool state)
+    {
+        IsCollider = state;
+        if (GetComponent<BoxCollider2D>() != null)
+        {
+            // Ustawienie kolidera w zależności od wartości IsCollider
+            GetComponent<BoxCollider2D>().enabled = IsCollider;
+        }
+    }
+
     private void OnMouseOver()
     {
-        // Jeżeli nie jesteśmy w kreatorze pola bitwy to funkcja usuwania przeszkód jest wyłączona. Tak samo nie wywołujemy jej, gdy lewy przycisk myszy nie jest wciśnięty
-        if (SceneManager.GetActiveScene().buildIndex != 0 || GameManager.IsMousePressed == false) return;
+        // Jeżeli nie jesteśmy w kreatorze pola bitwy to funkcja usuwania przeszkód jest wyłączona. 
+        // Tak samo nie wywołujemy jej, gdy lewy przycisk myszy nie jest wciśnięty
+        if (SceneManager.GetActiveScene().buildIndex != 0) return;
 
-        DestroyElement();
+        if (Input.GetMouseButtonDown(1)) // Sprawdza, czy prawy przycisk myszy jest wciśnięty
+        {
+            RotateElement();
+        }
+
+        if (GameManager.IsMousePressed)
+        {
+            DestroyElement();
+        }
+    }
+
+    private void RotateElement()
+    {
+        // Obraca element o 90 stopni wokół osi Z
+        transform.Rotate(0, 0, 90);
     }
 
     private void DestroyElement()
@@ -34,7 +61,6 @@ public class MapElement : MonoBehaviour
             {
                 collider.GetComponent<Tile>().IsOccupied = false;
             }
-
         }
     }
 }

@@ -639,7 +639,9 @@ public class MapElementsData
     public string Tag;
     public bool IsHighObstacle;
     public bool IsLowObstacle;
+    public bool IsCollider;
     public float[] position;
+    public int rotationZ;
 
     public MapElementsData(MapElement mapElement)
     {
@@ -647,11 +649,13 @@ public class MapElementsData
         Tag = mapElement.gameObject.tag;
         IsHighObstacle= mapElement.IsHighObstacle;
         IsLowObstacle= mapElement.IsLowObstacle;
+        IsCollider= mapElement.IsCollider;
 
         position = new float[3];
         position[0] = mapElement.gameObject.transform.position.x;
         position[1] = mapElement.gameObject.transform.position.y;
         position[2] = mapElement.gameObject.transform.position.z;
+        rotationZ = (int)mapElement.gameObject.transform.eulerAngles.z;
     }
 }
 

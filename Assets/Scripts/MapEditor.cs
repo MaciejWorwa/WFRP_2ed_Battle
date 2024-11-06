@@ -40,6 +40,7 @@ public class MapEditor : MonoBehaviour
     public static bool IsElementRemoving = false;
     [SerializeField] private UnityEngine.UI.Toggle _highObstacleToggle;
     [SerializeField] private UnityEngine.UI.Toggle _lowObstacleToggle;
+    [SerializeField] private UnityEngine.UI.Toggle _isColliderToggle;
 
     private void Start()
     {
@@ -87,6 +88,8 @@ public class MapEditor : MonoBehaviour
 
         if (collider != null && collider.gameObject.CompareTag("Tile"))
         {
+            if (collider.GetComponent<Tile>().IsOccupied) return;
+
             GameObject newElement = Instantiate(MapElementUI.SelectedElement, position, Quaternion.identity);
 
             //Dodanie elementu do listy wszystkich obecnych na mapie elementów
@@ -95,6 +98,9 @@ public class MapEditor : MonoBehaviour
             newElement.tag = "MapElement";
             newElement.GetComponent<MapElement>().IsHighObstacle = _highObstacleToggle.isOn;
             newElement.GetComponent<MapElement>().IsLowObstacle = _lowObstacleToggle.isOn;
+            newElement.GetComponent<MapElement>().SetColliderState(_isColliderToggle.isOn);
+
+            collider.GetComponent<Tile>().IsOccupied = true;
         }
     }
 
@@ -169,16 +175,20 @@ public class MapEditor : MonoBehaviour
         {
             Vector3 position = new Vector3(mapElement.position[0], mapElement.position[1], mapElement.position[2]);
 
+            Quaternion rotation = Quaternion.Euler(0, 0, mapElement.rotationZ);
+
             GameObject prefab = Resources.Load<GameObject>(mapElement.Name);
 
-            GameObject newObject = Instantiate(prefab, position, Quaternion.identity);
+            GameObject newObject = Instantiate(prefab, position, rotation);
             AllElements.Add(newObject);
 
             MapElement newElement = newObject.GetComponent<MapElement>();
 
             newElement.tag = mapElement.Tag;
             newElement.IsHighObstacle = mapElement.IsHighObstacle;
-            newElement.IsLowObstacle = mapElement.IsLowObstacle;   
+            newElement.IsLowObstacle = mapElement.IsLowObstacle;
+            newElement.IsCollider = mapElement.IsCollider;
+            newElement.SetColliderState(newElement.IsCollider);
         }
 
         GridManager.Instance.CheckTileOccupancy();
