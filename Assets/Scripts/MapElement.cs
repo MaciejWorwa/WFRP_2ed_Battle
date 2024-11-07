@@ -17,11 +17,10 @@ public class MapElement : MonoBehaviour
 
     public void SetColliderState(bool state)
     {
-        IsCollider = state;
         if (GetComponent<BoxCollider2D>() != null)
         {
             // Ustawienie kolidera w zależności od wartości IsCollider
-            GetComponent<BoxCollider2D>().enabled = IsCollider;
+            GetComponent<BoxCollider2D>().enabled = state;
         }
     }
 

@@ -128,7 +128,8 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      "jaskinia wybrze\u017Ce Remas edytowana_0": 4420003203474944187
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

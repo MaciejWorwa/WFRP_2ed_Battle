@@ -8,7 +8,7 @@ public class CameraManager : MonoBehaviour
     private Camera _camera;
     [SerializeField] private float _moveSpeed = 5f;
     [SerializeField] private float _minZoom = 4f;
-    [SerializeField] private float _maxZoom = 15f;
+    [SerializeField] private float _maxZoom = 30f;
     [SerializeField] private Vector2 _maxXRange = new Vector2(-40f, 40f);
     [SerializeField] private Vector2 _maxYRange = new Vector2(-20f, 20f);
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GridManager : MonoBehaviour
 {
@@ -31,8 +32,8 @@ public class GridManager : MonoBehaviour
 
     [SerializeField] private Tile _tilePrefab;
     public Tile[,] Tiles;
-    public static int Width = 16;
-    public static int Height = 9;
+    public static int Width = 22;
+    public static int Height = 16;
 
     [SerializeField] private TMP_Text _widthDisplay;
     [SerializeField] private TMP_Text _heightDisplay;
@@ -42,6 +43,15 @@ public class GridManager : MonoBehaviour
     void Start()
     {
         GenerateGrid();
+
+        if(SceneManager.GetActiveScene().buildIndex != 0 && MapEditor.Instance != null)
+        {
+            MapEditor.Instance.SetAllElementsColliders(false);
+        }
+        else if (MapEditor.Instance != null)
+        {
+            MapEditor.Instance.SetAllElementsColliders(true);
+        }
 
         CheckTileOccupancy();
     }

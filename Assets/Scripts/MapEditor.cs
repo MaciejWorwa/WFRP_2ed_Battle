@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
+using TMPro;
 
 public class MapEditor : MonoBehaviour
 {
@@ -41,10 +42,57 @@ public class MapEditor : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Toggle _highObstacleToggle;
     [SerializeField] private UnityEngine.UI.Toggle _lowObstacleToggle;
     [SerializeField] private UnityEngine.UI.Toggle _isColliderToggle;
-
+    [SerializeField] private UnityEngine.UI.Slider _rotationSlider;
+    [SerializeField] private TMP_InputField _rotationInputField;
+    private Vector3 _mousePosition;
+    private GameObject _cursorObject;
+ 
     private void Start()
     {
         ResetAllSelectedElements();
+    }
+
+    void Update()
+    {
+        if(MapElementUI.SelectedElement != null)
+        {
+            ReplaceCursorWithMapElement();
+        }
+    }
+    
+    private void ReplaceCursorWithMapElement()
+    {
+        // Zaktualizuj pozycję kursora
+        _mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        _mousePosition.z = 0; // Ustaw Z na 0, aby sprite był na tej samej płaszczyźnie
+
+        // Uzyskaj rozmiar BoxCollider2D
+        BoxCollider2D collider = MapElementUI.SelectedElement.GetComponent<BoxCollider2D>();
+
+        // Oblicz offset na podstawie rozmiaru collidera
+        Vector3 offset = Vector3.zero;
+        if (collider != null)
+        {
+            offset = new Vector3(-collider.size.x / 2, collider.size.y / 2, 0);
+        }
+
+        // Sprawdź, czy kursor jest nowym obiektem
+        if (_cursorObject == null || _cursorObject.name != MapElementUI.SelectedElement.name + "Cursor")
+        {
+            if(_cursorObject != null)
+            {
+                Destroy(_cursorObject);
+            }
+
+            Quaternion rotation = Quaternion.Euler(0, 0, _rotationSlider.value);
+            _cursorObject = Instantiate(MapElementUI.SelectedElement, _mousePosition + offset, rotation);
+
+            _cursorObject.name = MapElementUI.SelectedElement.name + "Cursor";
+            _cursorObject.GetComponent<BoxCollider2D>().enabled = false;
+        }
+
+        // Ustaw pozycję sprite'a na pozycję kursora, z uwzględnieniem offsetu
+        _cursorObject.transform.position = _mousePosition + offset;
     }
 
     public void PlaceElementOnRandomTile()
@@ -81,16 +129,37 @@ public class MapEditor : MonoBehaviour
 
     public void PlaceElementOnSelectedTile(Vector3 position)
     {
-        // Sprawdza, czy wskaźnik znajduje się nad GUI, lub nie wybrano żadnego obiektu
-        if (/*EventSystem.current.IsPointerOverGameObject() ||*/ MapElementUI.SelectedElement == null) return;
-
+        // Sprawdza, czy wybrano
+        if (MapElementUI.SelectedElement == null) return;
+        
         Collider2D collider = Physics2D.OverlapPoint(position);
 
         if (collider != null && collider.gameObject.CompareTag("Tile"))
         {
             if (collider.GetComponent<Tile>().IsOccupied) return;
+        
+            Quaternion rotation = Quaternion.Euler(0, 0, _rotationSlider.value);
 
-            GameObject newElement = Instantiate(MapElementUI.SelectedElement, position, Quaternion.identity);
+            BoxCollider2D boxCollider = MapElementUI.SelectedElement.GetComponent<BoxCollider2D>();
+
+            if (boxCollider.size.y > boxCollider.size.x) //Elementy zajmujące dwa pola
+            {
+                float rotationZ = _rotationSlider.value;
+                if (rotationZ < 45 || (rotationZ >= 135 && rotationZ < 225) || rotationZ > 315)
+                {
+                    position = new Vector3(position.x, position.y + 0.5f, position.z);
+                }
+                else
+                {
+                    position = new Vector3(position.x - 0.5f, position.y, position.z);
+                }
+            }
+            else if(MapElementUI.SelectedElement.transform.localScale.x > 1.5f) //Elementy zajmujące 4 pola
+            {
+                position = new Vector3(position.x - 0.5f, position.y + 0.5f, position.z);
+            }
+
+            GameObject newElement = Instantiate(MapElementUI.SelectedElement, position, rotation);
 
             //Dodanie elementu do listy wszystkich obecnych na mapie elementów
             AllElements.Add(newElement);
@@ -98,9 +167,32 @@ public class MapEditor : MonoBehaviour
             newElement.tag = "MapElement";
             newElement.GetComponent<MapElement>().IsHighObstacle = _highObstacleToggle.isOn;
             newElement.GetComponent<MapElement>().IsLowObstacle = _lowObstacleToggle.isOn;
-            newElement.GetComponent<MapElement>().SetColliderState(_isColliderToggle.isOn);
+            newElement.GetComponent<MapElement>().IsCollider = _isColliderToggle.isOn;
 
             collider.GetComponent<Tile>().IsOccupied = true;
+        }
+    }
+
+    public void ChangeElementRotation(GameObject gameObject)
+    {
+        // Oznacza, że rotacja została wprowadzona przy użyciu slidera, a nie InputFielda
+        if (gameObject.GetComponent<UnityEngine.UI.Slider>() != null)
+        {
+            _rotationInputField.text = _rotationSlider.value.ToString();
+        }
+        else // Oznacza, że rotacja została wprowadzona przy użyciu InputFielda
+        {
+            if (int.TryParse(_rotationInputField.text, out int value))
+            {
+                value = Mathf.Clamp(value, 0, 360);
+                _rotationSlider.value = value;
+                _rotationInputField.text = value.ToString();
+            }
+        }
+
+        if(_cursorObject != null)
+        {
+            _cursorObject.transform.rotation = Quaternion.Euler(0, 0, _rotationSlider.value);
         }
     }
 
@@ -114,6 +206,24 @@ public class MapEditor : MonoBehaviour
 
             MapElementUI.SelectedElement = null;
             MapElementUI.SelectedElementImage = null;
+        }
+
+        Destroy(_cursorObject);
+    }
+
+    //Przed rozpoczęciem bitwy ustala collidery elementów mapy
+    public void SetAllElementsColliders(bool allElementShouldHaveColliders)
+    {
+        foreach (var element in AllElements)
+        {
+            if(allElementShouldHaveColliders == true)
+            {
+                element.GetComponent<MapElement>().SetColliderState(true);
+            }
+            else
+            {
+                element.GetComponent<MapElement>().SetColliderState(element.GetComponent<MapElement>().IsCollider);
+            }
         }
     }
 
@@ -188,7 +298,12 @@ public class MapEditor : MonoBehaviour
             newElement.IsHighObstacle = mapElement.IsHighObstacle;
             newElement.IsLowObstacle = mapElement.IsLowObstacle;
             newElement.IsCollider = mapElement.IsCollider;
-            newElement.SetColliderState(newElement.IsCollider);
+
+            //Jeśli nie jesteśmy w edytorze map to ustalamy, czy element ma collider, czy nie. W edytorze chcemy, aby każdy miał collider, aby móc je usuwać i obracać
+            if(SceneManager.GetActiveScene().buildIndex != 0)
+            {
+                newElement.SetColliderState(newElement.IsCollider);
+            }
         }
 
         GridManager.Instance.CheckTileOccupancy();

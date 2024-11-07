@@ -211,11 +211,13 @@ public class AutoCombatManager : MonoBehaviour
             if (RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) //Wykonuje bieg
             {
                 MovementManager.Instance.UpdateMovementRange(3);
+                unit.IsRunning = true;
 
                 Debug.Log($"{unit.GetComponent<Stats>().Name} biegnie w stronę {closestOpponent.GetComponent<Stats>().Name}.");
             }
             else
             {
+                unit.IsRunning = false;
                 Debug.Log($"{unit.GetComponent<Stats>().Name} idzie w stronę {closestOpponent.GetComponent<Stats>().Name}.");
             }
 

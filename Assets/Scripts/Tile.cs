@@ -98,7 +98,7 @@ public class Tile : MonoBehaviour
         if (SceneManager.GetActiveScene().buildIndex != 0 ||  GameManager.IsMousePressed == false) return;
 
         //Sprawdzamy, czy jest aktywny tryb usuwania elementów 
-        if (MapEditor.IsElementRemoving) return;
+        if (MapEditor.IsElementRemoving || GameManager.Instance.IsPointerOverPanel()) return;
 
         Vector3 position = new Vector3(transform.position.x, transform.position.y, 1);
 
