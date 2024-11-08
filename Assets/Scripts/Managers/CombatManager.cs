@@ -126,7 +126,10 @@ public class CombatManager : MonoBehaviour
             {
                 AttackTypes[attackTypeName] = false;
                 AttackTypes["StandardAttack"] = true;
-                MovementManager.Instance.UpdateMovementRange(1);
+                if(unit.GetComponent<Stats>().TempSz == unit.GetComponent<Stats>().Sz * 2)
+                {
+                    MovementManager.Instance.UpdateMovementRange(1);
+                }
             }
 
             if(AttackTypes["SwiftAttack"] == true)
@@ -1176,7 +1179,11 @@ public class CombatManager : MonoBehaviour
 
         Weapon weapon = Unit.SelectedUnit.GetComponent<Inventory>().EquippedWeapons[0];
 
-        if(weapon == null || !weapon.Type.Contains("ranged")) return;
+        if(weapon == null || !weapon.Type.Contains("ranged")) 
+        {
+            Debug.Log($"Wybrana broń nie wymaga ładowania.");
+            return;
+        }
 
         if(weapon.ReloadLeft > 0)
         {
