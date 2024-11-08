@@ -32,6 +32,7 @@ public class MovementManager : MonoBehaviour
     [HideInInspector] public bool IsMoving;
     [SerializeField] private Button _chargeButton;
     [SerializeField] private Button _runButton;
+    [SerializeField] private Button _retreatButton;
 
     #region Move functions
     public void MoveSelectedUnit(GameObject selectedTile, GameObject unit)
@@ -59,7 +60,7 @@ public class MovementManager : MonoBehaviour
         {
             //Wykonuje akcję
             bool canDoAction = true;
-            if(unit.GetComponent<Unit>().IsRunning) // Bieg
+            if(unit.GetComponent<Unit>().IsRunning || unit.GetComponent<Unit>().IsRetreating) // Bieg lub bezpieczny odwrót
             {
                 canDoAction = RoundsManager.Instance.DoFullAction(unit.GetComponent<Unit>());
             }
@@ -140,6 +141,8 @@ public class MovementManager : MonoBehaviour
         if (unit.transform.position == path[iterations - 1])
         {
             IsMoving = false;
+            Retreat(false);
+            
             GridManager.Instance.HighlightTilesInMovementRange(Unit.SelectedUnit.GetComponent<Stats>());
         }
 
@@ -325,11 +328,26 @@ public class MovementManager : MonoBehaviour
         ChangeButtonColor(modifier);
     }
 
+    //Bezpieczny odwrót
+    public void Retreat(bool value)
+    {
+        Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
+        if(unit == null) return;
+
+        if(value == true && RoundsManager.Instance.UnitsWithActionsLeft[unit] < 2) //Sprawdza, czy jednostka może wykonać akcję podwójną
+        {
+            Debug.Log("Ta jednostka nie może w tej rundzie wykonać akcji podwójnej.");
+            return;
+        }
+
+        unit.IsRetreating = value;
+        _retreatButton.GetComponent<Image>().color = unit.IsRetreating ? Color.green : Color.white;
+    }
 
     private void ChangeButtonColor(int modifier)
     {  
         //_chargeButton.GetComponent<Image>().color = modifier == 1 ? Color.white : modifier == 2 ? Color.green : Color.white;
-        _runButton.GetComponent<Image>().color = modifier == 1 ? Color.white : modifier == 3 ? Color.green : Color.white;
+        _runButton.GetComponent<Image>().color = modifier == 1 ? Color.white : modifier == 3 ? Color.green : Color.white;    
     }
     #endregion
 
@@ -337,6 +355,9 @@ public class MovementManager : MonoBehaviour
     // Sprawdza czy ruch powoduje atak okazyjny
     public void CheckForOpportunityAttack(GameObject movingUnit, Vector3 selectedTilePosition)
     {
+        //Przy bezpiecznym odwrocie nie występuje atak okazyjny
+        if(Unit.SelectedUnit != null && Unit.SelectedUnit.GetComponent<Unit>().IsRetreating) return;
+
         //Stworzenie tablicy wszystkich jednostek
         Unit[] units = FindObjectsByType<Unit>(FindObjectsSortMode.None);
 

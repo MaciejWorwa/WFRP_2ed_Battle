@@ -146,3 +146,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   IsHighObstacle: 0
   IsLowObstacle: 0
+  IsCollider: 0

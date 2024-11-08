@@ -42,6 +42,7 @@ public class MapEditor : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Toggle _highObstacleToggle;
     [SerializeField] private UnityEngine.UI.Toggle _lowObstacleToggle;
     [SerializeField] private UnityEngine.UI.Toggle _isColliderToggle;
+    [SerializeField] private UnityEngine.UI.Toggle _randomRotationToggle;
     [SerializeField] private UnityEngine.UI.Slider _rotationSlider;
     [SerializeField] private TMP_InputField _rotationInputField;
     private Vector3 _mousePosition;
@@ -131,6 +132,11 @@ public class MapEditor : MonoBehaviour
     {
         // Sprawdza, czy wybrano
         if (MapElementUI.SelectedElement == null) return;
+
+        BoxCollider2D boxCollider = MapElementUI.SelectedElement.GetComponent<BoxCollider2D>();
+
+        // Aktualizowanie zajętości pól
+        GridManager.Instance.CheckTileOccupancy();
         
         Collider2D collider = Physics2D.OverlapPoint(position);
 
@@ -138,9 +144,12 @@ public class MapEditor : MonoBehaviour
         {
             if (collider.GetComponent<Tile>().IsOccupied) return;
         
-            Quaternion rotation = Quaternion.Euler(0, 0, _rotationSlider.value);
+            if(_randomRotationToggle.isOn)
+            {
+                SetRandomElementRotation();
+            }
 
-            BoxCollider2D boxCollider = MapElementUI.SelectedElement.GetComponent<BoxCollider2D>();
+            Quaternion rotation = Quaternion.Euler(0, 0, _rotationSlider.value);
 
             if (boxCollider.size.y > boxCollider.size.x) //Elementy zajmujące dwa pola
             {
@@ -148,15 +157,24 @@ public class MapEditor : MonoBehaviour
                 if (rotationZ < 45 || (rotationZ >= 135 && rotationZ < 225) || rotationZ > 315)
                 {
                     position = new Vector3(position.x, position.y + 0.5f, position.z);
+                                        
+                    Collider2D pointCollider = Physics2D.OverlapPoint(new Vector3(position.x, position.y + 0.5f, position.z));
+                    if (pointCollider != null && !pointCollider.gameObject.CompareTag("Tile")) return;  
                 }
                 else
                 {
                     position = new Vector3(position.x - 0.5f, position.y, position.z);
+
+                    Collider2D pointCollider = Physics2D.OverlapPoint(new Vector3(position.x - 0.5f, position.y, position.z));
+                    if (pointCollider != null && !pointCollider.gameObject.CompareTag("Tile")) return;  
                 }
             }
             else if(MapElementUI.SelectedElement.transform.localScale.x > 1.5f) //Elementy zajmujące 4 pola
             {
                 position = new Vector3(position.x - 0.5f, position.y + 0.5f, position.z);
+
+                Collider2D circleCollider = Physics2D.OverlapCircle(position, 1f);
+                if (circleCollider != null && !circleCollider.gameObject.CompareTag("Tile")) return;  
             }
 
             GameObject newElement = Instantiate(MapElementUI.SelectedElement, position, rotation);
@@ -194,6 +212,13 @@ public class MapEditor : MonoBehaviour
         {
             _cursorObject.transform.rotation = Quaternion.Euler(0, 0, _rotationSlider.value);
         }
+    }
+
+    public void SetRandomElementRotation()
+    {
+        int value = Random.Range(0,361);
+        _rotationSlider.value = value;
+        _rotationInputField.text = value.ToString();
     }
 
     public void ResetAllSelectedElements()
