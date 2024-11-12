@@ -227,6 +227,11 @@ public class SaveAndLoadManager : MonoBehaviour
             }
         }
 
+        container.BackgroundImagePath = MapEditor.BackgroundImagePath;
+        container.BackgroundPositionX = MapEditor.BackgroundPositionX;
+        container.BackgroundPositionY = MapEditor.BackgroundPositionY;
+        container.BackgroundScale = MapEditor.BackgroundScale;
+
         // Ścieżka do pliku JSON
         string mapElementsPath = Path.Combine(Application.persistentDataPath, savesFolderName, "MapElements.json");
 

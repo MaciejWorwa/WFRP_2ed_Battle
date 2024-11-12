@@ -30,7 +30,11 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    [SerializeField] private Tile _tilePrefab;
+    [SerializeField] private Tile _tileInnerPrefab;
+    [SerializeField] private Tile _tileRightEdgePrefab;
+    [SerializeField] private Tile _tileBottomEdgePrefab;
+    [SerializeField] private Tile _tileCornerBottomRightPrefab;
+
     public Tile[,] Tiles;
     public static int Width = 22;
     public static int Height = 16;
@@ -65,25 +69,51 @@ public class GridManager : MonoBehaviour
             Destroy(child);
         }
 
+        //Tiles = new Tile[Width, Height];
+        //bool isOffset;
+        //for (int x = 0; x < Width; x++)
+        //{
+        //    for (int y = 0; y < Height; y++)
+        //    {
+        //        Tile spawnedTile = Instantiate(_tilePrefab, new Vector3(x, y, 1), Quaternion.identity);
+        //        spawnedTile.name = $"Tile {x} {y}";
+
+        //        isOffset = (x % 2 == 0 && y % 2 != 0) || (x % 2 != 0 && y % 2 == 0);
+        //        spawnedTile.Init(isOffset);
+
+        //        Tiles[x, y] = spawnedTile;
+        //        spawnedTile.transform.SetParent(this.transform, false); // Ustawianie rodzica bez zmiany lokalej pozycji
+        //    }
+        //}
+
         Tiles = new Tile[Width, Height];
         bool isOffset;
         for (int x = 0; x < Width; x++)
         {
             for (int y = 0; y < Height; y++)
             {
-                Tile spawnedTile = Instantiate(_tilePrefab, new Vector3(x, y, 1), Quaternion.identity);
-                spawnedTile.name = $"Tile {x} {y}";
+                Tile spawnedTile;
 
+                // Ustal, jaki prefabrykat wybrać na podstawie pozycji na siatce
+                if (x == Width - 1 && y == 0)
+                    spawnedTile = Instantiate(_tileCornerBottomRightPrefab, new Vector3(x, y, 1), Quaternion.identity);
+                else if (y == 0)
+                    spawnedTile = Instantiate(_tileBottomEdgePrefab, new Vector3(x, y, 1), Quaternion.identity);
+                else if (x == Width - 1)
+                    spawnedTile = Instantiate(_tileRightEdgePrefab, new Vector3(x, y, 1), Quaternion.identity);
+                else
+                    spawnedTile = Instantiate(_tileInnerPrefab, new Vector3(x, y, 1), Quaternion.identity);
+
+                spawnedTile.name = $"Tile {x} {y}";
                 isOffset = (x % 2 == 0 && y % 2 != 0) || (x % 2 != 0 && y % 2 == 0);
                 spawnedTile.Init(isOffset);
-
                 Tiles[x, y] = spawnedTile;
-                spawnedTile.transform.SetParent(this.transform, false); // Ustawianie rodzica bez zmiany lokalej pozycji
+                spawnedTile.transform.SetParent(this.transform, false);
             }
-        }
 
-        // Przesunięcie rodzica do centrum generowanej siatki
-        transform.position = new Vector3(-(Width / 2), -(Height / 2), 1);
+            // Przesunięcie rodzica do centrum generowanej siatki
+            transform.position = new Vector3(-(Width / 2), -(Height / 2), 1);
+        }
 
         if (_widthDisplay != null && _heightDisplay != null)
         {

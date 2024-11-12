@@ -6,6 +6,10 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 using TMPro;
+using SimpleFileBrowser;
+using System;
+using System.IO;
+using System.ComponentModel;
 
 public class MapEditor : MonoBehaviour
 {
@@ -47,10 +51,42 @@ public class MapEditor : MonoBehaviour
     [SerializeField] private TMP_InputField _rotationInputField;
     private Vector3 _mousePosition;
     private GameObject _cursorObject;
- 
+
+    [Header("Tło")]
+    [SerializeField] private GameObject _background;
+    [SerializeField] private Canvas _backgroundCanvas;
+    private Vector2 _originalBackgroundSize;
+    private Vector2 _originalBackgroundPosition;
+    public static string BackgroundImagePath;
+    public static float BackgroundPositionX;
+    public static float BackgroundPositionY;
+    public static float BackgroundScale;
+    [SerializeField] private UnityEngine.UI.Slider _backgroundScaleSlider;
+    [SerializeField] private UnityEngine.UI.Slider _backgroundPositionXSlider;
+    [SerializeField] private UnityEngine.UI.Slider _backgroundPositionYSlider;
+
     private void Start()
     {
         ResetAllSelectedElements();
+
+        // Konfiguracja SimpleFileBrowser
+        FileBrowser.SetFilters(true, new FileBrowser.Filter("Images", ".jpg", ".png"));
+        FileBrowser.SetDefaultFilter(".jpg");
+
+        if (BackgroundScale == 0) BackgroundScale = 1;
+
+        // Ustawienie oryginalnego rozmiaru i pozycji
+        _backgroundCanvas = _background.GetComponentInParent<Canvas>();
+        _originalBackgroundPosition = Vector2.zero;
+        _originalBackgroundSize = _backgroundCanvas.GetComponent<RectTransform>().sizeDelta;
+
+        //Uwzględnienie zmian rozmiaru i pozycji
+        if(BackgroundImagePath != null)
+        {
+            StartCoroutine(LoadBackgroundImage(BackgroundImagePath, false));
+        }
+
+        //ResetBackgroundProperties();
     }
 
     void Update()
@@ -123,7 +159,7 @@ public class MapEditor : MonoBehaviour
         }
 
         // Losowanie pozycji z dostępnych
-        Vector3 selectedPosition = availablePositions[Random.Range(0, availablePositions.Count)];
+        Vector3 selectedPosition = availablePositions[UnityEngine.Random.Range(0, availablePositions.Count)];
 
         PlaceElementOnSelectedTile(selectedPosition);
     }
@@ -216,7 +252,7 @@ public class MapEditor : MonoBehaviour
 
     public void SetRandomElementRotation()
     {
-        int value = Random.Range(0,361);
+        int value = UnityEngine.Random.Range(0,361);
         _rotationSlider.value = value;
         _rotationInputField.text = value.ToString();
     }
@@ -304,6 +340,13 @@ public class MapEditor : MonoBehaviour
             AllElements.RemoveAt(i);
         }
 
+        BackgroundImagePath = data.BackgroundImagePath;
+        BackgroundPositionX = data.BackgroundPositionX;
+        BackgroundPositionY = data.BackgroundPositionY;
+        BackgroundScale = data.BackgroundScale;
+
+        StartCoroutine(LoadBackgroundImage(BackgroundImagePath, false));
+
         if (data.Elements.Count == 0) return;
 
         foreach (var mapElement in data.Elements)
@@ -333,4 +376,143 @@ public class MapEditor : MonoBehaviour
 
         GridManager.Instance.CheckTileOccupancy();
     }
+
+    #region Background managing
+    public void OpenFileBrowser()
+    {
+        StartCoroutine(ShowLoadDialogCoroutine());
+    }
+
+    IEnumerator ShowLoadDialogCoroutine()
+    {
+        yield return FileBrowser.WaitForLoadDialog(FileBrowser.PickMode.Files, false, null, null, "Wybierz obraz", "Zatwierdź");
+
+        if (FileBrowser.Success)
+        {
+            string filePath = FileBrowser.Result[0];
+            StartCoroutine(LoadBackgroundImage(filePath, true));
+        }
+    }
+
+    public IEnumerator LoadBackgroundImage(string filePath, bool resetProperties)
+    {
+        if (filePath.Length < 1) yield break;
+
+        // Sprawdza, czy plik istnieje
+        if (!File.Exists(filePath))
+        {
+            Debug.LogError($"<color=red>Plik graficzny z tłem nie został znaleziony: {filePath}</color>");
+            yield break;
+        }
+
+        byte[] byteTexture = File.ReadAllBytes(filePath);
+        Texture2D texture = new Texture2D(2, 2);
+        if (texture.LoadImage(byteTexture))
+        {
+            // Sprawdź rozdzielczość obrazu
+            if (texture.width > 2048 || texture.height > 2048) // Ograniczenia rozdzielczości
+            {
+                Debug.LogError("Obraz jest za duży.");
+            }
+            else
+            {
+                //Aktywuje tło
+                _background.SetActive(true);
+
+                Sprite newSprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100.0f);
+
+                // Ustawienie nowego sprite'a na _background
+                _background.GetComponent<UnityEngine.UI.Image>().sprite = newSprite;
+
+                //Zresetowanie skali i pozycji tła
+                if (resetProperties == true)
+                {
+                    ResetBackgroundProperties();
+                }
+
+                _originalBackgroundSize = new Vector2(texture.width, texture.height);
+
+                if (BackgroundScale != 1)
+                {
+                    _backgroundCanvas.GetComponent<RectTransform>().sizeDelta = new Vector2(texture.width, texture.height) * BackgroundScale;
+                }
+                else
+                {
+                    // Ustawienie rozmiaru Canvas na rozmiar obrazu
+                    _backgroundCanvas.GetComponent<RectTransform>().sizeDelta = new Vector2(texture.width, texture.height);
+                }
+
+                _backgroundCanvas.GetComponent<RectTransform>().anchoredPosition = new Vector2(BackgroundPositionX, BackgroundPositionY);
+
+                //Zresetowanie skali i pozycji tła
+                if (resetProperties == false)
+                {
+                    _backgroundScaleSlider.value = BackgroundScale;
+                    ResizeCanvas();
+                    _backgroundPositionXSlider.value = BackgroundPositionX;
+                    _backgroundPositionYSlider.value = BackgroundPositionY;
+                }
+
+                BackgroundImagePath = filePath;
+            }
+        }
+        else
+        {
+            //Dezatywuje tło
+            _background.SetActive(false);
+            Debug.LogError("Nie udało się załadować obrazu.");
+        }
+
+        yield return null;
+    }
+
+    public void RemoveBackground()
+    {
+        _background.SetActive(false);
+        BackgroundImagePath = "";
+    }
+    public void ResetBackgroundProperties()
+    {
+        if (_backgroundCanvas == null) return;
+
+        _originalBackgroundSize = _backgroundCanvas.GetComponent<RectTransform>().sizeDelta;
+        _originalBackgroundPosition = Vector2.zero;
+        _backgroundPositionXSlider.value = 0;
+        _backgroundPositionYSlider.value = 0;
+        _backgroundScaleSlider.value = 1;
+        ResizeCanvas();
+        ChangeCanvasPositionX();
+        ChangeCanvasPositionY();
+    }
+
+    public void ResizeCanvas()
+    {
+        if(_backgroundCanvas == null) return;
+
+        _backgroundCanvas.GetComponent<RectTransform>().sizeDelta = _originalBackgroundSize * _backgroundScaleSlider.value;
+
+        BackgroundScale = _backgroundScaleSlider.value;
+    }
+    public void ChangeCanvasPositionX()
+    {
+        if (_backgroundCanvas == null) return;
+
+        RectTransform rectTransform = _backgroundCanvas.GetComponent<RectTransform>();
+        // Ustawia nową pozycję X, pozostawiając aktualną pozycję Y
+        rectTransform.anchoredPosition = new Vector2(_originalBackgroundPosition.x + _backgroundPositionXSlider.value, rectTransform.anchoredPosition.y);
+
+        BackgroundPositionX = _backgroundPositionXSlider.value;
+    }
+
+    public void ChangeCanvasPositionY()
+    {
+        if (_backgroundCanvas == null) return;
+
+        RectTransform rectTransform = _backgroundCanvas.GetComponent<RectTransform>();
+        // Ustawia nową pozycję Y, pozostawiając aktualną pozycję X
+        rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, _originalBackgroundPosition.y + _backgroundPositionYSlider.value);
+
+        BackgroundPositionY = _backgroundPositionYSlider.value;
+    }
+    #endregion
 }

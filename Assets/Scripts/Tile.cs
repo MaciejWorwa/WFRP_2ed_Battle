@@ -13,10 +13,19 @@ public class Tile : MonoBehaviour
     private Renderer _renderer;
     public bool IsOccupied;
 
+    private GameObject _tileFilling; //Wypełnienie pola kolorem
+
     private void Awake()
     {
-        _renderer = GetComponent<Renderer>();
+        _tileFilling = transform.GetChild(0).gameObject;
+        _renderer = _tileFilling.GetComponent<Renderer>();
     }
+
+    //private void Start()
+    //{
+    //    _tileFilling = transform.GetChild(0).gameObject;
+    //    _renderer = _tileFilling.GetComponent<Renderer>();
+    //}
 
     public void Init(bool isOffset)
     {
@@ -24,6 +33,17 @@ public class Tile : MonoBehaviour
         _baseColor = _renderer.material.color;
         _rangeColor = _baseColor * 0.9f;
         _highlightRangeColor = Color.Lerp(_baseColor, Color.white, 0.3f);
+
+        MakeTilesTransparent();
+    }
+
+    public void MakeTilesTransparent()
+    {
+        _renderer.material.color = Color.white * 0.3f;
+        _baseColor = _renderer.material.color;
+        _rangeColor = _firstColor * 0.6f;
+        _highlightColor = _firstColor;
+        _highlightRangeColor = _secondColor;
     }
 
     private void OnMouseEnter()
@@ -107,15 +127,24 @@ public class Tile : MonoBehaviour
 
     public void HighlightTile()
     {
-        if(_renderer.material.color == _baseColor)
+        _tileFilling.SetActive(true);
+
+        if (_renderer.material.color == _baseColor)
+        {
             _renderer.material.color = _highlightColor;
+        }
         else if (_renderer.material.color == _rangeColor)
+        {
             _renderer.material.color = _highlightRangeColor;
+        }
     }
     public void ResetTileHighlight()
     {
         if(_renderer.material.color == _highlightColor)
+        {
             _renderer.material.color = _baseColor;
+            _tileFilling.SetActive(false);
+        }
         // else if (_renderer.material.color == _highlightRangeColor)
         //     _renderer.material.color = _rangeColor;
 
@@ -132,11 +161,15 @@ public class Tile : MonoBehaviour
         ResetRangeColor();
 
         if (Unit.SelectedUnit != null)
+        {
+            _tileFilling.SetActive(true);
             _renderer.material.color = _rangeColor;
+        }
     }
 
     public void ResetRangeColor()
     {      
         _renderer.material.color = _baseColor;
+        _tileFilling.SetActive(false);
     }
 }

@@ -663,6 +663,11 @@ public class MapElementsData
 public class MapElementsContainer
 {
     public List<MapElementsData> Elements = new List<MapElementsData>();
+
+    public string BackgroundImagePath;
+    public float BackgroundPositionX;
+    public float BackgroundPositionY;
+    public float BackgroundScale;
 }
 
 #endregion
