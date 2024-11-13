@@ -4,16 +4,19 @@ on:
   push:
     branches:
       - main
+  pull_request:
+
+
 jobs:
   test:
     name: Run Unity Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-      
+        uses: actions/checkout@v4.2.2
+
       - name: Cache Library Folder
-        uses: actions/cache@v2
+        uses: actions/cache@v4.1.2
         with:
           path: Library
           key: ${{ runner.os }}-library-${{ hashFiles('**/ProjectSettings/ProjectVersion.txt') }}
@@ -31,21 +34,24 @@ jobs:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Test Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.4.3
         if: always()
         with:
           name: Test Results
           path: Artifacts/TestResults.xml
 
-  build-windows:
-    name: Build Unity Project for Windows
+  build:
+    strategy:
+      matrix:
+        target_platform: ["StandaloneWindows64", "StandaloneLinux64", "StandaloneOSX"]
+    name: Build Unity Project for ${{ matrix.target_platform }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
-      
+        uses: actions/checkout@v4.2.2
+
       - name: Cache Library
-        uses: actions/cache@v2
+        uses: actions/cache@v4.1.2
         with:
           path: Library
           key: ${{ runner.os }}-unity-${{ hashFiles('**/ProjectSettings/ProjectVersion.txt') }}
@@ -53,76 +59,41 @@ jobs:
             ${{ runner.os }}-unity-
 
       - name: Build Project
-        uses: game-ci/unity-builder@v4
+        uses: game-ci/unity-builder@v4.3.0
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          targetPlatform: StandaloneWindows64
+          targetPlatform: ${{ matrix.target_platform }}
 
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.4.3
+        if: ${{ matrix.target_platform != 'StandaloneOSX' }}
         with:
-          name: Build-Windows
+          name: Build-${{ matrix.target_platform }}
           path: build
 
-  build-linux:
-    name: Build Unity Project for Linux
+  release:
+    needs: build
+    name: Deploy a release
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-      
-      - name: Cache Library
-        uses: actions/cache@v2
+      - uses: actions/download-artifact@v4.1.8
         with:
-          path: Library
-          key: ${{ runner.os }}-unity-${{ hashFiles('**/ProjectSettings/ProjectVersion.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-unity-
+          path: ${{ github.workspace}}/release
 
-      - name: Build Project
-        uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          targetPlatform: StandaloneLinux64
+      - name: Zip release
+        run: |
+          mv ${{ github.workspace}}/release/Build-StandaloneWindows64/* .
+          zip -r Build-StandaloneWindows64.zip StandaloneWindows64
+          mv ${{ github.workspace}}/release/Build-StandaloneLinux64/* .
+          zip -r Build-StandaloneLinux64.zip StandaloneLinux64
 
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
+      - name: Release
+        uses: softprops/action-gh-release@v2.1.0
         with:
-          name: Build-Linux
-          path: build
-
-  build-macos:
-    name: Build Unity Project for macOS
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-      
-      - name: Cache Library
-        uses: actions/cache@v2
-        with:
-          path: Library
-          key: ${{ runner.os }}-unity-${{ hashFiles('**/ProjectSettings/ProjectVersion.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-unity-
-
-      - name: Build Project
-        uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          targetPlatform: StandaloneOSX
-
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: Build-macOS
-          path: build
+          tag_name: latest
+          files: |
+            Build-StandaloneWindows64.zip
+            Build-StandaloneLinux64.zip
