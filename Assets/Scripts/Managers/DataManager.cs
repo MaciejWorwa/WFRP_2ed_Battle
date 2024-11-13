@@ -605,11 +605,13 @@ public class GridManagerData
 {
     public int Width;
     public int Height;
+    public string GridColor;
 
     public GridManagerData()
     {
         Width = GridManager.Width;
         Height = GridManager.Height;
+        GridColor = GridManager.GridColor;
     }
 }
 

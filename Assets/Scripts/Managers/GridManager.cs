@@ -38,11 +38,13 @@ public class GridManager : MonoBehaviour
     public Tile[,] Tiles;
     public static int Width = 22;
     public static int Height = 16;
+    public static string GridColor = "white";
 
     [SerializeField] private TMP_Text _widthDisplay;
     [SerializeField] private TMP_Text _heightDisplay;
     [SerializeField] private Slider _sliderX;
     [SerializeField] private Slider _sliderY;
+    [SerializeField] private Button _gridColorbutton;
 
     void Start()
     {
@@ -55,6 +57,10 @@ public class GridManager : MonoBehaviour
         else if (MapEditor.Instance != null)
         {
             MapEditor.Instance.SetAllElementsColliders(true);
+            
+            //Zaktualizowanie koloru przycisku odpowiadającemu za zmianę koloru siatki
+            Color newColor = GridColor == "white" ? Color.white : Color.black;
+            _gridColorbutton.GetComponent<Image>().color = newColor;
         }
 
         CheckTileOccupancy();
@@ -109,6 +115,10 @@ public class GridManager : MonoBehaviour
                 spawnedTile.Init(isOffset);
                 Tiles[x, y] = spawnedTile;
                 spawnedTile.transform.SetParent(this.transform, false);
+
+                // Przypisanie odpowiedniego koloru na podstawie wartości GridColor
+                Color color = GridColor == "white" ? Color.white : Color.black;
+                spawnedTile.GetComponent<Renderer>().material.color = color;
             }
 
             // Przesunięcie rodzica do centrum generowanej siatki
@@ -136,6 +146,22 @@ public class GridManager : MonoBehaviour
         GenerateGrid();
 
         StartCoroutine(RemoveElementsOutsideTheGrid());
+    }
+
+    public void ChangeGridColor()
+    {
+        GridColor = GridColor == "white" ? "black" : "white";
+
+        // Przypisanie odpowiedniego koloru na podstawie wartości GridColor
+        Color newColor = GridColor == "white" ? Color.white : Color.black;
+
+        //Zaktualizowanie koloru przycisku odpowiadającemu za zmianę koloru siatki
+        _gridColorbutton.GetComponent<Image>().color = newColor;
+
+        foreach (Tile tile in Tiles)
+        {
+            tile.GetComponent<Renderer>().material.color = newColor;
+        }
     }
 
     IEnumerator RemoveElementsOutsideTheGrid()
@@ -255,5 +281,13 @@ public class GridManager : MonoBehaviour
     {
         Width = data.Width;
         Height = data.Height;
+        GridColor = data.GridColor;
+
+        //Zaktualizowanie koloru przycisku odpowiadającemu za zmianę koloru siatki
+        if(SceneManager.GetActiveScene().buildIndex == 0 && MapEditor.Instance != null)
+        {
+            Color newColor = GridColor == "white" ? Color.white : Color.black;
+            _gridColorbutton.GetComponent<Image>().color = newColor;
+        }
     }
 }

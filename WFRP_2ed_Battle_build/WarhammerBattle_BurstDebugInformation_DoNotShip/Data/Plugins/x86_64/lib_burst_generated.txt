@@ -1,4 +1,4 @@
-Library: F:\Projekty Unity\WFRP_2ed_Battle\Temp\BurstOutput\Data\Plugins\x86_64\lib_burst_generated
+Library: C:\Users\macie\Documents\GitHub\WFRP_2ed_Battle\Temp\BurstOutput\Data\Plugins\x86_64\lib_burst_generated
 --platform=Windows
 --backend=burst-llvm-15
 --target=AVX2
@@ -52,10 +52,10 @@ Library: F:\Projekty Unity\WFRP_2ed_Battle\Temp\BurstOutput\Data\Plugins\x86_64\
 --assembly-defines=UnityEngine;
 --linker-options=PdbAltPath="WarhammerBattle_Data/Plugins/x86_64/lib_burst_generated.pdb"
 --generate-link-xml=Temp\burst.link.xml
---temp-folder=F:\Projekty Unity\WFRP_2ed_Battle\Temp\Burst
---key-folder=F:/Unity/2023.1.17f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport
---decode-folder=F:\Projekty Unity\WFRP_2ed_Battle\Library\Burst
---output=F:\Projekty Unity\WFRP_2ed_Battle\Temp\BurstOutput\Data\Plugins\x86_64\lib_burst_generated
+--temp-folder=C:\Users\macie\Documents\GitHub\WFRP_2ed_Battle\Temp\Burst
+--key-folder=C:/Program Files/Unity/Hub/Editor/2023.1.17f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport
+--decode-folder=C:\Users\macie\Documents\GitHub\WFRP_2ed_Battle\Library\Burst
+--output=C:\Users\macie\Documents\GitHub\WFRP_2ed_Battle\Temp\BurstOutput\Data\Plugins\x86_64\lib_burst_generated
 --pdb-search-paths=Temp/ManagedSymbols/
 
 --method=Unity.Burst.BurstCompiler+BurstCompilerHelper, Unity.Burst, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null::IsBurstEnabled()--8c2be93e18276203cbd918daa2748a10
@@ -147,10 +147,10 @@ Library: F:\Projekty Unity\WFRP_2ed_Battle\Temp\BurstOutput\Data\Plugins\x86_64\
 --assembly-defines=UnityEngine;
 --linker-options=PdbAltPath="WarhammerBattle_Data/Plugins/x86_64/lib_burst_generated.pdb"
 --generate-link-xml=Temp\burst.link.xml
---temp-folder=F:\Projekty Unity\WFRP_2ed_Battle\Temp\Burst
---key-folder=F:/Unity/2023.1.17f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport
---decode-folder=F:\Projekty Unity\WFRP_2ed_Battle\Library\Burst
---output=F:\Projekty Unity\WFRP_2ed_Battle\Temp\BurstOutput\Data\Plugins\x86_64\lib_burst_generated
+--temp-folder=C:\Users\macie\Documents\GitHub\WFRP_2ed_Battle\Temp\Burst
+--key-folder=C:/Program Files/Unity/Hub/Editor/2023.1.17f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport
+--decode-folder=C:\Users\macie\Documents\GitHub\WFRP_2ed_Battle\Library\Burst
+--output=C:\Users\macie\Documents\GitHub\WFRP_2ed_Battle\Temp\BurstOutput\Data\Plugins\x86_64\lib_burst_generated
 --pdb-search-paths=Temp/ManagedSymbols/
 
 --method=Unity.Burst.BurstCompiler+BurstCompilerHelper, Unity.Burst, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null::IsBurstEnabled()--8c2be93e18276203cbd918daa2748a10

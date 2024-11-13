@@ -46,6 +46,7 @@ public class SaveAndLoadManager : MonoBehaviour
     [SerializeField] private GameObject _loadGamePanel; 
 
     public bool IsLoading;
+    public bool IsOnlyUnitsLoading;
 
     #region Saving methods
     public void SaveAllUnits(GameObject saveGamePanel)
@@ -250,6 +251,12 @@ public class SaveAndLoadManager : MonoBehaviour
     #endregion
 
     #region Loading methods
+
+    //Ustala, czy wczytujemy całą grę, czy jedynie jednostki
+    public void SetLoadingType(bool value)
+    {
+        IsOnlyUnitsLoading = value;
+    }
     public void LoadAllUnits(string saveName = "")
     {
         CustomDropdown dropdown = _savesScrollViewContent.GetComponent<CustomDropdown>();
@@ -301,7 +308,7 @@ public class SaveAndLoadManager : MonoBehaviour
             tile.IsOccupied = false;
         }
 
-        if(saveName != "autosave")
+        if(saveName != "autosave" && IsOnlyUnitsLoading != true)
         {
             //Wczytanie mapy
             LoadMap();

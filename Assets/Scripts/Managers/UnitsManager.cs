@@ -663,9 +663,15 @@ public class UnitsManager : MonoBehaviour
         bool frighteningPlayerExist = false;
         bool terryfyingPlayerExist = false;
 
+        bool enemyUnitExists = false;
+        bool playerUnitExists = false;
+
         foreach (var unit in AllUnits)
         {
             Stats unitStats = unit.GetComponent<Stats>();
+
+            if (unit.CompareTag("EnemyUnit")) enemyUnitExists = true;
+            if (unit.CompareTag("PlayerUnit")) playerUnitExists = true;
 
             if(unitStats.Terryfying)
             {
@@ -677,6 +683,18 @@ public class UnitsManager : MonoBehaviour
                 if(unit.CompareTag("EnemyUnit")) frighteningEnemyExist = true;
                 else if (unit.CompareTag("PlayerUnit"))frighteningPlayerExist = true;
             }
+        }
+
+        // Sprawdza, czy istnieją jednostki tylko jednego typu
+        if (!enemyUnitExists || !playerUnitExists)
+        {
+            // Jeśli istnieje tylko jeden typ jednostek, wszystkie jednostki przestają się bać
+            foreach (var unit in AllUnits)
+            {
+                unit.IsScared = false;
+            }
+
+            return;
         }
 
         if(terryfyingEnemyExist)

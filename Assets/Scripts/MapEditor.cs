@@ -340,12 +340,15 @@ public class MapEditor : MonoBehaviour
             AllElements.RemoveAt(i);
         }
 
-        BackgroundImagePath = data.BackgroundImagePath;
-        BackgroundPositionX = data.BackgroundPositionX;
-        BackgroundPositionY = data.BackgroundPositionY;
-        BackgroundScale = data.BackgroundScale;
+        if(data.BackgroundImagePath != null)
+        {
+            BackgroundImagePath = data.BackgroundImagePath;
+            BackgroundPositionX = data.BackgroundPositionX;
+            BackgroundPositionY = data.BackgroundPositionY;
+            BackgroundScale = data.BackgroundScale;
 
-        StartCoroutine(LoadBackgroundImage(BackgroundImagePath, false));
+            StartCoroutine(LoadBackgroundImage(BackgroundImagePath, false));
+        }
 
         if (data.Elements.Count == 0) return;
 
