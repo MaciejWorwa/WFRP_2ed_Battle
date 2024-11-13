@@ -53,11 +53,14 @@ public class GridManager : MonoBehaviour
         if(SceneManager.GetActiveScene().buildIndex != 0 && MapEditor.Instance != null)
         {
             MapEditor.Instance.SetAllElementsColliders(false);
+            MapEditor.Instance.MakeTileBlockersTransparent(true);
+            MapEditor.IsElementRemoving = false;
         }
         else if (MapEditor.Instance != null)
         {
             MapEditor.Instance.SetAllElementsColliders(true);
-            
+            MapEditor.Instance.MakeTileBlockersTransparent(false);
+
             //Zaktualizowanie koloru przycisku odpowiadającemu za zmianę koloru siatki
             Color newColor = GridColor == "white" ? Color.white : Color.black;
             _gridColorbutton.GetComponent<Image>().color = newColor;

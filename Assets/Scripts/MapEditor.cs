@@ -288,6 +288,18 @@ public class MapEditor : MonoBehaviour
         }
     }
 
+    //Sprawia, że blokery pól stają się niewidoczne poza edytorem mapy
+    public void MakeTileBlockersTransparent(bool value)
+    {
+        foreach (var element in AllElements)
+        {
+            if(element.name.Contains("tileBlocker"))
+            {
+                element.GetComponent<SpriteRenderer>().enabled = !value;
+            }
+        }
+    }
+
     public void RemoveElementsMode(bool isOn)
     {
         IsElementRemoving = isOn;
@@ -375,6 +387,15 @@ public class MapEditor : MonoBehaviour
             {
                 newElement.SetColliderState(newElement.IsCollider);
             }
+        }
+
+        if(SceneManager.GetActiveScene().buildIndex != 0)
+        {
+            MapEditor.Instance.MakeTileBlockersTransparent(true);
+        }
+        else
+        {
+            MapEditor.Instance.MakeTileBlockersTransparent(false);
         }
 
         GridManager.Instance.CheckTileOccupancy();
