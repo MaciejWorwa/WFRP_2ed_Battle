@@ -121,7 +121,10 @@ public class RoundsManager : MonoBehaviour
         }
 
         //Wykonuje testy grozy i strachu jeśli na polu bitwy są jednostki straszne lub przerażające
-        UnitsManager.Instance.LookForScaryUnits();
+        if(GameManager.IsFearIncluded == true)
+        {
+            UnitsManager.Instance.LookForScaryUnits();
+        }
 
         //Aktualizuje wyświetlane dostępne akcje
         if(Unit.SelectedUnit != null)

@@ -43,8 +43,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button _autoSelectUnitButton;
     public static bool IsFriendlyFire = false;
     [SerializeField] private Button _friendlyFireButton;
-    [SerializeField] private Button _autoCombatButton;
+    public static bool IsFearIncluded = true;
+    [SerializeField] private Button _fearIncludedButton;
     public static bool IsAutoCombatMode = false;
+    [SerializeField] private Button _autoCombatButton;
     private Dictionary<Button, bool> allModes;
     public static bool IsGamePaused;
 
@@ -67,6 +69,7 @@ public class GameManager : MonoBehaviour
             {_friendlyFireButton, IsFriendlyFire},
             {_autoDiceRollingButton, IsAutoDiceRollingMode},
             {_autoCombatButton, IsAutoCombatMode},
+            {_fearIncludedButton, IsFearIncluded}
         };
 
         // Ustawia kolory przycisków na podstawie początkowych wartości trybów
@@ -282,11 +285,27 @@ public class GameManager : MonoBehaviour
 
         if (IsFriendlyFire)
         {
-            Debug.Log("Friendly fire został włączony.");
+            Debug.Log("Możliwość atakowania sojuszników została włączona.");
         }
         else
         {
-            Debug.Log("Friendly fire został wyłączony.");
+            Debug.Log("Możliwość atakowania sojuszników została wyłączona.");
+        }
+    }
+
+    public void SetFearIncludedMode()
+    {
+        IsFearIncluded = !IsFearIncluded;
+
+        UpdateButtonColor(_fearIncludedButton, IsFearIncluded);
+
+        if (IsFearIncluded)
+        {
+            Debug.Log("Tryb uwzględniający Strach i Grozę został włączony.");
+        }
+        else
+        {
+            Debug.Log("Tryb uwzględniający Strach i Grozę został wyłączony.");
         }
     }
     #endregion

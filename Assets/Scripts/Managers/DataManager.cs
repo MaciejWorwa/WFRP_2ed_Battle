@@ -112,6 +112,9 @@ public class DataManager : MonoBehaviour
                 //Ustala text buttona
                 buttonText.text = stats.Race;
 
+                //Dodaje skrypt, który będzie wykrywał kliknięcie przycisku przy tworzeniu jednostek
+                buttonObj.AddComponent<CreateUnitButton>();
+
                 UnityEngine.UI.Button button = buttonObj.GetComponent<UnityEngine.UI.Button>();
 
                 //Dodaje opcję do CustomDropdowna ze wszystkimi jednostkami
@@ -466,6 +469,7 @@ public class StatsData
     public bool StreetFighting; // Bijatyka
     public bool StrikeMightyBlow; // Silny cios
     public bool StrikeToStun; // Ogłuszanie
+    public bool Sturdy; // Krzepki
     public bool SureShot; // Strzał przebijający
     public bool Terryfying; // Przerażający (test Terror)
     public bool QuickDraw; // Szybkie wyciągnięcie

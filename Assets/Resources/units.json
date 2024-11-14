@@ -47,7 +47,8 @@
       "A": 1,
       "Sz": 3,
       "MaxHealth": 11,
-      "StoutHearted": true
+      "StoutHearted": true,
+      "Sturdy": true
     },
     {
       "Id": 4,

@@ -126,8 +126,6 @@ public class SaveAndLoadManager : MonoBehaviour
             string inventoryPath = Path.Combine(Application.persistentDataPath, savesFolderName, unitName + "_inventory.json");
             string tokenJsonPath = Path.Combine(Application.persistentDataPath, savesFolderName, unitName + "_token.json");
 
-            //FileStream stream = new FileStream(path, FileMode.Create);
-
             UnitData unitData = new UnitData(unit);
             StatsData statsData = new StatsData(unit.GetComponent<Stats>());
             WeaponData weaponData = new WeaponData(unit.GetComponent<Weapon>());
@@ -147,11 +145,6 @@ public class SaveAndLoadManager : MonoBehaviour
             File.WriteAllText(weaponPath, weaponJsonData);
             File.WriteAllText(inventoryPath, inventoryJsonData);
             File.WriteAllText(tokenJsonPath, tokenJsonData);
-
-            //// Serializacja weaponData
-            //formatter.Serialize(stream, weaponData);
-
-            //stream.Close();
         }
     }
 
@@ -281,9 +274,6 @@ public class SaveAndLoadManager : MonoBehaviour
 
         IsLoading = true;
 
-        ////Zresetowanie kolejki inicjatywy
-        //InitiativeQueueManager.Instance.ClearInitiativeQueue();
-
         //Odznaczenie zaznaczonej postaci
         if (Unit.SelectedUnit != null)
         {
@@ -295,17 +285,14 @@ public class SaveAndLoadManager : MonoBehaviour
 
         // Usuwa wszystkie obecne na polu bitwy jednostki
         foreach (var unit in unitsToRemove)
-        {
+        {  
             if(unit != null)
             {
+                //Resetuje pola zajęte przez jednostki, które zostaną usunięte
+                GridManager.Instance.ResetTileOccupancy(unit.transform.position);
+                
                 UnitsManager.Instance.DestroyUnit(unit.gameObject);
             }
-        }
-
-        //Resetuje zajęte pola
-        foreach (var tile in GridManager.Instance.Tiles)
-        {
-            tile.IsOccupied = false;
         }
 
         if(saveName != "autosave" && IsOnlyUnitsLoading != true)
@@ -355,6 +342,8 @@ public class SaveAndLoadManager : MonoBehaviour
 
             //Stworzenie jednostki o konkretnym Id, nazwie i na ustalonej pozycji
             GameObject unitGameObject = UnitsManager.Instance.CreateUnit(statsData.Id, baseFileName, position);
+
+            if(unitGameObject == null) yield break;
 
             //Wczytanie taga i koloru jednostki
             if (unitData.Tag == "PlayerUnit")

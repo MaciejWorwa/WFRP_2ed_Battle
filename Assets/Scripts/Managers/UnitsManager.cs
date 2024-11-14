@@ -43,11 +43,11 @@ public class UnitsManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Image _tokenDisplay;
     [SerializeField] private GameObject _unitPrefab;
     [SerializeField] private CustomDropdown _unitsDropdown;
+    public Transform UnitsScrollViewContent;
     [SerializeField] private TMP_InputField _unitNameInputField;
     [SerializeField] private UnityEngine.UI.Slider _modifierAttributeSlider;
-    [SerializeField] private UnityEngine.UI.Toggle _randomPositionToggle;
     [SerializeField] private UnityEngine.UI.Toggle _unitTagToggle;
-    [SerializeField] private UnityEngine.UI.Button _createUnitButton;
+    [SerializeField] private UnityEngine.UI.Button _createUnitButton; // Przycisk do tworzenia jednostek na losowych pozycjach
     [SerializeField] private UnityEngine.UI.Button _removeUnitButton;
     [SerializeField] private UnityEngine.UI.Button _updateUnitButton;
     [SerializeField] private UnityEngine.UI.Button _removeUnitConfirmButton;
@@ -56,7 +56,6 @@ public class UnitsManager : MonoBehaviour
     public static bool IsUnitRemoving;
     public static bool IsUnitEditing = false;
     public List<Unit> AllUnits = new List<Unit>();
-
 
     void Start()
     {
@@ -94,43 +93,45 @@ public class UnitsManager : MonoBehaviour
     }
 
     #region Creating units
-    public void CreateUnitMode(GameObject button)
+    public void CreateUnitMode()
     {
-        if (!_randomPositionToggle.isOn)
-        {
-            IsTileSelecting = true;
+        IsTileSelecting = true;
 
-            //Zmienia kolor przycisku tworzenia jednostek na aktywny
-            _createUnitButton.GetComponent<UnityEngine.UI.Image>().color = Color.green;
-
-            Debug.Log("Wybierz pole na którym chcesz stworzyć jednostkę.");
-            return;
-        }
-        else
-        {
-            CreateUnit(_unitsDropdown.GetSelectedIndex(), _unitNameInputField.text, Vector2.zero);
-        }
+        Debug.Log("Wybierz pole na którym chcesz stworzyć jednostkę.");
+        return;
     }
 
     public void CreateUnitOnSelectedTile(Vector2 position)
     {
         CreateUnit(_unitsDropdown.GetSelectedIndex(), _unitNameInputField.text, position);
-
-        //Resetuje kolor przycisku tworzenia jednostek
-        _createUnitButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;
+    
+        //Resetuje kolor przycisku z wybraną jednostką na liście jednostek
+        CreateUnitButton.SelectedUnitButtonImage.color = new Color(0.55f, 0.66f, 0.66f, 0.05f);
     }
 
-    public GameObject CreateUnit(int unitId, string unitName, Vector2 position)
+    public void CreateUnitOnRandomTile()
     {
-        if (_unitsDropdown.SelectedButton == null && SaveAndLoadManager.Instance.IsLoading != true)
+        List<Vector3> availablePositions = AvailablePositions();
+        Vector2 position = Vector2.zero;
+
+        if (!SaveAndLoadManager.Instance.IsLoading)
         {
-            Debug.Log("Wybierz jednostkę z listy.");
-            return null;
+            if (availablePositions.Count == 0)
+            {
+                Debug.Log("Nie można stworzyć nowej jednostki. Brak wolnych pól.");
+                return;
+            }
+
+            // Wybranie losowej pozycji z dostępnych
+            int randomIndex = UnityEngine.Random.Range(0, availablePositions.Count);
+            position = availablePositions[randomIndex];
         }
 
-        //Resetuje input field z nazwą jednostki
-        _unitNameInputField.text = null;
+        CreateUnit(_unitsDropdown.GetSelectedIndex(), _unitNameInputField.text, position);
+    }
 
+    private List<Vector3> AvailablePositions()
+    {
         List<Vector3> availablePositions = new List<Vector3>();
 
         // Przejście przez wszystkie Tile w tablicy Tiles
@@ -147,8 +148,28 @@ public class UnitsManager : MonoBehaviour
             }
         }
 
-        if (_randomPositionToggle.isOn && !SaveAndLoadManager.Instance.IsLoading)
+        return availablePositions;
+    }
+
+    public GameObject CreateUnit(int unitId, string unitName, Vector2 position)
+    {
+        if (_unitsDropdown.SelectedButton == null && SaveAndLoadManager.Instance.IsLoading != true)
         {
+            Debug.Log("Wybierz jednostkę z listy.");
+            return null;
+        }
+
+        //Resetuje input field z nazwą jednostki
+        _unitNameInputField.text = null;
+
+        // Pole na którym chcemy stworzyć jednostkę
+        GameObject selectedTile = GameObject.Find($"Tile {position.x - GridManager.Instance.transform.position.x} {position.y - GridManager.Instance.transform.position.y}");
+
+        //Gdy próbujemy wczytać jednostkę na polu, które nie istnieje (bo np. siatka jest obecnie mniejsza niż siatka, na której były zapisywane jednostki) lub jest zajęte to wybiera im losową pozycję
+        if((selectedTile == null || selectedTile.GetComponent<Tile>().IsOccupied) && SaveAndLoadManager.Instance.IsLoading == true)
+        {
+            List<Vector3> availablePositions = AvailablePositions();
+
             if (availablePositions.Count == 0)
             {
                 Debug.Log("Nie można stworzyć nowej jednostki. Brak wolnych pól.");
@@ -158,16 +179,14 @@ public class UnitsManager : MonoBehaviour
             // Wybranie losowej pozycji z dostępnych
             int randomIndex = UnityEngine.Random.Range(0, availablePositions.Count);
             position = availablePositions[randomIndex];
-        }
 
-        if (availablePositions.Count == 0)
+            selectedTile = GameObject.Find($"Tile {position.x - GridManager.Instance.transform.position.x} {position.y - GridManager.Instance.transform.position.y}");
+        }
+        else if(selectedTile == null)
         {
-            Debug.Log("Wybrane pole jest zajęte. Nie można utworzyć nowej jednostki.");
+            Debug.Log("Nie można stworzyć jednostki.");
             return null;
         }
-
-        // Pole na którym chcemy stworzyć jednostkę
-        GameObject selectedTile = GameObject.Find($"Tile {position.x - GridManager.Instance.transform.position.x} {position.y - GridManager.Instance.transform.position.y}");
 
         IsTileSelecting = false;
       
@@ -312,7 +331,7 @@ public class UnitsManager : MonoBehaviour
         Destroy(unit);
         IsUnitRemoving = false;
 
-        //Resetuje kolor przycisku tworzenia jednostek
+        //Resetuje kolor przycisku usuwania jednostek
         _removeUnitButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;
 
         //Resetuje Tile, żeby nie było uznawane jako zajęte
@@ -327,7 +346,6 @@ public class UnitsManager : MonoBehaviour
         
         _createUnitButton.gameObject.SetActive(false);
         _removeUnitButton.gameObject.SetActive(false);
-        _randomPositionToggle.gameObject.SetActive(false);
         _updateUnitButton.gameObject.SetActive(true);
     }
 
@@ -337,7 +355,6 @@ public class UnitsManager : MonoBehaviour
         
         _createUnitButton.gameObject.SetActive(true);
         _removeUnitButton.gameObject.SetActive(true);
-        _randomPositionToggle.gameObject.SetActive(true);
         _updateUnitButton.gameObject.SetActive(false);
     }
 
@@ -639,6 +656,12 @@ public class UnitsManager : MonoBehaviour
         int modifier = (int)_modifierAttributeSlider.value * 10;
         int rollResult = UnityEngine.Random.Range(1, 101);
         int successLevel = Math.Abs(value + modifier - rollResult) / 10;
+
+        //Uwzględnienie kary do Zręczności za pancerz
+        if(attributeName == "Zr" && (stats.Armor_head >= 3 || stats.Armor_torso >= 3 || stats.Armor_arms >= 3 || stats.Armor_legs >= 3))
+        {
+            modifier -= 10;
+        }
 
         string resultString;
 

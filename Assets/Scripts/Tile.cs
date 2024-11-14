@@ -73,6 +73,12 @@ public class Tile : MonoBehaviour
     {
         if(UnitsManager.IsTileSelecting == true)
         {
+            if(IsOccupied)
+            {
+                Debug.Log("Wybrane pole jest zajęte. Nie można utworzyć nowej jednostki.");
+                return;
+            }
+            
             //Tworzy jednostkę na klikniętym polu 
             UnitsManager.Instance.CreateUnitOnSelectedTile(this.gameObject.transform.position);
             return;

@@ -1055,6 +1055,13 @@ public class CombatManager : MonoBehaviour
             if (Unit.SelectedUnit.GetComponent<Stats>().PowerfulBlow) parryModifier -= 30;
         }
 
+        //Uwzględnia karę do uników za ciężką zbroję
+        int dodgeModifier = 0;
+        if(targetStats.Armor_head >= 3 || targetStats.Armor_torso >= 3 || targetStats.Armor_arms >= 3 || targetStats.Armor_legs >= 3)
+        {
+            dodgeModifier = -10;
+        }
+
         if (targetUnit.GuardedAttackBonus != 0) parryModifier += targetUnit.GuardedAttackBonus;
 
         if(GameManager.IsAutoDefenseMode == false)
@@ -1065,7 +1072,7 @@ public class CombatManager : MonoBehaviour
             }
             else if (_parryOrDodge == "dodge")
             {
-                targetIsDefended = Dodge(targetStats);
+                targetIsDefended = Dodge(targetStats, dodgeModifier);
             }
 
             return !targetIsDefended;
@@ -1075,13 +1082,13 @@ public class CombatManager : MonoBehaviour
         {
             /* Sprawdza, czy atakowana postać ma większą szansę na unik, czy na parowanie i na tej podstawie ustala kolejność tych akcji.
             Warunek sprawdza też, czy obrońca broni się Pięściami (Id=0). Parowanie pięściami jest możliwe tylko, gdy przeciwnik również atakuje Pięściami. */
-            if (targetStats.WW + parryModifier > (targetStats.Zr + (targetStats.Dodge * 10) - 10) && (targetWeapon.Id != 0 || targetWeapon.Id == attackerWeapon.Id))
+            if (targetStats.WW + parryModifier > (targetStats.Zr + (targetStats.Dodge * 10) - 10 + dodgeModifier) && (targetWeapon.Id != 0 || targetWeapon.Id == attackerWeapon.Id))
             {
                 targetIsDefended = Parry(attackerWeapon, targetWeapon, targetStats, parryModifier);
             }
             else
             {
-                targetIsDefended = Dodge(targetStats);
+                targetIsDefended = Dodge(targetStats, dodgeModifier);
             }
         }
         else if (targetUnit.CanParry && (targetWeapon.Id != 0 || targetWeapon.Id == attackerWeapon.Id))
@@ -1090,7 +1097,7 @@ public class CombatManager : MonoBehaviour
         }
         else if (targetUnit.CanDodge)
         {
-            targetIsDefended = Dodge(targetStats);
+            targetIsDefended = Dodge(targetStats, dodgeModifier);
         }
 
         return !targetIsDefended; //Zwracana wartość definiuje, czy atak się powiódł. Zwracamy odwrotność, bo gdy obrona się powiodła, oznacza to, że atak nie.
@@ -1142,16 +1149,23 @@ public class CombatManager : MonoBehaviour
         }
     }
 
-    private bool Dodge(Stats targetStats)
+    private bool Dodge(Stats targetStats, int modifier)
     {
         //Sprawia, że atakowany nie będzie mógł więcej unikać w tej rundzie   
         targetStats.GetComponent<Unit>().CanDodge = false;
         
         int rollResult = Random.Range(1, 101);
 
-        Debug.Log($"Rzut {targetStats.Name} na unik: {rollResult} Wartość cechy: {targetStats.Zr}");
+        if (modifier != 0)
+        {
+            Debug.Log($"Rzut {targetStats.Name} na unik: {rollResult} Wartość cechy: {targetStats.Zr} Modyfikator za zbroje: {modifier}");
+        }
+        else
+        {
+            Debug.Log($"Rzut {targetStats.Name} na unik: {rollResult} Wartość cechy: {targetStats.Zr}");
+        }
 
-        if (rollResult <= targetStats.Zr + (targetStats.Dodge * 10) - 10 + targetStats.GetComponent<Unit>().GuardedAttackBonus && rollResult < 96)
+        if (rollResult <= targetStats.Zr + (targetStats.Dodge * 10) - 10 + modifier + targetStats.GetComponent<Unit>().GuardedAttackBonus && rollResult < 96)
         {
             return true;
         }      

@@ -10,6 +10,7 @@ Execute the StandaloneWindows64.exe or StandaloneLinux64.exe executable files, l
 # Environment
 
 The game was developed in Unity Engine. List of supported OS:
+
 - [x] Windows
 - [x] Linux
 
@@ -30,6 +31,7 @@ At the moment only Polish language is supported.
 # Tutorial
 
 ## Map Editor
+
 When you start the game, you enter the **Map Editor**. Here, you can customize the battlefield using the following features:
 
 - **Grid Size**: Adjust the grid size to fit your gameplay needs.
@@ -43,10 +45,12 @@ When you start the game, you enter the **Map Editor**. Here, you can customize t
 - When your battlefield setup is complete, click **Play** in the top right corner to start the battle.
 
 ## Camera Controls
+
 - **Panning**: Hold the middle mouse button and drag to pan the camera.
 - **Zooming**: Use the scroll wheel to zoom in and out for a closer or broader view.
 
 ## Starting Battle Mode
+
 - **Click "Play"**: When your battlefield setup is complete, click **Play** in the top right corner to start the battle.
 - **Game Modes and Settings**: Press **Esc** to open the main menu, where you can access **Settings**. Here, you can adjust the game modes; by default, recommended settings are enabled.
 
@@ -60,6 +64,7 @@ In Battle Mode, manage and control units with these actions:
 - **Attacking**: Right-click on an enemy unit to initiate an attack.
 
 ## Game Modes and Settings
+
 Press **Esc** to open the main menu, where you can access **Settings**. By default, recommended settings are enabled.
 
 1. **Automatic Parrying**: Units automatically decide to parry or dodge attacks. When disabled, players choose to block, dodge, or take the damage.
@@ -67,4 +72,5 @@ Press **Esc** to open the main menu, where you can access **Settings**. By defau
 3. **Automatic Unit Selection**: Units are selected in initiative order.
 4. **Friendly Fire**: Enables attacking allied units.
 5. **Automatic Dice Rolls**: Disable to allow players to use physical dice; manual outcomes can then be entered.
-6. **Automatic Combat**: Actions for all units are automated, preventing manual movement when enabled.
+6. **Include Fear Mechanics**: When enabled, the mechanics of Fear and Terror are applied.
+7. **Automatic Combat**: Actions for all units are automated, preventing manual movement when enabled.

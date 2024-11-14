@@ -72,6 +72,7 @@ public class Stats : MonoBehaviour
     public bool StreetFighting; // Bijatyka
     public bool StrikeMightyBlow; // Silny cios
     public bool StrikeToStun; // Ogłuszanie
+    public bool Sturdy; // Krzepki
     public bool SureShot; // Strzał przebijający
     public bool Terryfying; // Przerażający (test Terror)
     public bool QuickDraw; // Szybkie wyciągnięcie

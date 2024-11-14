@@ -320,7 +320,15 @@ public class MovementManager : MonoBehaviour
         }
 
         //Oblicza obecną szybkość
-        stats.TempSz = stats.Sz * modifier;
+        //Uwzględnia karę do Szybkości za zbroję płytową
+        if(stats.Sturdy == false && (stats.Armor_head >= 5 || stats.Armor_torso >= 5 || stats.Armor_arms >= 5 || stats.Armor_legs >= 5))
+        {
+            stats.TempSz = (stats.Sz - 1) * modifier;
+        }
+        else
+        {
+            stats.TempSz = stats.Sz * modifier;
+        }
 
         // Aktualizuje podświetlenie pól w zasięgu ruchu
         GridManager.Instance.HighlightTilesInMovementRange(stats);
