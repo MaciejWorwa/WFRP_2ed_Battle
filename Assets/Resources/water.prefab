@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7784136455191548445}
   - component: {fileID: 4029424974726431615}
   - component: {fileID: -4559157055742906140}
+  - component: {fileID: 5363115956533591924}
   m_Layer: 0
   m_Name: water
   m_TagString: Untagged
@@ -147,3 +148,15 @@ MonoBehaviour:
   IsHighObstacle: 0
   IsLowObstacle: 0
   IsCollider: 0
+--- !u!114 &5363115956533591924
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6667953325391612225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c31008f172a7694890fe249ac3cf5dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

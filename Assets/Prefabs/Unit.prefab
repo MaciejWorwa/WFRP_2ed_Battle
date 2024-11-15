@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: -2754630250583481522}
   - component: {fileID: 6267734093322851998}
   - component: {fileID: 8447459666408192081}
+  - component: {fileID: -2147539621934683725}
   m_Layer: 6
   m_Name: Unit
   m_TagString: Untagged
@@ -139,17 +140,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95bb5ae21a444664c94fe19f9a3288fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  UnitId: 0
   TokenFilePath: 
   DefaultColor: {r: 0, g: 0, b: 0, a: 0}
   HighlightColor: {r: 0, g: 0, b: 0, a: 0}
   IsSelected: 0
   IsRunning: 0
   IsCharging: 0
+  IsRetreating: 0
   HelplessDuration: 0
   IsScared: 0
   IsFearTestPassed: 0
+  SpellDuration: 0
   StunDuration: 0
   Trapped: 0
+  TrappedUnitId: 0
   AimingBonus: 0
   CastingNumberBonus: 0
   DefensiveBonus: 0
@@ -162,9 +167,6 @@ MonoBehaviour:
   Stats: {fileID: 0}
   NameDisplay: {fileID: 5344260523014033116}
   HealthDisplay: {fileID: 1306580773643467112}
-  DamageTaken: 0
-  DamageGiven: 0
-  CurrentGene: 0
 --- !u!114 &-2754630250583481522
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -178,8 +180,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Id: 2
+  Index: 0
   Name: 
   Race: 
+  PrimaryWeaponId: 0
   WW: 0
   US: 0
   K: 0
@@ -206,12 +210,15 @@ MonoBehaviour:
   Initiative: 0
   Ambidextrous: 0
   Disarm: 0
+  Ethereal: 0
+  FastHands: 0
   Fearless: 0
   Frightening: 0
   LightningParry: 0
   MagicSense: 0
   MasterGunner: 0
   MightyShot: 0
+  MightyMissile: 0
   PowerfulBlow: 0
   RapidReload: 0
   Sharpshooter: 0
@@ -219,6 +226,7 @@ MonoBehaviour:
   StreetFighting: 0
   StrikeMightyBlow: 0
   StrikeToStun: 0
+  Sturdy: 0
   SureShot: 0
   Terryfying: 0
   QuickDraw: 0
@@ -241,11 +249,13 @@ MonoBehaviour:
   Type:
   - melee
   TwoHanded: 0
+  NaturalWeapon: 0
   Quality: "Zwyk\u0142a"
   S: -4
   AttackRange: 1.5
   ReloadTime: 0
   ReloadLeft: 0
+  ArmourIgnoring: 0
   ArmourPiercing: 0
   Balanced: 0
   Defensive: 0
@@ -271,6 +281,18 @@ MonoBehaviour:
   EquippedWeapons:
   - {fileID: 0}
   - {fileID: 0}
+--- !u!114 &-2147539621934683725
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2921409717819951567}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c31008f172a7694890fe249ac3cf5dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2971501478778940024
 GameObject:
   m_ObjectHideFlags: 0

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1405491958297501068}
   - component: {fileID: 8894794954815229356}
   - component: {fileID: 7372849440423444283}
+  - component: {fileID: 8073455260693077925}
   m_Layer: 0
   m_Name: tree1
   m_TagString: Untagged
@@ -147,3 +148,15 @@ MonoBehaviour:
   IsHighObstacle: 0
   IsLowObstacle: 0
   IsCollider: 0
+--- !u!114 &8073455260693077925
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6638221422897947506}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c31008f172a7694890fe249ac3cf5dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

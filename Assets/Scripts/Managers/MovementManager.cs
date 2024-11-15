@@ -339,8 +339,8 @@ public class MovementManager : MonoBehaviour
     //Bezpieczny odwrót
     public void Retreat(bool value)
     {
+        if (Unit.SelectedUnit == null) return;
         Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
-        if(unit == null) return;
 
         if(value == true && RoundsManager.Instance.UnitsWithActionsLeft[unit] < 2) //Sprawdza, czy jednostka może wykonać akcję podwójną
         {

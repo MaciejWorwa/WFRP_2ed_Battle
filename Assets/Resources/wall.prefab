@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5348798894214224770}
   - component: {fileID: 7760350637585704127}
   - component: {fileID: 8205920872459478075}
+  - component: {fileID: 5372149438779453328}
   m_Layer: 0
   m_Name: wall
   m_TagString: Untagged
@@ -146,3 +147,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   IsHighObstacle: 0
   IsLowObstacle: 0
+  IsCollider: 0
+--- !u!114 &5372149438779453328
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2806022742203618882}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c31008f172a7694890fe249ac3cf5dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
