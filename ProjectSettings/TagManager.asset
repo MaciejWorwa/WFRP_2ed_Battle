@@ -12,6 +12,7 @@ TagManager:
   - Attribute
   - MapElement
   - WeaponAttribute
+  - TileCover
   layers:
   - Default
   - TransparentFX

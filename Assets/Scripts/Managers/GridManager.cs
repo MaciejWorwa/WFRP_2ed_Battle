@@ -78,23 +78,6 @@ public class GridManager : MonoBehaviour
             Destroy(child);
         }
 
-        //Tiles = new Tile[Width, Height];
-        //bool isOffset;
-        //for (int x = 0; x < Width; x++)
-        //{
-        //    for (int y = 0; y < Height; y++)
-        //    {
-        //        Tile spawnedTile = Instantiate(_tilePrefab, new Vector3(x, y, 1), Quaternion.identity);
-        //        spawnedTile.name = $"Tile {x} {y}";
-
-        //        isOffset = (x % 2 == 0 && y % 2 != 0) || (x % 2 != 0 && y % 2 == 0);
-        //        spawnedTile.Init(isOffset);
-
-        //        Tiles[x, y] = spawnedTile;
-        //        spawnedTile.transform.SetParent(this.transform, false); // Ustawianie rodzica bez zmiany lokalej pozycji
-        //    }
-        //}
-
         Tiles = new Tile[Width, Height];
         bool isOffset;
         for (int x = 0; x < Width; x++)
@@ -293,4 +276,13 @@ public class GridManager : MonoBehaviour
             _gridColorbutton.GetComponent<Image>().color = newColor;
         }
     }
+
+    #region Uncovering map
+    public void UncoverAllFromBattleScene()
+    {
+        if(MapEditor.Instance == null) return;
+
+        MapEditor.Instance.UncoverAll();
+    }
+    #endregion
 }

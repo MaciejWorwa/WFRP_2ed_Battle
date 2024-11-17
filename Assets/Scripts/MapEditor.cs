@@ -51,6 +51,10 @@ public class MapEditor : MonoBehaviour
     [SerializeField] private TMP_InputField _rotationInputField;
     private Vector3 _mousePosition;
     private GameObject _cursorObject;
+    [SerializeField] private GameObject _tileCover; //Czarny sprite zasłaniający pole
+    private List<Vector2> _lastTilesPositions;
+    public List<GameObject> AllTileCovers; 
+    private string _tileCoveringState; //Zmienna przekazująca informacja o tym, czy aktualnie zasłaniamy pola, czy odsłaniamy
 
     [Header("Tło")]
     [SerializeField] private GameObject _background;
@@ -86,6 +90,9 @@ public class MapEditor : MonoBehaviour
             StartCoroutine(LoadBackgroundImage(BackgroundImagePath, false));
         }
 
+        AllTileCovers = new List<GameObject>();
+        _lastTilesPositions = new List<Vector2>();
+
         //ResetBackgroundProperties();
     }
 
@@ -94,6 +101,25 @@ public class MapEditor : MonoBehaviour
         if(MapElementUI.SelectedElement != null)
         {
             ReplaceCursorWithMapElement();
+
+            //Jeśli jest aktywny tryb ukrywania obszarów to po wyborze elementu mapy wyłączamy go
+            if(GameManager.IsMapHidingMode)
+            {
+                GameManager.Instance.SetMapHidingMode();
+            }
+        }
+
+        if (GameManager.IsMapHidingMode && GameManager.Instance.IsPointerOverPanel() == false)
+        {
+            if (Input.GetMouseButton(0)) // Sprawdzanie, czy lewy przycisk myszy jest trzymany
+            {
+                CoverOrUncoverTile();
+            }
+            else if (Input.GetMouseButtonUp(0)) // Resetowanie listy ostatnio zasłanianych lub odsłanianych pól
+            {
+                _tileCoveringState = null;
+                _lastTilesPositions.Clear();
+            }
         }
     }
     
@@ -209,7 +235,7 @@ public class MapEditor : MonoBehaviour
             {
                 position = new Vector3(position.x - 0.5f, position.y + 0.5f, position.z);
 
-                Collider2D circleCollider = Physics2D.OverlapCircle(position, 1f);
+                Collider2D circleCollider = Physics2D.OverlapCircle(position, 0.8f);
                 if (circleCollider != null && !circleCollider.gameObject.CompareTag("Tile")) return;  
             }
 
@@ -309,6 +335,12 @@ public class MapEditor : MonoBehaviour
 
         if(isOn)
         {
+            //Jeśli jest aktywny tryb ukrywania obszarów to po wyborze elementu mapy wyłączamy go
+            if(GameManager.IsMapHidingMode)
+            {
+                GameManager.Instance.SetMapHidingMode();
+            }
+
             ResetAllSelectedElements();
             Debug.Log("Wybierz element otoczenia, który chcesz usunąć. Przytrzymując lewy przycisk myszy i przesuwając po mapie, możesz usuwać wiele elementów naraz.");
         }
@@ -352,6 +384,8 @@ public class MapEditor : MonoBehaviour
             AllElements.RemoveAt(i);
         }
 
+        UncoverAll();
+
         if(data.BackgroundImagePath != null)
         {
             BackgroundImagePath = data.BackgroundImagePath;
@@ -362,30 +396,42 @@ public class MapEditor : MonoBehaviour
             StartCoroutine(LoadBackgroundImage(BackgroundImagePath, false));
         }
 
-        if (data.Elements.Count == 0) return;
-
-        foreach (var mapElement in data.Elements)
+        if (data.Elements.Count > 0)
         {
-            Vector3 position = new Vector3(mapElement.position[0], mapElement.position[1], mapElement.position[2]);
-
-            Quaternion rotation = Quaternion.Euler(0, 0, mapElement.rotationZ);
-
-            GameObject prefab = Resources.Load<GameObject>(mapElement.Name);
-
-            GameObject newObject = Instantiate(prefab, position, rotation);
-            AllElements.Add(newObject);
-
-            MapElement newElement = newObject.GetComponent<MapElement>();
-
-            newElement.tag = mapElement.Tag;
-            newElement.IsHighObstacle = mapElement.IsHighObstacle;
-            newElement.IsLowObstacle = mapElement.IsLowObstacle;
-            newElement.IsCollider = mapElement.IsCollider;
-
-            //Jeśli nie jesteśmy w edytorze map to ustalamy, czy element ma collider, czy nie. W edytorze chcemy, aby każdy miał collider, aby móc je usuwać i obracać
-            if(SceneManager.GetActiveScene().buildIndex != 0)
+            foreach (var mapElement in data.Elements)
             {
-                newElement.SetColliderState(newElement.IsCollider);
+                Vector3 position = new Vector3(mapElement.position[0], mapElement.position[1], mapElement.position[2]);
+
+                Quaternion rotation = Quaternion.Euler(0, 0, mapElement.rotationZ);
+
+                GameObject prefab = Resources.Load<GameObject>(mapElement.Name);
+
+                GameObject newObject = Instantiate(prefab, position, rotation);
+                AllElements.Add(newObject);
+
+                MapElement newElement = newObject.GetComponent<MapElement>();
+
+                newElement.tag = mapElement.Tag;
+                newElement.IsHighObstacle = mapElement.IsHighObstacle;
+                newElement.IsLowObstacle = mapElement.IsLowObstacle;
+                newElement.IsCollider = mapElement.IsCollider;
+
+                //Jeśli nie jesteśmy w edytorze map to ustalamy, czy element ma collider, czy nie. W edytorze chcemy, aby każdy miał collider, aby móc je usuwać i obracać
+                if(SceneManager.GetActiveScene().buildIndex != 0)
+                {
+                    newElement.SetColliderState(newElement.IsCollider);
+                }
+            }
+        }
+
+        if (data.TileCovers.Count > 0)
+        {
+            // Załaduj czarne pola zasłaniające fragmenty mapy
+            foreach (var tileCoverData in data.TileCovers)
+            {
+                Vector3 position = new Vector3(tileCoverData.Position[0], tileCoverData.Position[1], tileCoverData.Position[2]);
+                GameObject tileCover = Instantiate(_tileCover, position, Quaternion.identity);
+                AllTileCovers.Add(tileCover);
             }
         }
 
@@ -537,6 +583,57 @@ public class MapEditor : MonoBehaviour
         rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, _originalBackgroundPosition.y + _backgroundPositionYSlider.value);
 
         BackgroundPositionY = _backgroundPositionYSlider.value;
+    }
+    #endregion
+
+    #region Covering map
+    private void CoverOrUncoverTile()
+    {
+        // Zamienia pozycję kursora myszy na współrzędne świata
+        Vector2 clickPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 roundedClickPosition = new Vector2(Mathf.Round(clickPosition.x), Mathf.Round(clickPosition.y));
+
+        foreach(Vector2 position in _lastTilesPositions)
+        {
+            if(position == roundedClickPosition) return;
+        }
+
+        // Pobiera wszystkie collidery w miejscu kliknięcia
+        Collider2D[] colliders = Physics2D.OverlapPointAll(clickPosition);
+
+        foreach (Collider2D collider in colliders)
+        {
+            // Obsługuje tylko pola typu Tile lub TileCover
+            if (collider.CompareTag("TileCover") && _tileCoveringState != "covering")
+            {
+                _tileCoveringState = "uncovering";
+                _lastTilesPositions.Add(collider.transform.position);
+
+                // Usuwa obiekt zasłaniający pole
+                AllTileCovers.Remove(collider.gameObject);
+                Destroy(collider.gameObject);
+                break;
+            }
+            else if (collider.CompareTag("Tile") && _tileCoveringState != "uncovering") // Tworzy obiekt zasłaniający pole
+            {
+                _tileCoveringState = "covering";
+                _lastTilesPositions.Add(collider.transform.position);
+
+                Vector3 coverPosition = new Vector3(collider.transform.position.x, collider.transform.position.y, -5);
+                GameObject tileCover = Instantiate(_tileCover, coverPosition, Quaternion.identity);
+
+                AllTileCovers.Add(tileCover);
+                break;
+            }
+        }
+    }
+
+    public void UncoverAll()
+    {
+        foreach(GameObject tile in AllTileCovers)
+        {
+            Destroy(tile);
+        }
     }
     #endregion
 }

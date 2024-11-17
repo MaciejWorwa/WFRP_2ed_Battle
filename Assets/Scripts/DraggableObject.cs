@@ -2,10 +2,10 @@ using UnityEngine;
 
 public class DraggableObject : MonoBehaviour
 {
-    private Vector3 _offset; // Przechowuje ró¿nicê miêdzy pozycj¹ obiektu a pozycj¹ kursora
+    private Vector3 _offset; // Przechowuje rÃ³Å¼nicÄ™ miÄ™dzy pozycjÄ… obiektu a pozycjÄ… kursora
     public static bool IsDragging = false;
     private Camera _mainCamera;
-    private Vector3 _startPosition; // Pozycja przed przesuniêciem
+    private Vector3 _startPosition; // Pozycja przed przesuniÄ™ciem
 
 
     private void Start()
@@ -15,12 +15,14 @@ public class DraggableObject : MonoBehaviour
 
     private void OnMouseDown()
     {
+        if(GameManager.IsMapHidingMode) return;
+        
         IsDragging = true;
 
-        //Zapisuje pocz¹tkow¹ pozycjê
+        //Zapisuje poczÄ…tkowÄ… pozycjÄ™
         _startPosition = transform.position;
 
-        // Oblicza offset miêdzy pozycj¹ obiektu a kursorem
+        // Oblicza offset miÄ™dzy pozycjÄ… obiektu a kursorem
         _offset = transform.position - GetMouseWorldPosition();
     }
 
@@ -28,7 +30,7 @@ public class DraggableObject : MonoBehaviour
     {
         if (IsDragging)
         {
-            // Aktualizuje pozycjê obiektu na podstawie kursora
+            // Aktualizuje pozycjÄ™ obiektu na podstawie kursora
             Vector3 newPosition = GetMouseWorldPosition() + _offset;
             newPosition.z = 0; // Ustaw Z na 0
             transform.position = newPosition;
@@ -37,10 +39,12 @@ public class DraggableObject : MonoBehaviour
 
     private void OnMouseUp()
     {
-        //Sprawdza, czy obiekt zosta³ przesuniêty
+        if(GameManager.IsMapHidingMode) return;
+
+        //Sprawdza, czy obiekt zostaÅ‚ przesuniÄ™ty
         if(transform.position != _startPosition)
         {
-            // Próbuje przypi¹æ obiekt do najbli¿szego pola siatki
+            // PrÃ³buje przypiÄ…Ä‡ obiekt do najbliÅ¼szego pola siatki
             SnapToGrid();
 
             //Zwalnia poprzednie pole
@@ -61,7 +65,7 @@ public class DraggableObject : MonoBehaviour
             _mainCamera= Camera.main;
         }
 
-        // Pobiera pozycjê myszy w œwiecie gry
+        // Pobiera pozycjÄ™ myszy w Å›wiecie gry
         Vector3 mouseScreenPosition = Input.mousePosition;
         mouseScreenPosition.z = _mainCamera.WorldToScreenPoint(transform.position).z;
         return _mainCamera.ScreenToWorldPoint(mouseScreenPosition);
@@ -73,12 +77,12 @@ public class DraggableObject : MonoBehaviour
         foreach(var collider in colliders)
         if (collider != null && collider.CompareTag("Tile") && collider.GetComponent<Tile>().IsOccupied == false)
         {
-            // Przesuwa obiekt do pozycji œrodka pola
+            // Przesuwa obiekt do pozycji Å›rodka pola
             Vector3 tilePosition = collider.transform.position;
             tilePosition.z = 0; // Ustaw Z na 0
             transform.position = tilePosition;
 
-            // Aktualizuje zajêtoœæ pola
+            // Aktualizuje zajÄ™toÅ›Ä‡ pola
             Tile tile = collider.GetComponent<Tile>();
             if (tile != null && !tile.IsOccupied)
             {
@@ -90,7 +94,7 @@ public class DraggableObject : MonoBehaviour
             transform.position = _startPosition;
         }
 
-        //Je¿eli przesuwamy obiekt bêd¹cy jednostk¹ to odznaczamy j¹
+        //JeÅ¼eli przesuwamy obiekt bÄ™dÄ…cy jednostkÄ… to odznaczamy jÄ…
         if (this.gameObject.GetComponent<Unit>() != null && Unit.SelectedUnit == this.gameObject)
         {
             this.gameObject.GetComponent<Unit>().SelectUnit();

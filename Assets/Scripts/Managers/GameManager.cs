@@ -47,6 +47,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button _fearIncludedButton;
     public static bool IsAutoCombatMode = false;
     [SerializeField] private Button _autoCombatButton;
+    public static bool IsMapHidingMode = false;
+    [SerializeField] private Button _mapHidingButton;
     private Dictionary<Button, bool> allModes;
     public static bool IsGamePaused;
 
@@ -69,7 +71,8 @@ public class GameManager : MonoBehaviour
             {_friendlyFireButton, IsFriendlyFire},
             {_autoDiceRollingButton, IsAutoDiceRollingMode},
             {_autoCombatButton, IsAutoCombatMode},
-            {_fearIncludedButton, IsFearIncluded}
+            {_fearIncludedButton, IsFearIncluded},
+            {_mapHidingButton, IsMapHidingMode}
         };
 
         // Ustawia kolory przycisków na podstawie początkowych wartości trybów
@@ -108,11 +111,68 @@ public class GameManager : MonoBehaviour
             IsMousePressed = false;
         }
 
+        //Przełączenie na tryb pełnoekranowy lub okno
+        if (Input.GetKeyDown(KeyCode.F11))
+        {
+            ToggleFullscreen();
+        }
+
+        // Sprawdzenie, czy wciśnięto Ctrl lub Command (dla macOS)
+        if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand))
+        {
+            if (Input.GetKeyDown(KeyCode.H))
+            {
+                SetMapHidingMode();
+            }
+            else if(Input.GetKeyDown(KeyCode.A))
+            {
+                SetAutoCombatMode();
+            }
+            else if(Input.GetKeyDown(KeyCode.T))
+            {
+                SetFearIncludedMode();
+            }
+            else if(Input.GetKeyDown(KeyCode.D))
+            {
+                SetAutoDefenseMode();
+            }
+            else if(Input.GetKeyDown(KeyCode.R))
+            {
+                SetAutoRollingDiceMode();
+            }
+            else if(Input.GetKeyDown(KeyCode.S))
+            {
+                SetAutoSelectUnitMode();
+            }
+            else if(Input.GetKeyDown(KeyCode.K))
+            {
+                SetAutoKillMode();
+            }     
+            else if(Input.GetKeyDown(KeyCode.F))
+            {
+                SetFriendlyFireMode();
+            }  
+        }
     }
 
     public void ChangeScene(int index)
     {
         SceneManager.LoadScene(index, LoadSceneMode.Single);
+    }
+
+    // Przełącza między trybem pełnoekranowym a oknem
+    public void ToggleFullscreen()
+    {
+        if (Screen.fullScreen)
+        {
+            Screen.fullScreenMode = FullScreenMode.Windowed;
+            Screen.fullScreen = false;
+        }
+        else
+        {
+            Screen.fullScreenMode = FullScreenMode.FullScreenWindow;
+            Screen.fullScreen = true;
+        }
     }
 
     #region UI panels
@@ -306,6 +366,22 @@ public class GameManager : MonoBehaviour
         else
         {
             Debug.Log("Tryb uwzględniający Strach i Grozę został wyłączony.");
+        }
+    }
+
+    public void SetMapHidingMode()
+    {
+        IsMapHidingMode = !IsMapHidingMode;
+
+        UpdateButtonColor(_mapHidingButton, IsMapHidingMode);
+
+        if (IsMapHidingMode)
+        {
+            Debug.Log("Tryb ukrywania obszarów mapy został włączony. Aby ukryć lub odsłonić obszar, kliknij LPM na wybrane pola.");
+        }
+        else
+        {
+            Debug.Log("Tryb ukrywania obszarów mapy został wyłączony.");
         }
     }
     #endregion

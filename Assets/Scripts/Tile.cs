@@ -21,12 +21,6 @@ public class Tile : MonoBehaviour
         _renderer = _tileFilling.GetComponent<Renderer>();
     }
 
-    //private void Start()
-    //{
-    //    _tileFilling = transform.GetChild(0).gameObject;
-    //    _renderer = _tileFilling.GetComponent<Renderer>();
-    //}
-
     public void Init(bool isOffset)
     {
         _renderer.material.color = isOffset ? _secondColor : _firstColor;
@@ -125,7 +119,7 @@ public class Tile : MonoBehaviour
 
         //Sprawdzamy, czy jest aktywny tryb usuwania elementów 
         if (MapEditor.IsElementRemoving || GameManager.Instance.IsPointerOverPanel() || DraggableObject.IsDragging) return;
-
+   
         Vector3 position = new Vector3(transform.position.x, transform.position.y, 1);
 
         MapEditor.Instance.PlaceElementOnSelectedTile(position);

@@ -106,6 +106,7 @@ MonoBehaviour:
   _rangeColor: {r: 0, g: 0, b: 0, a: 0.9019608}
   _highlightRangeColor: {r: 0.7490196, g: 0.8784314, b: 0.7254902, a: 0.9019608}
   IsOccupied: 0
+  _tileCover: {fileID: 6777474437148262374, guid: e39d1f0a8db3f7f47a438af61e3433e4, type: 3}
 --- !u!61 &-8791847887227988554
 BoxCollider2D:
   m_ObjectHideFlags: 0

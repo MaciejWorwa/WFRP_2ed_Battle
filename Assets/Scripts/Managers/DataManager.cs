@@ -666,9 +666,24 @@ public class MapElementsData
 }
 
 [System.Serializable]
+public class TileCoverData
+{
+    public float[] Position; // Pozycja tile cover
+
+    public TileCoverData(Vector3 position)
+    {
+        Position = new float[3];
+        Position[0] = position.x;
+        Position[1] = position.y;
+        Position[2] = position.z;
+    }
+}
+
+[System.Serializable]
 public class MapElementsContainer
 {
     public List<MapElementsData> Elements = new List<MapElementsData>();
+    public List<TileCoverData> TileCovers = new List<TileCoverData>();
 
     public string BackgroundImagePath;
     public float BackgroundPositionX;

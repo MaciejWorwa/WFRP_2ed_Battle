@@ -221,6 +221,13 @@ public class SaveAndLoadManager : MonoBehaviour
             }
         }
 
+        // Zbieranie danych TileCover
+        foreach (var tileCover in MapEditor.Instance.AllTileCovers)
+        {
+            TileCoverData data = new TileCoverData(tileCover.transform.position);
+            container.TileCovers.Add(data);
+        }
+
         container.BackgroundImagePath = MapEditor.BackgroundImagePath;
         container.BackgroundPositionX = MapEditor.BackgroundPositionX;
         container.BackgroundPositionY = MapEditor.BackgroundPositionY;
