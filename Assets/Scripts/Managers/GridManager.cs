@@ -243,7 +243,7 @@ public class GridManager : MonoBehaviour
             Vector2 tilePosition = new Vector2(tile.transform.position.x, tile.transform.position.y);
             Collider2D hitCollider = Physics2D.OverlapCircle(tilePosition, 0.1f);
 
-            if (hitCollider != null && !hitCollider.CompareTag("Tile"))
+            if (hitCollider != null && !hitCollider.CompareTag("Tile") && !hitCollider.CompareTag("TileCover"))
             {
                 tile.IsOccupied = true;
             }

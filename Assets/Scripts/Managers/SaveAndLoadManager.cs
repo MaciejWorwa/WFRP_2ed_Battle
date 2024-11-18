@@ -224,6 +224,7 @@ public class SaveAndLoadManager : MonoBehaviour
         // Zbieranie danych TileCover
         foreach (var tileCover in MapEditor.Instance.AllTileCovers)
         {
+            if(tileCover == null) continue;   
             TileCoverData data = new TileCoverData(tileCover.transform.position);
             container.TileCovers.Add(data);
         }

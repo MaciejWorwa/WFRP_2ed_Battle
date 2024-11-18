@@ -532,7 +532,15 @@ public class UnitsManager : MonoBehaviour
         }
         else
         {
-            _unitPanel.SetActive(true);
+            //W trybie ukrywania statystyk, panel wrogich jednostek pozostaje wyłączony
+            if(GameManager.IsStatsHidingMode && unit.CompareTag("EnemyUnit"))
+            {
+                _unitPanel.SetActive(false);
+            }
+            else
+            {
+                _unitPanel.SetActive(true);
+            }
 
             Unit unitComponent = unit.GetComponent<Unit>();
 

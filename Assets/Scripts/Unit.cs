@@ -45,7 +45,14 @@ public class Unit : MonoBehaviour
     {
         Stats = gameObject.GetComponent<Stats>();
 
-        DisplayUnitName();
+        if(!GameManager.IsNamesHidingMode)
+        {
+            DisplayUnitName();
+        }
+        else
+        {
+            HideUnitName();
+        }
 
         if(Stats.Dodge > 0) CanDodge = true;
         Stats.TempSz = Stats.Sz;
@@ -53,14 +60,21 @@ public class Unit : MonoBehaviour
 
         CalculateStrengthAndToughness(); // Liczy siłę i wytrzymałość
 
-        DisplayUnitHealthPoints();
+        if(!GameManager.IsStatsHidingMode)
+        {
+            DisplayUnitHealthPoints();
+        }
+        else
+        {
+            HideUnitHealthPoints();
+        }
 
         //Aktualizuje kolejkę inicjatywy
         InitiativeQueueManager.Instance.UpdateInitiativeQueue();
     }
     private void OnMouseUp()
     { 
-        if(GameManager.Instance.IsPointerOverPanel()) return;
+        if(GameManager.Instance.IsPointerOverPanel() || GameManager.IsMapHidingMode) return;
 
         if(!UnitsManager.IsUnitRemoving)
         {
@@ -188,11 +202,25 @@ public class Unit : MonoBehaviour
         }
     }
 
+    public void HideUnitName()
+    {
+        if (NameDisplay == null) return;
+
+        NameDisplay.text = "";
+    }
+
     public void DisplayUnitHealthPoints()
     {
         if (HealthDisplay == null) return;
 
         HealthDisplay.text = Stats.TempHealth + "/" + Stats.MaxHealth;
+    }
+
+    public void HideUnitHealthPoints()
+    {
+        if (HealthDisplay == null) return;
+
+        HealthDisplay.text = "";
     }
 
     public void CalculateStrengthAndToughness()

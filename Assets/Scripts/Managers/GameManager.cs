@@ -49,6 +49,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button _autoCombatButton;
     public static bool IsMapHidingMode = false;
     [SerializeField] private Button _mapHidingButton;
+    public static bool IsStatsHidingMode = false;
+    [SerializeField] private Button _statsHidingButton;
+    public static bool IsNamesHidingMode = false;
+    [SerializeField] private Button _healthPointsHidingButton;
+    public static bool IsHealthPointsHidingMode = false;
+    [SerializeField] private Button _namesHidingButton;
     private Dictionary<Button, bool> allModes;
     public static bool IsGamePaused;
 
@@ -72,7 +78,10 @@ public class GameManager : MonoBehaviour
             {_autoDiceRollingButton, IsAutoDiceRollingMode},
             {_autoCombatButton, IsAutoCombatMode},
             {_fearIncludedButton, IsFearIncluded},
-            {_mapHidingButton, IsMapHidingMode}
+            {_mapHidingButton, IsMapHidingMode},
+            {_namesHidingButton, IsNamesHidingMode},
+            {_statsHidingButton, IsStatsHidingMode},
+            {_healthPointsHidingButton, IsHealthPointsHidingMode}
         };
 
         // Ustawia kolory przycisków na podstawie początkowych wartości trybów
@@ -382,6 +391,91 @@ public class GameManager : MonoBehaviour
         else
         {
             Debug.Log("Tryb ukrywania obszarów mapy został wyłączony.");
+        }
+    }
+
+    public void SetHealthPointsHidingMode()
+    {
+        IsHealthPointsHidingMode = !IsHealthPointsHidingMode;
+
+        UpdateButtonColor(_healthPointsHidingButton, IsHealthPointsHidingMode);
+
+        if(SceneManager.GetActiveScene().buildIndex == 0) return;
+
+        if (IsHealthPointsHidingMode)
+        {
+            foreach(var unit in UnitsManager.Instance.AllUnits)
+            {
+                unit.HideUnitHealthPoints();
+            }
+            Debug.Log("Punkty żywotności na tokenach jednostek zostały ukryte.");
+        }
+        else
+        {
+            foreach(var unit in UnitsManager.Instance.AllUnits)
+            {
+                if (IsStatsHidingMode && unit.gameObject.CompareTag("EnemyUnit")) continue;
+                unit.DisplayUnitHealthPoints();
+            }
+            Debug.Log("Punkty żywotności na tokenach jednostek zostały ujawnione.");
+        }
+    }
+
+    public void SetStatsHidingMode()
+    {
+        IsStatsHidingMode = !IsStatsHidingMode;
+
+        UpdateButtonColor(_statsHidingButton, IsStatsHidingMode);
+
+        if(SceneManager.GetActiveScene().buildIndex == 0) return;
+
+        if (IsStatsHidingMode)
+        {
+            foreach(var unit in UnitsManager.Instance.AllUnits)
+            {
+                if(unit.gameObject.CompareTag("EnemyUnit"))
+                {
+                    unit.HideUnitHealthPoints();
+                }
+            }
+            Debug.Log("Panel ze statystykami przeciwników został ukryty.");
+        }
+        else
+        {
+            foreach(var unit in UnitsManager.Instance.AllUnits)
+            {
+                if(unit.gameObject.CompareTag("EnemyUnit") && !IsHealthPointsHidingMode)
+                {
+                    unit.DisplayUnitHealthPoints();
+                }
+            }
+            Debug.Log("Panel ze statystykami przeciwników został ujawniony.");
+        }
+    }
+
+    public void SetNamesHidingMode()
+    {
+        IsNamesHidingMode = !IsNamesHidingMode;
+
+        UpdateButtonColor(_namesHidingButton, IsNamesHidingMode);
+
+        if(SceneManager.GetActiveScene().buildIndex == 0) return;
+
+        if (IsNamesHidingMode)
+        {
+            foreach(var unit in UnitsManager.Instance.AllUnits)
+            {
+                unit.HideUnitName();
+            }
+            Debug.Log("Imiona i nazwy jednostek zostały ukryte.");
+        }
+        else
+        {
+            foreach(var unit in UnitsManager.Instance.AllUnits)
+            {
+                unit.DisplayUnitName();
+            }
+            Debug.Log("Imiona i nazwy jednostek zostały ujawnione.");
         }
     }
     #endregion

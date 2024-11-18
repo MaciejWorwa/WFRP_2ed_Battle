@@ -520,8 +520,19 @@ public class CombatManager : MonoBehaviour
                     Debug.Log(targetStats.Name + " znegował " + (targetStats.Wt + armor) + " obrażeń.");
 
                     //Zaktualizowanie punktów żywotności
-                    target.GetComponent<Unit>().DisplayUnitHealthPoints();
-                    Debug.Log($"Punkty żywotności {targetStats.Name}: {targetStats.TempHealth}/{targetStats.MaxHealth}");
+                    if(!GameManager.IsHealthPointsHidingMode)
+                    {
+                        if(GameManager.IsStatsHidingMode && target.CompareTag("EnemyUnit"))
+                        {
+                            target.GetComponent<Unit>().HideUnitHealthPoints();
+                        }
+                        else
+                        {
+                            target.GetComponent<Unit>().DisplayUnitHealthPoints();
+                            Debug.Log($"Punkty żywotności {targetStats.Name}: {targetStats.TempHealth}/{targetStats.MaxHealth}");
+                        }
+                    }
+
                 }
                 else
                 {
