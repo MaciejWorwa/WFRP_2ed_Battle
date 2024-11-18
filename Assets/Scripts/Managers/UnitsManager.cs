@@ -47,6 +47,7 @@ public class UnitsManager : MonoBehaviour
     [SerializeField] private TMP_InputField _unitNameInputField;
     [SerializeField] private UnityEngine.UI.Slider _modifierAttributeSlider;
     [SerializeField] private UnityEngine.UI.Toggle _unitTagToggle;
+    [SerializeField] private UnityEngine.UI.Toggle _unitSizeToggle;
     [SerializeField] private UnityEngine.UI.Button _createUnitButton; // Przycisk do tworzenia jednostek na losowych pozycjach
     [SerializeField] private UnityEngine.UI.Button _removeUnitButton;
     [SerializeField] private UnityEngine.UI.Button _updateUnitButton;
@@ -166,7 +167,7 @@ public class UnitsManager : MonoBehaviour
         GameObject selectedTile = GameObject.Find($"Tile {position.x - GridManager.Instance.transform.position.x} {position.y - GridManager.Instance.transform.position.y}");
 
         //Gdy próbujemy wczytać jednostkę na polu, które nie istnieje (bo np. siatka jest obecnie mniejsza niż siatka, na której były zapisywane jednostki) lub jest zajęte to wybiera im losową pozycję
-        if((selectedTile == null || selectedTile.GetComponent<Tile>().IsOccupied) && SaveAndLoadManager.Instance.IsLoading == true)
+        if ((selectedTile == null || selectedTile.GetComponent<Tile>().IsOccupied) && SaveAndLoadManager.Instance.IsLoading == true)
         {
             List<Vector3> availablePositions = AvailablePositions();
 
@@ -230,7 +231,7 @@ public class UnitsManager : MonoBehaviour
         DataManager.Instance.LoadAndUpdateStats(newUnit);
 
         //Ustala nazwę GameObjectu jednostki
-        if(unitName.Length < 1)
+        if (unitName.Length < 1)
         {
             newUnit.name = newUnit.GetComponent<Stats>().Race + $" {newUnitId}";
         }
@@ -239,7 +240,7 @@ public class UnitsManager : MonoBehaviour
             newUnit.name = unitName;
         }
 
-        if(SaveAndLoadManager.Instance.IsLoading != true)
+        if (SaveAndLoadManager.Instance.IsLoading != true)
         {
             //Ustawia tag postaci, który definiuje, czy jest to sojusznik, czy przeciwnik, a także jej domyślny kolor.
             if (_unitTagToggle.isOn)
@@ -254,6 +255,18 @@ public class UnitsManager : MonoBehaviour
                 newUnit.GetComponent<Unit>().DefaultColor = new Color(0.72f, 0.15f, 0.17f, 1.0f);
             }
             newUnit.GetComponent<Unit>().ChangeUnitColor(newUnit);
+
+            //Jednostki duże
+            if (_unitSizeToggle.isOn)
+            {
+                newUnit.transform.localScale = new Vector3(1.4f, 1.4f, 1.4f);
+                newUnit.GetComponent<Stats>().IsBig = true;
+            }
+            else
+            {
+                newUnit.transform.localScale = new Vector3(1f, 1f, 1f);
+                newUnit.GetComponent<Stats>().IsBig = false;
+            }
 
             //Losuje początkowe statystyki dla człowieka, elfa, krasnoluda i niziołka
             if (newUnit.GetComponent<Stats>().Id <= 4)
@@ -379,11 +392,11 @@ public class UnitsManager : MonoBehaviour
             //Resetuje input field z nazwą jednostki
             _unitNameInputField.text = null;
         }
-        else
-        {
-            unit.GetComponent<Stats>().Name = unit.GetComponent<Stats>().Race;
-            unit.GetComponent<Unit>().DisplayUnitName();
-        }
+        //else
+        //{
+        //    unit.GetComponent<Stats>().Name = unit.GetComponent<Stats>().Race;
+        //    unit.GetComponent<Unit>().DisplayUnitName();
+        //}
 
         //Ustawia tag postaci, który definiuje, czy jest to sojusznik, czy przeciwnik, a także jej domyślny kolor.
         if (_unitTagToggle.isOn)
@@ -397,6 +410,18 @@ public class UnitsManager : MonoBehaviour
             unit.GetComponent<Unit>().DefaultColor = new Color(0.72f, 0.15f, 0.17f, 1.0f);
         }
         unit.GetComponent<Unit>().ChangeUnitColor(unit);
+
+        //Jednostki duże
+        if (_unitSizeToggle.isOn)
+        {
+            unit.GetComponent<Stats>().IsBig = true;
+            unit.transform.localScale = new Vector3(1.4f, 1.4f, 1.4f);
+        }
+        else
+        {
+            unit.GetComponent<Stats>().IsBig = false;
+            unit.transform.localScale = new Vector3(1f, 1f, 1f);
+        }
 
         //Sprawdza, czy rasa jest zmieniana
         if (unit.GetComponent<Stats>().Id != _unitsDropdown.GetSelectedIndex())

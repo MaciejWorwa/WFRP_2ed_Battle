@@ -12,6 +12,8 @@ public class Stats : MonoBehaviour
 
     public int Index;
 
+    public bool IsBig;
+
     [Header("Imię")]
     public string Name;
 

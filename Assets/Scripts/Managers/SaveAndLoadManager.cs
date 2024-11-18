@@ -364,6 +364,12 @@ public class SaveAndLoadManager : MonoBehaviour
             unitGameObject.tag = unitData.Tag;
             unitGameObject.GetComponent<Unit>().ChangeUnitColor(unitGameObject);
 
+            //Ustawia rozmiar dużych jednostek
+            if (statsData.IsBig)
+            {
+                unitGameObject.transform.localScale = new Vector3(1.4f, 1.4f, 1.4f);
+            }
+
             yield return new WaitForSeconds(0.05f); // Oczekiwanie na zainicjowanie komponentów
 
             // Kontynuacja wczytywania i aktualizacji pozostałych danych jednostki

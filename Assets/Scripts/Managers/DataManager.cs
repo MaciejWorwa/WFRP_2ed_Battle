@@ -424,6 +424,7 @@ public class UnitData
 public class StatsData
 {
     public int Id;
+    public bool IsBig;
     public string Name;
     public string Race;
     public int PrimaryWeaponId;

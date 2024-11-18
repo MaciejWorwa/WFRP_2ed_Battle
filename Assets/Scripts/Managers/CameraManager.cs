@@ -47,6 +47,13 @@ public class CameraManager : MonoBehaviour
         horizontalInput = Input.GetAxis("Horizontal");
         verticalInput = Input.GetAxis("Vertical");
 
+        //Gdy przytrzymujemy Ctrl lub Cmd do zapobiegamy przesuwaniu się kamery (bo np. Ctrl + A to włączenie tryby automatycznej walki)
+        if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand))
+        {
+            horizontalInput = 0;
+            verticalInput = 0;
+        }
+
         // Oblicza wektor ruchu dla przesunięcia kamery
         Vector3 moveDirection = new Vector3(horizontalInput, verticalInput, 0f) * _moveSpeed * Time.deltaTime;
 
