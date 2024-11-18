@@ -77,18 +77,17 @@ jobs:
   release:
     needs: build
     name: Deploy a release
-    if: ${{ startsWith(github.event.head_commit.message, '[RELEASE]') }} # Warunek sprawdzający, czy wiadomość commita zawiera fragment: [RELEASE] na początku
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4.1.8
         with:
-          name: Build Artifacts
-          path: ${{ github.workspace }}/release
+          path: ${{ github.workspace}}/release
 
       - name: Zip release
         run: |
-          cd ${{ github.workspace }}/release
+          mv ${{ github.workspace}}/release/Build-StandaloneWindows64/* .
           zip -r Build-StandaloneWindows64.zip StandaloneWindows64
+          mv ${{ github.workspace}}/release/Build-StandaloneLinux64/* .
           zip -r Build-StandaloneLinux64.zip StandaloneLinux64
 
       - name: Release
@@ -96,5 +95,5 @@ jobs:
         with:
           tag_name: latest
           files: |
-            ${{ github.workspace }}/release/Build-StandaloneWindows64.zip
-            ${{ github.workspace }}/release/Build-StandaloneLinux64.zip
+            Build-StandaloneWindows64.zip
+            Build-StandaloneLinux64.zip
