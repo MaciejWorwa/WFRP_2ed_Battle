@@ -4,8 +4,11 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '**/*' # Ignoruj wszystkie zmiany domyślnie
+    # Sprawdzaj, czy wiadomość commita zaczyna się od [RELEASE]
+    condition: startsWith(github.event.head_commit.message, '[RELEASE]')
   pull_request:
-
 
 jobs:
   test:
@@ -69,7 +72,7 @@ jobs:
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4.4.3
-        if: ${{ matrix.target_platform != 'StandaloneOSX' }}
+        if: ${{ matrix.target_platform != 'StandaloneLinux64' }} # Tymczasowo ignoruje wersje na Linuxa, żeby oszczędzić miejce
         with:
           name: Build-${{ matrix.target_platform }}
           path: build
@@ -87,8 +90,8 @@ jobs:
         run: |
           mv ${{ github.workspace}}/release/Build-StandaloneWindows64/* .
           zip -r Build-StandaloneWindows64.zip StandaloneWindows64
-          mv ${{ github.workspace}}/release/Build-StandaloneLinux64/* .
-          zip -r Build-StandaloneLinux64.zip StandaloneLinux64
+          mv ${{ github.workspace}}/release/Build-StandaloneOSX/* .
+          zip -r Build-StandaloneOSX.zip StandaloneOSX
 
       - name: Release
         uses: softprops/action-gh-release@v2.1.0
@@ -96,4 +99,4 @@ jobs:
           tag_name: latest
           files: |
             Build-StandaloneWindows64.zip
-            Build-StandaloneLinux64.zip
+            Build-StandaloneOSX.zip
