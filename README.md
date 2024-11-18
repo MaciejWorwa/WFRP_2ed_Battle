@@ -67,10 +67,14 @@ In Battle Mode, manage and control units with these actions:
 
 Press **Esc** to open the main menu, where you can access **Settings**. By default, recommended settings are enabled.
 
-1. **Automatic Parrying**: Units automatically decide to parry or dodge attacks. When disabled, players choose to block, dodge, or take the damage.
-2. **Automatic Death**: Units with health below zero are automatically removed.
-3. **Automatic Unit Selection**: Units are selected in initiative order.
-4. **Friendly Fire**: Enables attacking allied units.
-5. **Automatic Dice Rolls**: Disable to allow players to use physical dice; manual outcomes can then be entered.
-6. **Include Fear Mechanics**: When enabled, the mechanics of Fear and Terror are applied.
-7. **Automatic Combat**: Actions for all units are automated, preventing manual movement when enabled.
+1. **Automatic Parrying** (Ctrl+D): Units automatically decide to parry or dodge attacks. When disabled, players choose to block, dodge, or take the damage.
+2. **Automatic Death** (Ctrl+K): Units with health below zero are automatically removed.
+3. **Automatic Unit Selection** (Ctrl+S): Units are selected in initiative order.
+4. **Friendly Fire** (Ctrl+F): Enables attacking allied units.
+5. **Automatic Dice Rolls** (Ctrl+R): Disable to allow players to use physical dice; manual outcomes can then be entered.
+6. **Include Fear Mechanics** (Ctrl+T): When enabled, the mechanics of Fear and Terror are applied.
+7. **Automatic Combat** (Ctrl+A): Actions for all units are automated, preventing manual movement when enabled.
+
+## Area Covering
+
+This feature is accessible from the main menu. It allows you to hide or reveal parts of the map. To use it, activate the appropriate button, then either click on specific tiles or drag the mouse across the grid. You can toggle this mode on or off by pressing Ctrl+H.
