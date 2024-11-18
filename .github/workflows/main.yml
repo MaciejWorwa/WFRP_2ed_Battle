@@ -2,15 +2,13 @@ name: Unity CI
 
 on:
   push:
-    tags:
-      - '[RELEASE]*' # Uruchamia się tylko dla commitów oznaczonych tagiem zaczynającym się od [RELEASE]
-  pull_request:
     branches:
       - main
 
 jobs:
   test:
     name: Run Unity Tests
+    if: ${{ startsWith(github.event.head_commit.message, '[RELEASE]') }} # Warunek sprawdzający, czy wiadomość commita zawiera fragment: [RELEASE] na początku
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -46,6 +44,7 @@ jobs:
       matrix:
         target_platform: ["StandaloneWindows64", "StandaloneLinux64", "StandaloneOSX"]
     name: Build Unity Project for ${{ matrix.target_platform }}
+    if: ${{ startsWith(github.event.head_commit.message, '[RELEASE]') }} # Warunek sprawdzający, czy wiadomość commita zawiera fragment: [RELEASE] na początku
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -78,6 +77,7 @@ jobs:
   release:
     needs: build
     name: Deploy a release
+    if: ${{ startsWith(github.event.head_commit.message, '[RELEASE]') }} # Warunek sprawdzający, czy wiadomość commita zawiera fragment: [RELEASE] na początku
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4.1.8
