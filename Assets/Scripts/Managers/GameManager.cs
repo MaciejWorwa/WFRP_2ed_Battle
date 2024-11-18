@@ -129,7 +129,7 @@ public class GameManager : MonoBehaviour
         // Sprawdzenie, czy wciśnięto Ctrl lub Command (dla macOS)
         if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand))
         {
-            if (Input.GetKeyDown(KeyCode.H))
+            if (Input.GetKeyDown(KeyCode.Q))
             {
                 SetMapHidingMode();
             }
@@ -160,6 +160,18 @@ public class GameManager : MonoBehaviour
             else if(Input.GetKeyDown(KeyCode.F))
             {
                 SetFriendlyFireMode();
+            }  
+            else if(Input.GetKeyDown(KeyCode.N))
+            {
+                SetNamesHidingMode();
+            }
+            else if(Input.GetKeyDown(KeyCode.H))
+            {
+                SetHealthPointsHidingMode();
+            }     
+            else if(Input.GetKeyDown(KeyCode.I))
+            {
+                SetStatsHidingMode();
             }  
         }
     }

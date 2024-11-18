@@ -74,10 +74,10 @@ Press **Esc** to open the main menu, where you can access **Settings**. By defau
 5. **Automatic Dice Rolls** (Ctrl+R): Disable to allow players to use physical dice; manual outcomes can then be entered.
 6. **Include Fear Mechanics** (Ctrl+T): When enabled, the mechanics of Fear and Terror are applied.
 7. **Friendly Fire** (Ctrl+F): Enables attacking allied units.
-8. **Enemy Stats Hiding Mode**: Hides the statistics panel of enemy units when they are selected.
-9. **Unit Name Hiding Mode**: Hides the names of units on their tokens.
-10. **Health Points Hiding Mode**: Hides the health points of units on their tokens.
+8. **Enemy Stats Hiding Mode** (Ctrl+I): Hides the statistics panel of enemy units when they are selected.
+9. **Unit Name Hiding Mode** (Ctrl+N): Hides the names of units on their tokens.
+10. **Health Points Hiding Mode** (Ctrl+H): Hides the health points of units on their tokens.
 
 ## Area Covering
 
-This feature is accessible from the main menu. It allows you to hide or reveal parts of the map. To use it, activate the appropriate button, then either click on specific tiles or drag the mouse across the grid. You can toggle this mode on or off by pressing Ctrl+H.
+This feature is accessible from the main menu. It allows you to hide or reveal parts of the map. To use it, activate the appropriate button, then either click on specific tiles or drag the mouse across the grid. You can toggle this mode on or off by pressing **Ctrl+Q**.
