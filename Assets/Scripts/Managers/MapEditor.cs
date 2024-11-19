@@ -10,6 +10,7 @@ using SimpleFileBrowser;
 using System;
 using System.IO;
 using System.ComponentModel;
+using System.Linq;
 
 public class MapEditor : MonoBehaviour
 {
@@ -27,6 +28,7 @@ public class MapEditor : MonoBehaviour
         if (instance != null && instance != this)
         {
             AllElements = instance.AllElements;
+            AllTileCovers = instance.AllTileCovers;
 
             // Niszczymy starą instancję, która już istnieje
             Destroy(instance.gameObject);
@@ -90,7 +92,6 @@ public class MapEditor : MonoBehaviour
             StartCoroutine(LoadBackgroundImage(BackgroundImagePath, false));
         }
 
-        AllTileCovers = new List<GameObject>();
         _lastTilesPositions = new List<Vector2>();
 
         //ResetBackgroundProperties();
@@ -630,10 +631,12 @@ public class MapEditor : MonoBehaviour
 
     public void UncoverAll()
     {
-        foreach(GameObject tile in AllTileCovers)
+        for (int i = AllTileCovers.Count - 1; i >= 0; i--) 
         {
-            Destroy(tile);
+            Destroy(AllTileCovers[i]);
         }
+
+        AllTileCovers.Clear();
     }
     #endregion
 }
