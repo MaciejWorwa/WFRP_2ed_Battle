@@ -65,6 +65,7 @@ public class GameManager : MonoBehaviour
     [Header("Panele")]
     public GameObject[] activePanels;
     [SerializeField] private GameObject _mainMenuPanel;
+    [SerializeField] private GameObject _tileCoveringPanel; //Panel z informacją o trybie ukrywania mapy
 
     private void Start()
     {
@@ -390,19 +391,44 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void SetMapHidingMode()
+    public void SetMapHidingMode(bool isDisabled = false)
     {
-        IsMapHidingMode = !IsMapHidingMode;
+
+        if(isDisabled)
+        {
+            IsMapHidingMode = false;
+        }
+        else
+        {    
+            IsMapHidingMode = !IsMapHidingMode;
+        }
 
         UpdateButtonColor(_mapHidingButton, IsMapHidingMode);
 
         if (IsMapHidingMode)
         {
             Debug.Log("Tryb ukrywania obszarów mapy został włączony. Aby ukryć lub odsłonić obszar, kliknij LPM na wybrane pola.");
+
+            //Odznacza jednostkę jeśli jest zaznaczona
+            if(Unit.SelectedUnit != null)
+            {
+                Unit.SelectedUnit.GetComponent<Unit>().SelectUnit();
+            }
+
+            //Poza sceną edytora map wyświetlamy panel informujący o aktywacji ukrywania mapy
+            if(SceneManager.GetActiveScene().buildIndex != 0)
+            {
+                _tileCoveringPanel.SetActive(true);
+            }
         }
         else
         {
             Debug.Log("Tryb ukrywania obszarów mapy został wyłączony.");
+
+            if(SceneManager.GetActiveScene().buildIndex != 0)
+            {
+                _tileCoveringPanel.SetActive(false);
+            }
         }
     }
 

@@ -53,6 +53,8 @@ public class MapEditor : MonoBehaviour
     [SerializeField] private TMP_InputField _rotationInputField;
     private Vector3 _mousePosition;
     private GameObject _cursorObject;
+
+    [Header("Ukrywanie mapy")]
     [SerializeField] private GameObject _tileCover; //Czarny sprite zasłaniający pole
     private List<Vector2> _lastTilesPositions;
     public List<GameObject> AllTileCovers; 
