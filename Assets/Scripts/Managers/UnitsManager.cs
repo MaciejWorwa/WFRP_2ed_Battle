@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine.UIElements;
 using System.Reflection;
 using System;
+using static UnityEngine.GraphicsBuffer;
 
 public class UnitsManager : MonoBehaviour
 {
@@ -287,7 +288,7 @@ public class UnitsManager : MonoBehaviour
                 SaveAndLoadManager.Instance.IsLoading = true; // Tylko po to, żeby informacja o dobyciu broni i dodaniu do ekwipunku z metody GrabWeapon i LoadWeapon nie były wyświetlane w oknie wiadomości
 
                 InventoryManager.Instance.WeaponsDropdown.SetSelectedIndex(newUnit.GetComponent<Stats>().PrimaryWeaponId);
-                InventoryManager.Instance.LoadWeapons();
+                InventoryManager.Instance.LoadWeapons(false);
                 InventoryManager.Instance.InventoryScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(1);
                 InventoryManager.Instance.GrabWeapon();
 
@@ -387,7 +388,9 @@ public class UnitsManager : MonoBehaviour
         if (_unitNameInputField.text.Length > 0)
         {
             unit.GetComponent<Stats>().Name = _unitNameInputField.text;
+
             unit.GetComponent<Unit>().DisplayUnitName();
+
             unit.name = _unitNameInputField.text;
             //Resetuje input field z nazwą jednostki
             _unitNameInputField.text = null;
@@ -508,6 +511,7 @@ public class UnitsManager : MonoBehaviour
         if(attributeName == "MaxHealth")
         {
             unit.GetComponent<Stats>().TempHealth = unit.GetComponent<Stats>().MaxHealth;
+
             unit.GetComponent<Unit>().DisplayUnitHealthPoints();
         }
         if(attributeName == "K" || attributeName == "Odp")
@@ -671,6 +675,7 @@ public class UnitsManager : MonoBehaviour
         Unit.SelectedUnit.GetComponent<Stats>().TempHealth += amount;
 
         Unit.SelectedUnit.GetComponent<Unit>().DisplayUnitHealthPoints();
+
         UpdateUnitPanel(Unit.SelectedUnit);
     }
     #endregion

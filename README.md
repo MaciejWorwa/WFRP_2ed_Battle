@@ -1,6 +1,7 @@
 # WFRP_2ed_Battle
 
-A simulator based on the mechanics of the role-playing game Warhammer Fantasy Role Play 2 ed., used to automate larger battles, making them easier to play.
+A comprehensive simulator based on the mechanics of the role-playing game **Warhammer Fantasy Role Play 2nd Edition**, designed to automate and streamline large-scale battles. 
+With a focus on ease of use and flexibility, the simulator supports a wide range of customization options, enabling players to recreate diverse battle scenarios while preserving the core mechanics of the tabletop experience.
 
 # Setup
 
@@ -21,11 +22,14 @@ At the moment only Polish language is supported.
 # Features
 
 - Battlefield editor with 34 unique map elements,
-- 20 different races/monsters to choose,
+- 20 different races or monsters to choose,
 - 20 different weapons (with quality to choose),
 - 16 different spells,
-- 6 different game modes (including automatic combat mode),
+- 7 different game modes (including automatic combat mode),
 - Save and load system,
+- Covering map areas,
+- Customizable backgrounds,
+- Interactive units management,
 - And more...
 
 # Tutorial
@@ -62,6 +66,7 @@ In Battle Mode, manage and control units with these actions:
 - **Selecting Units**: Left-click a unit to select it.
 - **Moving Units**: Click on an empty tile to move the selected unit.
 - **Attacking**: Right-click on an enemy unit to initiate an attack.
+- **Editing Units**: After selecting a unit, you can edit its attributes in the panel located in the top-left corner of the screen.
 
 ## Game Modes and Settings
 
@@ -78,6 +83,6 @@ Press **Esc** to open the main menu, where you can access **Settings**. By defau
 9. **Unit Name Hiding Mode** (Ctrl+N): Hides the names of units on their tokens.
 10. **Health Points Hiding Mode** (Ctrl+H): Hides the health points of units on their tokens.
 
-## Area Covering
+## Covering Areas
 
 This feature is accessible from the main menu. It allows you to hide or reveal parts of the map. To use it, activate the appropriate button, then either click on specific tiles or drag the mouse across the grid. You can toggle this mode on or off by pressing **Ctrl+Q**.

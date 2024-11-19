@@ -72,7 +72,7 @@ public class InventoryManager : MonoBehaviour
     #endregion
 
     #region Add weapon from list to inventory
-    public void LoadWeapons()
+    public void LoadWeapons(bool grabAfterLoad)
     {
         if (Unit.SelectedUnit != null)
         {
@@ -86,6 +86,16 @@ public class InventoryManager : MonoBehaviour
 
         //Wczytanie statystyk broni
         DataManager.Instance.LoadAndUpdateWeapons();
+
+        //Jeśli wybieramy opcję "Dodaj i wyposaż" to od razu wyposażamy jednostkę w wybraną broń
+        if(grabAfterLoad == true && Unit.SelectedUnit != null)
+        {
+            //Znajdujemy index z listy ekwipunku dla wybranej broni
+            int weaponIndex = Unit.SelectedUnit.GetComponent<Inventory>().AllWeapons.FindIndex(b => b.Id == Unit.SelectedUnit.GetComponent<Weapon>().Id);
+
+            //Dobywamy wybraną broń
+            GrabWeapon(weaponIndex + 1);
+        }
     }
 
     public void AddWeaponToInventory(WeaponData weaponData, GameObject unit)
@@ -173,13 +183,17 @@ public class InventoryManager : MonoBehaviour
     #endregion
 
     #region Grabing weapons
-    public void GrabWeapon()
+    public void GrabWeapon(int selectedIndex = 0)
     {
         if(Unit.SelectedUnit == null || InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons.Count == 0) return;
-        if (InventoryScrollViewContent.GetComponent<CustomDropdown>().SelectedButton == null) return;
+        if (InventoryScrollViewContent.GetComponent<CustomDropdown>().SelectedButton == null && selectedIndex == 0) return;
 
         GameObject unit = Unit.SelectedUnit;
-        int selectedIndex = InventoryScrollViewContent.GetComponent<CustomDropdown>().GetSelectedIndex();
+        if(selectedIndex == 0)
+        {
+            selectedIndex = InventoryScrollViewContent.GetComponent<CustomDropdown>().GetSelectedIndex();
+        }
+
         if (selectedIndex == 0)
         {
             Debug.Log("Musisz wybrać broń, w którą chcesz się wyposażyć.");
@@ -301,7 +315,8 @@ public class InventoryManager : MonoBehaviour
         string handInfoText = null;
 
         if (rightHandWeapon == buttonText) handInfoText = "P";     
-        else if (leftHandWeapon == buttonText) handInfoText = "L";
+        if (leftHandWeapon == buttonText) handInfoText = "L";
+        if (rightHandWeapon == buttonText && leftHandWeapon == buttonText) handInfoText = "P + L";
             
         button.transform.Find("hand_text").GetComponent<TMP_Text>().text = handInfoText;
         if(handInfoText == null)

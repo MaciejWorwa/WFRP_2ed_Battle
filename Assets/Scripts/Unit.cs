@@ -5,6 +5,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using System.Reflection;
 using System.IO;
+using static UnityEngine.UI.CanvasScaler;
 
 public class Unit : MonoBehaviour
 {
@@ -45,14 +46,7 @@ public class Unit : MonoBehaviour
     {
         Stats = gameObject.GetComponent<Stats>();
 
-        if(!GameManager.IsNamesHidingMode)
-        {
-            DisplayUnitName();
-        }
-        else
-        {
-            HideUnitName();
-        }
+        DisplayUnitName();
 
         if(Stats.Dodge > 0) CanDodge = true;
         Stats.TempSz = Stats.Sz;
@@ -60,14 +54,7 @@ public class Unit : MonoBehaviour
 
         CalculateStrengthAndToughness(); // Liczy siłę i wytrzymałość
 
-        if(!GameManager.IsStatsHidingMode)
-        {
-            DisplayUnitHealthPoints();
-        }
-        else
-        {
-            HideUnitHealthPoints();
-        }
+        DisplayUnitHealthPoints();
 
         //Aktualizuje kolejkę inicjatywy
         InitiativeQueueManager.Instance.UpdateInitiativeQueue();
@@ -200,6 +187,11 @@ public class Unit : MonoBehaviour
             NameDisplay.text = this.gameObject.name;
             Stats.Name = this.gameObject.name;
         }
+
+        if (GameManager.IsNamesHidingMode)
+        {
+            HideUnitName();
+        }
     }
 
     public void HideUnitName()
@@ -214,6 +206,11 @@ public class Unit : MonoBehaviour
         if (HealthDisplay == null) return;
 
         HealthDisplay.text = Stats.TempHealth + "/" + Stats.MaxHealth;
+
+        if (GameManager.IsHealthPointsHidingMode || GameManager.IsStatsHidingMode && this.gameObject.CompareTag("EnemyUnit"))
+        {
+            HideUnitHealthPoints();
+        }
     }
 
     public void HideUnitHealthPoints()
