@@ -65,6 +65,8 @@ public class Tile : MonoBehaviour
 
     private void OnMouseUp()
     {
+        if(GameManager.IsMapHidingMode) return;
+        
         if(UnitsManager.IsTileSelecting == true)
         {
             if(IsOccupied)
@@ -113,7 +115,7 @@ public class Tile : MonoBehaviour
         {
             MagicManager.Instance.CastSpell(this.gameObject);
         }
-
+        
         // Jeżeli nie jesteśmy w kreatorze pola bitwy to funkcja stawiania przeszkód jest wyłączona. Tak samo nie wywołujemy jej, gdy lewy przycisk myszy nie jest wciśnięty
         if (SceneManager.GetActiveScene().buildIndex != 0 ||  GameManager.IsMousePressed == false) return;
 

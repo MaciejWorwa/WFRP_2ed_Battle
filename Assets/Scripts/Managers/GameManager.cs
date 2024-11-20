@@ -48,7 +48,8 @@ public class GameManager : MonoBehaviour
     public static bool IsAutoCombatMode = false;
     [SerializeField] private Button _autoCombatButton;
     public static bool IsMapHidingMode = false;
-    [SerializeField] private Button _mapHidingButton;
+    [SerializeField] private Button _mapCoverButton;
+    [SerializeField] private Button _mapUncoverButton;
     public static bool IsStatsHidingMode = false;
     [SerializeField] private Button _statsHidingButton;
     public static bool IsNamesHidingMode = false;
@@ -61,6 +62,7 @@ public class GameManager : MonoBehaviour
     [Header("Edytor map")]
     public static bool IsMapElementPlacing;
     public static bool IsMousePressed;
+    public string TileCoveringState; //Zmienna przekazująca informacja o tym, czy aktualnie zasłaniamy pola, czy odsłaniamy
 
     [Header("Panele")]
     public GameObject[] activePanels;
@@ -79,7 +81,8 @@ public class GameManager : MonoBehaviour
             {_autoDiceRollingButton, IsAutoDiceRollingMode},
             {_autoCombatButton, IsAutoCombatMode},
             {_fearIncludedButton, IsFearIncluded},
-            {_mapHidingButton, IsMapHidingMode},
+            {_mapCoverButton, TileCoveringState == "covering"},
+            {_mapUncoverButton, TileCoveringState == "uncovering"},
             {_namesHidingButton, IsNamesHidingMode},
             {_statsHidingButton, IsStatsHidingMode},
             {_healthPointsHidingButton, IsHealthPointsHidingMode}
@@ -132,6 +135,11 @@ public class GameManager : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Q))
             {
+                if(TileCoveringState != "uncovering")
+                {
+                    SetCoveringState("covering");
+                }
+
                 SetMapHidingMode();
             }
             else if(Input.GetKeyDown(KeyCode.A))
@@ -393,21 +401,30 @@ public class GameManager : MonoBehaviour
 
     public void SetMapHidingMode(bool isDisabled = false)
     {
-
-        if(isDisabled)
+        // Jeśli tryb mapy jest już aktywny i kliknięto aktualnie aktywny przycisk, wyłącz tryb mapy
+        if (IsMapHidingMode && ((TileCoveringState == "covering" && _mapCoverButton.GetComponent<Image>().color != Color.white) || (TileCoveringState == "uncovering" && _mapUncoverButton.GetComponent<Image>().color != Color.white)))
         {
             IsMapHidingMode = false;
-        }
-        else
-        {    
-            IsMapHidingMode = !IsMapHidingMode;
+            UpdateButtonColor(_mapCoverButton, false);
+            UpdateButtonColor(_mapUncoverButton, false);
+
+            Debug.Log("Tryb ukrywania obszarów mapy został wyłączony.");
+
+            if (SceneManager.GetActiveScene().buildIndex != 0)
+            {
+                _tileCoveringPanel.SetActive(false);
+            }
+            return;
         }
 
-        UpdateButtonColor(_mapHidingButton, IsMapHidingMode);
+        IsMapHidingMode = !isDisabled;
+
+        UpdateButtonColor(_mapCoverButton, TileCoveringState == "covering");
+        UpdateButtonColor(_mapUncoverButton, TileCoveringState == "uncovering");
 
         if (IsMapHidingMode)
         {
-            Debug.Log("Tryb ukrywania obszarów mapy został włączony. Aby ukryć lub odsłonić obszar, kliknij LPM na wybrane pola.");
+            //Debug.Log("Tryb ukrywania obszarów mapy został włączony. Zaznacz przy użyciu LPM pola, które chcesz zakryć lub odsłonić.");
 
             //Odznacza jednostkę jeśli jest zaznaczona
             if(Unit.SelectedUnit != null)
@@ -423,13 +440,20 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("Tryb ukrywania obszarów mapy został wyłączony.");
+            //Debug.Log("Tryb ukrywania obszarów mapy został wyłączony.");
+
+            TileCoveringState = null;
 
             if(SceneManager.GetActiveScene().buildIndex != 0)
             {
                 _tileCoveringPanel.SetActive(false);
             }
         }
+    }
+
+    public void SetCoveringState(string state)
+    {
+        TileCoveringState = state;
     }
 
     public void SetHealthPointsHidingMode()

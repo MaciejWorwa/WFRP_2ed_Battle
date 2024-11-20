@@ -9,6 +9,7 @@ using System.Linq;
 using static SimpleFileBrowser.FileBrowser;
 using UnityEditor;
 using System.Drawing;
+using TMPro;
 
 public class CombatManager : MonoBehaviour
 {
@@ -38,6 +39,8 @@ public class CombatManager : MonoBehaviour
     private int _attackModifier;
     private float _attackDistance;
     private int _availableAttacks;
+
+    [Header("Przyciski wszystkich typów ataku")]
     [SerializeField] private UnityEngine.UI.Button _aimButton;
     [SerializeField] private UnityEngine.UI.Button _defensiveStanceButton;
     [SerializeField] private UnityEngine.UI.Button _standardAttackButton;
@@ -52,11 +55,15 @@ public class CombatManager : MonoBehaviour
 
     private bool _isSuccessful;  //Skuteczność ataku
 
+    [Header("Panele do manualnego zarządzania")]
     [SerializeField] private GameObject _parryAndDodgePanel;
     [SerializeField] private UnityEngine.UI.Button _dodgeButton;
     [SerializeField] private UnityEngine.UI.Button _parryButton;
     [SerializeField] private UnityEngine.UI.Button _getDamageButton;
     private string _parryOrDodge;
+    [SerializeField] private GameObject _applyDamagePanel;
+    [SerializeField] private TMP_InputField _damageInputField;
+    public bool IsManualPlayerAttack;
 
     // Metoda inicjalizująca słownik ataków
     void Start()
@@ -262,7 +269,7 @@ public class CombatManager : MonoBehaviour
 
                         Debug.Log("Strzał jest wykonywany w jednostkę znajdującą się za przeszkodą. Zastosowano ujemny modyfikator do trafienia.");
 
-                        break; //Żeby modyfikator nie kumolował się za każdą przeszkodę
+                        break; //Żeby modyfikator nie kumulował się za każdą przeszkodę
                     }
                     if (raycastHit.collider != null && raycastHit.collider.GetComponent<Unit>() != null && raycastHit.collider.GetComponent<Unit>() != target && raycastHit.collider.GetComponent<Unit>() != attacker)
                     {
@@ -272,10 +279,13 @@ public class CombatManager : MonoBehaviour
 
                         Debug.Log("Na linii strzału znajduje się inna jednostka. Zastosowano ujemny modyfikator do trafienia.");
 
-                        break; //Żeby modyfikator nie kumolował się za każdą postać
+                        break; //Żeby modyfikator nie kumulował się za każdą postać
                     }
                 }
             }
+
+            //Sprawdza, czy jest to atak wykonywany przez gracza, po którym będzie trzeba wpisać obrażenia w odpowiednim panelu. Ta zmienna jest konieczna, aby nowa jednostka nie była wybierana dopóki nie wpiszemy obrażeń.
+            IsManualPlayerAttack = Unit.SelectedUnit.CompareTag("PlayerUnit") && GameManager.IsAutoDiceRollingMode == false && GameManager.IsStatsHidingMode;
 
             //Wykonuje akcję (pomija tak okazyjny)
             bool canDoAction = true;
@@ -390,32 +400,20 @@ public class CombatManager : MonoBehaviour
             //Atakowany próbuje parować lub unikać.
             if (_isSuccessful && attackerWeapon.Type.Contains("melee") && (attacker.Feinted != true || AttackTypes["StandardAttack"] != true))
             {
+                bool canParry = target.CanParry && (RoundsManager.Instance.UnitsWithActionsLeft[target] >= 1 || targetStats.LightningParry);
+
                 //Sprawdzenie, czy jest aktywny tryb automatycznej obrony
-                if (!GameManager.IsAutoDefenseMode && ((target.CanParry && (RoundsManager.Instance.UnitsWithActionsLeft[target] >= 1 || targetStats.LightningParry) || target.CanDodge)))
+                if (!GameManager.IsAutoDefenseMode && (canParry || target.CanDodge))
                 {
                     _parryAndDodgePanel.SetActive(true);
 
-                    if (target.CanDodge)
-                    {
-                        _dodgeButton.gameObject.SetActive(true);
-                    }
-                    else
-                    {
-                        _dodgeButton.gameObject.SetActive(false);
-                    }
+                    _dodgeButton.gameObject.SetActive(target.CanDodge);
+                    _parryButton.gameObject.SetActive(canParry);
 
-                    if(target.CanParry)
-                    {
-                        _parryButton.gameObject.SetActive(true);
-                    }
-                    else
-                    {
-                        _parryButton.gameObject.SetActive(false);
-                    }
+                    StartCoroutine(WaitForDefenseReaction());
 
-                    StartCoroutine(WaitForButtonClickCoroutine());
-
-                    IEnumerator WaitForButtonClickCoroutine()
+                    // Korutyna obsługująca reakcję obronną
+                    IEnumerator WaitForDefenseReaction()
                     {
                         // Czekaj na kliknięcie przycisku
                         Debug.Log("Wybierz reakcję atakowanej postaci.");
@@ -428,7 +426,10 @@ public class CombatManager : MonoBehaviour
                     return;
                 }
 
-                _isSuccessful = CheckForParryAndDodge(attackerWeapon, targetWeapon, targetStats, target, false);
+                if(canParry || target.CanDodge)
+                {
+                    _isSuccessful = CheckForParryAndDodge(attackerWeapon, targetWeapon, targetStats, target, false);
+                }
             }
 
             //Zresetowanie finty
@@ -492,7 +493,54 @@ public class CombatManager : MonoBehaviour
             //W przypadku, gdy atak następuje w trybie ręcznego rzucania kośćmi to nie sprawdzamy rzutu na obrażenia. W przeciwnym razie sprawdzamy
             if (attacker.CompareTag("PlayerUnit") && GameManager.IsAutoDiceRollingMode == false)
             {
-                Debug.Log($"{attackerStats.Name} trafia w {targetStats.Name}, który neguje {targetStats.Wt + armor} obrażeń. Zadaj obrażenia ręcznie w panelu atakowanego (ikona \"-\" obok Żywotności).");
+                if(GameManager.IsStatsHidingMode)
+                {
+                    Debug.Log($"{attackerStats.Name} trafia w {targetStats.Name}. Zadaj obrażenia ręcznie wpisując wynik rzutu i kliknij \"Zatwierdź\".");
+
+                    _applyDamagePanel.SetActive(true);
+
+                    StartCoroutine(WaitForDamageValue());
+
+                    // Korutyna obsługująca reakcję obronną
+                    IEnumerator WaitForDamageValue()
+                    {
+                        // Czekaj na kliknięcie przycisku
+                        yield return new WaitUntil(() => _applyDamagePanel.activeSelf == false);
+                        int damage = 0;
+                        if (int.TryParse(_damageInputField.text, out int inputDamage))
+                        {
+                            damage = CalculateDamage(inputDamage, attackerStats, attackerWeapon);
+                            _damageInputField.text = null;
+                        }
+
+                        //Uwzględnienie strzału przebijającego zbroję (zdolność)
+                        if (attackerStats.SureShot && _attackDistance <= 1.5f && attackerWeapon.Type.Contains("ranged") && armor > 0) armor--;
+
+                        Debug.Log($"{attackerStats.Name} zadał {damage} obrażeń.");
+
+                        //Zadaje obrażenia
+                        ApplyDamage(damage, targetStats, armor, target);
+
+                        //Sprawdza, czy atak spowodował śmierć
+                        if (targetStats.TempHealth < 0 && GameManager.IsAutoKillMode)
+                        {
+                            HandleDeath(targetStats, target.gameObject, attackerStats);
+                        }
+
+                        //Aktualizuje aktywną postać na kolejce inicjatywy, jeśli atakujący nie ma już dostępnych akcji. Ta funkcja jest tu wywołana, dlatego że chcemy zastosować opóźnienie i poczekać ze zmianą jednostki do momentu wpisania wartości obrażeń
+                        if(RoundsManager.Instance.UnitsWithActionsLeft[attacker] == 0)
+                        {
+                            InitiativeQueueManager.Instance.SelectUnitByQueue();
+                        }
+
+                        IsManualPlayerAttack = false;
+                    }
+                    return;
+                }
+                else
+                {
+                    Debug.Log($"{attackerStats.Name} trafia w {targetStats.Name}, który neguje {targetStats.Wt + armor} obrażeń. Zadaj obrażenia ręcznie w panelu atakowanego (ikona \"-\" obok Żywotności).");
+                }
             }
             else
             {
@@ -512,47 +560,71 @@ public class CombatManager : MonoBehaviour
 
                 Debug.Log($"{attackerStats.Name} zadał {damage} obrażeń.");
 
-                //Zadanie obrażeń
-                if (damage > (targetStats.Wt + armor))
-                {
-                    targetStats.TempHealth -= damage - (targetStats.Wt + armor);
-
-                    Debug.Log(targetStats.Name + " znegował " + (targetStats.Wt + armor) + " obrażeń.");
-
-                    //Zaktualizowanie punktów żywotności
-                    if(!GameManager.IsHealthPointsHidingMode)
-                    {
-                        if(GameManager.IsStatsHidingMode && target.CompareTag("EnemyUnit"))
-                        {
-                            target.GetComponent<Unit>().HideUnitHealthPoints();
-                        }
-                        else
-                        {
-                            target.GetComponent<Unit>().DisplayUnitHealthPoints();
-                            Debug.Log($"Punkty żywotności {targetStats.Name}: {targetStats.TempHealth}/{targetStats.MaxHealth}");
-                        }
-                    }
-
-                }
-                else
-                {
-                    Debug.Log($"Atak {attackerStats.Name} nie przebił się przez pancerz.");
-                }
+                //Zadaje obrażenia
+                ApplyDamage(damage, targetStats, armor, target);
             }
 
-            //Śmierć
+            //Sprawdza, czy atak spowodował śmierć
             if (targetStats.TempHealth < 0 && GameManager.IsAutoKillMode)
             {
-                UnitsManager.Instance.DestroyUnit(target.gameObject);
-
-                //Aktualizuje podświetlenie pól w zasięgu ruchu atakującego (inaczej pozostanie puste pole w miejscu usuniętego przeciwnika)
-                GridManager.Instance.HighlightTilesInMovementRange(attackerStats);
+                HandleDeath(targetStats, target.gameObject, attackerStats);
             }
         }
         else
         {
             Debug.Log($"Atak {attackerStats.Name} chybił.");
         }
+    }
+
+    // Obliczanie i stosowanie obrażeń
+    private void ApplyDamage(int damage, Stats targetStats, int armor, Unit targetUnit)
+    {
+        if (damage > targetStats.Wt + armor)
+        {
+            targetStats.TempHealth -= damage - (targetStats.Wt + armor);
+
+            if(!GameManager.IsStatsHidingMode || targetUnit.gameObject.CompareTag("PlayerUnit"))
+            {
+                Debug.Log($"{targetStats.Name} znegował {targetStats.Wt + armor} obrażeń.");
+            }
+            else
+            {
+                Debug.Log($"{targetStats.Name} został zraniony.");
+            }
+
+            // Aktualizacja punktów żywotności
+            if (!GameManager.IsHealthPointsHidingMode)
+            {
+                if (GameManager.IsStatsHidingMode && targetUnit.gameObject.CompareTag("EnemyUnit"))
+                {
+                    targetUnit.HideUnitHealthPoints();
+                }
+                else
+                {
+                    targetUnit.DisplayUnitHealthPoints();
+                    Debug.Log($"Punkty żywotności {targetStats.Name}: {targetStats.TempHealth}/{targetStats.MaxHealth}");
+                }
+            }
+        }
+        else
+        {
+            Debug.Log($"Atak nie przebił się przez pancerz.");
+        }
+    }
+
+    private void HandleDeath(Stats targetStats, GameObject target, Stats attackerStats)
+    {
+        // Zapobiega usunięciu postaci graczy, gdy statystyki przeciwników są ukryte
+        if (GameManager.IsStatsHidingMode && targetStats.gameObject.CompareTag("PlayerUnit"))
+        {
+            return;
+        }
+
+        // Usuwanie jednostki
+        UnitsManager.Instance.DestroyUnit(target);
+
+        // Aktualizacja podświetlenia pól w zasięgu ruchu atakującego
+        GridManager.Instance.HighlightTilesInMovementRange(attackerStats);
     }
     #endregion
 

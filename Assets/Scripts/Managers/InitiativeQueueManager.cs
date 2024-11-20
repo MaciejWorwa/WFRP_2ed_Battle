@@ -41,6 +41,10 @@ public class InitiativeQueueManager : MonoBehaviour
     #region Initiative queue
     public void AddUnitToInitiativeQueue(Unit unit)
     {
+        //Nie dodaje do kolejki inicjatywy jednostek, które są ukryte
+        Collider2D collider = Physics2D.OverlapPoint(unit.gameObject.transform.position);
+        if(collider.CompareTag("TileCover")) return;
+
         InitiativeQueue.Add(unit, unit.GetComponent<Stats>().Initiative);
         RoundsManager.Instance.UnitsWithActionsLeft.Add(unit, 2);
     }
@@ -103,12 +107,6 @@ public class InitiativeQueueManager : MonoBehaviour
             }
         }
     }
-
-    //public void ClearInitiativeQueue()
-    //{
-    //    InitiativeQueue.Clear();
-    //    RoundsManager.Instance.UnitsWithActionsLeft.Clear();
-    //}
 
     public void SelectUnitByQueue()
     {

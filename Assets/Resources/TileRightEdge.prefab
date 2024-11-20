@@ -96,7 +96,7 @@ GameObject:
   - component: {fileID: 1487761026357061347}
   - component: {fileID: 887167717322211507}
   - component: {fileID: -8791847887227988554}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: TileRightEdge
   m_TagString: Tile
   m_Icon: {fileID: 0}

@@ -58,7 +58,6 @@ public class MapEditor : MonoBehaviour
     [SerializeField] private GameObject _tileCover; //Czarny sprite zasłaniający pole
     private List<Vector2> _lastTilesPositions;
     public List<GameObject> AllTileCovers; 
-    private string _tileCoveringState; //Zmienna przekazująca informacja o tym, czy aktualnie zasłaniamy pola, czy odsłaniamy
 
     [Header("Tło")]
     [SerializeField] private GameObject _background;
@@ -112,18 +111,24 @@ public class MapEditor : MonoBehaviour
             }
         }
 
-        if (GameManager.IsMapHidingMode && GameManager.Instance.IsPointerOverPanel() == false)
-        {
-            if (Input.GetMouseButton(0)) // Sprawdzanie, czy lewy przycisk myszy jest trzymany
-            {
-                CoverOrUncoverTile();
-            }
-            else if (Input.GetMouseButtonUp(0)) // Resetowanie listy ostatnio zasłanianych lub odsłanianych pól
-            {
-                _tileCoveringState = null;
-                _lastTilesPositions.Clear();
-            }
-        }
+        // if (GameManager.IsMapHidingMode && GameManager.Instance.IsPointerOverPanel() == false)
+        // {
+        //     if (Input.GetMouseButton(0)) // Sprawdzanie, czy lewy przycisk myszy jest trzymany
+        //     {
+        //         CoverOrUncoverTile();
+        //     }
+        //     else if (Input.GetMouseButtonUp(0)) // Resetowanie listy ostatnio zasłanianych lub odsłanianych pól
+        //     {
+        //         TileCoveringState = null;
+        //         _lastTilesPositions.Clear();
+
+        //         //Odświeża pola w zasięgu ruchu, aby uwzględnić nowo odsłonięte pola
+        //         if(Unit.SelectedUnit != null)
+        //         {
+        //             GridManager.Instance.HighlightTilesInMovementRange(Unit.SelectedUnit.GetComponent<Stats>());
+        //         }
+        //     }
+        // }
     }
     
     private void ReplaceCursorWithMapElement()
@@ -590,44 +595,51 @@ public class MapEditor : MonoBehaviour
     #endregion
 
     #region Covering map
-    private void CoverOrUncoverTile()
+    public void CoverOrUncoverTile(Collider2D collider)
     {
-        // Zamienia pozycję kursora myszy na współrzędne świata
-        Vector2 clickPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector2 roundedClickPosition = new Vector2(Mathf.Round(clickPosition.x), Mathf.Round(clickPosition.y));
-
-        foreach(Vector2 position in _lastTilesPositions)
+        // Obsługuje tylko pola typu Tile lub TileCover
+        if (collider.CompareTag("TileCover") && GameManager.Instance.TileCoveringState != "covering")
         {
-            if(position == roundedClickPosition) return;
+            GameManager.Instance.TileCoveringState = "uncovering";
+            _lastTilesPositions.Add(collider.transform.position);
+
+            // Usuwa obiekt zasłaniający pole
+            AllTileCovers.Remove(collider.gameObject);
+            Destroy(collider.gameObject);
+
+            // Sprawdzenie, czy pod elementem zasłaniającym mapę znajduje się jednostka. Jeśli tak, to dodajemy ją do kolejki inicjatywy
+            Collider2D unitCollider = Physics2D.OverlapPoint(collider.transform.position);
+            if (unitCollider != null && unitCollider.GetComponent<Unit>() != null)
+            {
+                Unit unit = unitCollider.GetComponent<Unit>();
+                Stats unitStats = unitCollider.GetComponent<Stats>();
+
+                // Sprawdź, czy jednostka jest już w kolejce
+                if (!InitiativeQueueManager.Instance.InitiativeQueue.ContainsKey(unit))
+                {
+                    InitiativeQueueManager.Instance.InitiativeQueue.Add(unit, unitStats.Initiative);
+                    InitiativeQueueManager.Instance.UpdateInitiativeQueue();
+                    InitiativeQueueManager.Instance.SelectUnitByQueue();
+                }
+            }
         }
-
-        // Pobiera wszystkie collidery w miejscu kliknięcia
-        Collider2D[] colliders = Physics2D.OverlapPointAll(clickPosition);
-
-        foreach (Collider2D collider in colliders)
+        else if (collider.CompareTag("Tile") && GameManager.Instance.TileCoveringState != "uncovering") // Tworzy obiekt zasłaniający pole
         {
-            // Obsługuje tylko pola typu Tile lub TileCover
-            if (collider.CompareTag("TileCover") && _tileCoveringState != "covering")
+            GameManager.Instance.TileCoveringState = "covering";
+            _lastTilesPositions.Add(collider.transform.position);
+
+            // Sprawdzenie, czy na polu, które chcemy zasłonić znajduje się jednostka. Jeśli tak, to usuwamy ją z kolejki inicjatywy
+            Collider2D unitCollider = Physics2D.OverlapPoint(collider.transform.position);
+            if (unitCollider != null && unitCollider.GetComponent<Unit>() != null)
             {
-                _tileCoveringState = "uncovering";
-                _lastTilesPositions.Add(collider.transform.position);
-
-                // Usuwa obiekt zasłaniający pole
-                AllTileCovers.Remove(collider.gameObject);
-                Destroy(collider.gameObject);
-                break;
+                InitiativeQueueManager.Instance.InitiativeQueue.Remove(unitCollider.GetComponent<Unit>());
+                InitiativeQueueManager.Instance.UpdateInitiativeQueue();
             }
-            else if (collider.CompareTag("Tile") && _tileCoveringState != "uncovering") // Tworzy obiekt zasłaniający pole
-            {
-                _tileCoveringState = "covering";
-                _lastTilesPositions.Add(collider.transform.position);
 
-                Vector3 coverPosition = new Vector3(collider.transform.position.x, collider.transform.position.y, -5);
-                GameObject tileCover = Instantiate(_tileCover, coverPosition, Quaternion.identity);
+            Vector3 coverPosition = new Vector3(collider.transform.position.x, collider.transform.position.y, -5);
+            GameObject tileCover = Instantiate(_tileCover, coverPosition, Quaternion.identity);
 
-                AllTileCovers.Add(tileCover);
-                break;
-            }
+            AllTileCovers.Add(tileCover);
         }
     }
 
@@ -635,7 +647,25 @@ public class MapEditor : MonoBehaviour
     {
         for (int i = AllTileCovers.Count - 1; i >= 0; i--) 
         {
+            Vector3 position = AllTileCovers[i].transform.position;   
+
             Destroy(AllTileCovers[i]);
+
+            // Sprawdzenie, czy pod elementem zasłaniającym mapę znajduje się jednostka. Jeśli tak, to dodajemy ją do kolejki inicjatywy
+            Collider2D unitCollider = Physics2D.OverlapPoint(position);
+            if (unitCollider != null && unitCollider.GetComponent<Unit>() != null)
+            {
+                Unit unit = unitCollider.GetComponent<Unit>();
+                Stats unitStats = unitCollider.GetComponent<Stats>();
+
+                // Sprawdź, czy jednostka jest już w kolejce
+                if (!InitiativeQueueManager.Instance.InitiativeQueue.ContainsKey(unit))
+                {
+                    InitiativeQueueManager.Instance.InitiativeQueue.Add(unit, unitStats.Initiative);
+                    InitiativeQueueManager.Instance.UpdateInitiativeQueue();
+                    InitiativeQueueManager.Instance.SelectUnitByQueue();
+                }
+            }
         }
 
         AllTileCovers.Clear();

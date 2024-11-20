@@ -205,10 +205,14 @@ public class RoundsManager : MonoBehaviour
             //Zresetowanie szarży lub biegu, jeśli były aktywne (po zużyciu jednej akcji szarża i bieg nie mogą być możliwe)
             MovementManager.Instance.UpdateMovementRange(1);
 
-            //Aktualizuje aktywną postać na kolejce inicjatywy, gdy obecna postać wykona wszystkie akcje w tej rundzie
+            //Aktualizuje aktywną postać na kolejce inicjatywy, gdy obecna postać wykona wszystkie akcje w tej rundzie. 
             if(UnitsWithActionsLeft[unit] == 0)
             {
-                InitiativeQueueManager.Instance.SelectUnitByQueue();
+                //W przypadku ręcznego zadawania obrażeń, czekamy na wpisanie wartości obrażeń przed zmianą jednostki (jednostka jest wtedy zmieniana w funkcji ExecuteAttack w CombatManager)
+                if (!CombatManager.Instance.IsManualPlayerAttack)
+                {
+                    InitiativeQueueManager.Instance.SelectUnitByQueue();
+                }
             }
             return true;
         }
@@ -238,7 +242,11 @@ public class RoundsManager : MonoBehaviour
             //Aktualizuje aktywną postać na kolejce inicjatywy, bo obecna postać wykonała wszystkie akcje w tej rundzie. Wyjątkiem jest atak wielokrotny
             if (!CombatManager.Instance.AttackTypes["SwiftAttack"])
             {
-                InitiativeQueueManager.Instance.SelectUnitByQueue();
+                //W przypadku ręcznego zadawania obrażeń, czekamy na wpisanie wartości obrażeń przed zmianą jednostki (jednostka jest wtedy zmieniana w funkcji ExecuteAttack w CombatManager)
+                if (!CombatManager.Instance.IsManualPlayerAttack)
+                {
+                    InitiativeQueueManager.Instance.SelectUnitByQueue();
+                }
             }    
 
             return true;
