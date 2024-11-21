@@ -46,7 +46,10 @@ public class InitiativeQueueManager : MonoBehaviour
         if(collider.CompareTag("TileCover")) return;
 
         InitiativeQueue.Add(unit, unit.GetComponent<Stats>().Initiative);
-        RoundsManager.Instance.UnitsWithActionsLeft.Add(unit, 2);
+        if(!RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(unit))
+        {
+            RoundsManager.Instance.UnitsWithActionsLeft.Add(unit, 2);
+        }
     }
 
     public void RemoveUnitFromInitiativeQueue(Unit unit)

@@ -1,6 +1,6 @@
 # WFRP_2ed_Battle
 
-A comprehensive simulator based on the mechanics of the role-playing game **Warhammer Fantasy Role Play 2nd Edition**, designed to automate and streamline large-scale battles. 
+A comprehensive simulator based on the mechanics of the role-playing game **Warhammer Fantasy Role Play 2nd Edition**, designed to automate and streamline large-scale battles.
 With a focus on ease of use and flexibility, the simulator supports a wide range of customization options, enabling players to recreate diverse battle scenarios while preserving the core mechanics of the tabletop experience.
 
 # Setup
@@ -23,7 +23,7 @@ At the moment only Polish language is supported.
 
 - Battlefield editor with 34 unique map elements,
 - 20 different races or monsters to choose,
-- 20 different weapons (with quality to choose),
+- 33 different weapons (with quality to choose),
 - 16 different spells,
 - 7 different game modes (including automatic combat mode),
 - Save and load system,

@@ -329,7 +329,7 @@ public class RoundsManager : MonoBehaviour
         _roundNumberDisplay.text = "Runda: " + RoundNumber;
         _nextRoundButtonText.text = "Następna runda";
 
-        UnitsWithActionsLeft.Clear(); // Czyści słownik przed uzupełnieniem nowymi danymi
+        // UnitsWithActionsLeft.Clear(); // Czyści słownik przed uzupełnieniem nowymi danymi
 
         foreach (var entry in data.Entries)
         {

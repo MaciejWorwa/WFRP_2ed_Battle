@@ -810,6 +810,9 @@ public class CombatManager : MonoBehaviour
             int roll2 = Random.Range(1, 11);
             damageRollResult = roll1 >= roll2 ? roll1 : roll2;
             Debug.Log($"Atak druzgoczącą bronią. Rzut na obrażenia nr 1: {roll1} Rzut nr 2: {roll2}");
+
+            //Uwzględnienie broni ciężkiej
+            if(attackerWeapon.Tiring) attackerWeapon.Impact = false;
         }
         else
         {

@@ -617,7 +617,7 @@ public class MapEditor : MonoBehaviour
                 // Sprawdź, czy jednostka jest już w kolejce
                 if (!InitiativeQueueManager.Instance.InitiativeQueue.ContainsKey(unit))
                 {
-                    InitiativeQueueManager.Instance.InitiativeQueue.Add(unit, unitStats.Initiative);
+                    InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(unit);
                     InitiativeQueueManager.Instance.UpdateInitiativeQueue();
                     InitiativeQueueManager.Instance.SelectUnitByQueue();
                 }
@@ -632,7 +632,7 @@ public class MapEditor : MonoBehaviour
             Collider2D unitCollider = Physics2D.OverlapPoint(collider.transform.position);
             if (unitCollider != null && unitCollider.GetComponent<Unit>() != null)
             {
-                InitiativeQueueManager.Instance.InitiativeQueue.Remove(unitCollider.GetComponent<Unit>());
+                InitiativeQueueManager.Instance.RemoveUnitFromInitiativeQueue(unitCollider.GetComponent<Unit>());
                 InitiativeQueueManager.Instance.UpdateInitiativeQueue();
             }
 
@@ -661,7 +661,7 @@ public class MapEditor : MonoBehaviour
                 // Sprawdź, czy jednostka jest już w kolejce
                 if (!InitiativeQueueManager.Instance.InitiativeQueue.ContainsKey(unit))
                 {
-                    InitiativeQueueManager.Instance.InitiativeQueue.Add(unit, unitStats.Initiative);
+                    InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(unit);
                     InitiativeQueueManager.Instance.UpdateInitiativeQueue();
                     InitiativeQueueManager.Instance.SelectUnitByQueue();
                 }

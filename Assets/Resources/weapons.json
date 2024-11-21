@@ -100,6 +100,35 @@
     },
     {
       "Id": 11,
+      "Name": "Kastet/rękawica",
+      "Type": ["melee"],
+      "TwoHanded": false,
+      "AttackRange": 1.5,
+      "S": -3,
+      "Pummelling": true
+    },
+    {
+      "Id": 12,
+      "Name": "Kij",
+      "Type": ["melee"],
+      "TwoHanded": true,
+      "AttackRange": 1.5,
+      "S": -2,
+      "Pummelling": true,
+      "Defensive": true
+    },
+    {
+      "Id": 13,
+      "Name": "Korbacz",
+      "Type": ["melee"],
+      "TwoHanded": true,
+      "AttackRange": 1.5,
+      "S": 1,
+      "Tiring": true,
+      "Impact": true
+    },
+    {
+      "Id": 14,
       "Name": "Kusza",
       "Type": ["ranged"],
       "TwoHanded": true,
@@ -109,7 +138,17 @@
       "ReloadLeft": 0
     },
     {
-      "Id": 12,
+      "Id": 15,
+      "Name": "Kusza pistoletowa",
+      "Type": ["ranged"],
+      "TwoHanded": false,
+      "AttackRange": 4,
+      "S": 2,
+      "ReloadTime": 2,
+      "ReloadLeft": 0
+    },
+    {
+      "Id": 16,
       "Name": "Łuk",
       "Type": ["ranged"],
       "TwoHanded": true,
@@ -119,7 +158,44 @@
       "ReloadLeft": 0
     },
     {
-      "Id": 13,
+      "Id": 17,
+      "Name": "Morgernsztern",
+      "Type": ["melee"],
+      "TwoHanded": false,
+      "AttackRange": 1.5,
+      "S": 0,
+      "Tiring": true,
+      "Impact": true
+    },
+    {
+      "Id": 18,
+      "Name": "Muszkiet hochlandzki",
+      "Type": ["ranged", "gunpowder"],
+      "TwoHanded": true,
+      "AttackRange": 24,
+      "S": 4,
+      "Impact": true,
+      "ReloadTime": 4,
+      "ReloadLeft": 0
+    },
+    {
+      "Id": 19,
+      "Name": "Nóż/gwiazdka do rzucania",
+      "Type": ["ranged"],
+      "TwoHanded": false,
+      "AttackRange": 3,
+      "S": -3
+    },
+    {
+      "Id": 20,
+      "Name": "Oszczep",
+      "Type": ["ranged", "throwing"],
+      "TwoHanded": false,
+      "AttackRange": 4,
+      "S": -1
+    },
+    {
+      "Id": 21,
       "Name": "Pistolet",
       "Type": ["ranged", "gunpowder"],
       "TwoHanded": false,
@@ -130,7 +206,37 @@
       "ReloadLeft": 0
     },
     {
-      "Id": 14,
+      "Id": 22,
+      "Name": "Pistolet wielostrzałowy",
+      "Type": ["ranged", "gunpowder"],
+      "TwoHanded": false,
+      "AttackRange": 4,
+      "S": 4,
+      "ReloadTime": 0,
+      "ReloadLeft": 0
+    },
+    {
+      "Id": 23,
+      "Name": "Proca",
+      "Type": ["ranged"],
+      "TwoHanded": false,
+      "AttackRange": 8,
+      "S": 3,
+      "ReloadTime": 1,
+      "ReloadLeft": 0
+    },
+    {
+      "Id": 24,
+      "Name": "Proca drzewcowa",
+      "Type": ["ranged"],
+      "TwoHanded": true,
+      "AttackRange": 12,
+      "S": 4,
+      "ReloadTime": 2,
+      "ReloadLeft": 0
+    },
+    {
+      "Id": 25,
       "Name": "Puklerz",
       "Type": ["melee", "shield"],
       "AttackRange": 1.5,
@@ -140,7 +246,7 @@
       "Pummelling": true
     },
     {
-      "Id": 15,
+      "Id": 26,
       "Name": "Rapier",
       "Type": ["melee"],
       "AttackRange": 1.5,
@@ -148,7 +254,7 @@
       "Fast": true
     },
     {
-      "Id": 16,
+      "Id": 27,
       "Name": "Rusznica",
       "Type": ["ranged", "gunpowder"],
       "TwoHanded": true,
@@ -159,7 +265,17 @@
       "ReloadLeft": 0
     },
     {
-      "Id": 17,
+      "Id": 28,
+      "Name": "Rusznica wielestrzałowa",
+      "Type": ["ranged", "gunpowder"],
+      "TwoHanded": true,
+      "AttackRange": 12,
+      "S": 4,
+      "ReloadTime": 0,
+      "ReloadLeft": 0
+    },
+    {
+      "Id": 29,
       "Name": "Sieć",
       "Type": ["ranged", "no-damage", "throwing"],
       "TwoHanded": false,
@@ -169,14 +285,23 @@
       "Snare": true
     },
     {
-      "Id": 18,
+      "Id": 30,
+      "Name": "Szpada",
+      "Type": ["malee"],
+      "TwoHanded": false,
+      "AttackRange": 1.5,
+      "S": -2,
+      "Fast": true
+    },
+    {
+      "Id": 31,
       "Name": "Sztylet",
       "Type": ["melee"],
       "AttackRange": 1.5,
       "S": -3
     },
     {
-      "Id": 19,
+      "Id": 32,
       "Name": "Tarcza",
       "Type": ["melee", "shield"],
       "AttackRange": 1.5,
@@ -184,7 +309,7 @@
       "Defensive": true
     },
     {
-      "Id": 20,
+      "Id": 33,
       "Name": "Włócznia",
       "Type": ["melee"],
       "AttackRange": 1.5,

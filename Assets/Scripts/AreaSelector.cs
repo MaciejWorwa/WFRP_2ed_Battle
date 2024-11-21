@@ -13,7 +13,7 @@ public class AreaSelector : MonoBehaviour
 
     void Update()
     {
-        if(!GameManager.IsMapHidingMode || GameManager.Instance.IsPointerOverPanel()) return;
+        if(!GameManager.IsMapHidingMode && !UnitsManager.IsUnitRemoving) return;
 
         if (Input.GetMouseButtonDown(0)) // Start rysowania prostokąta
         {
@@ -91,11 +91,27 @@ public class AreaSelector : MonoBehaviour
 
         // Wykryj wszystkie Colliders2D wewnątrz prostokąta
         Collider2D[] colliders = Physics2D.OverlapAreaAll(_selectionRect.min, _selectionRect.max, _selectableLayer);
+        
+        bool collidersContainsUnit = false;
 
         // Obsłuż wykryte obiekty
         foreach (Collider2D collider in colliders)
         {
-            MapEditor.Instance.CoverOrUncoverTile(collider);
+            //Zasłania lub odsłania obszary mapy
+            if(GameManager.IsMapHidingMode)
+            {
+                MapEditor.Instance.CoverOrUncoverTile(collider);
+            }
+            else if(UnitsManager.IsUnitRemoving && collider.GetComponent<Unit>()) //Usuwa wszystkie jednostki w zaznaczonym obszarze
+            {
+                collidersContainsUnit = true;
+                UnitsManager.Instance.DestroyUnit(collider.gameObject);
+            }   
+        }
+
+        if(collidersContainsUnit)
+        {
+            UnitsManager.IsUnitRemoving = false;
         }
     }
 

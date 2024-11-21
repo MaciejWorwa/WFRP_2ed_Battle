@@ -304,12 +304,18 @@ public class UnitsManager : MonoBehaviour
     #region Removing units
     public void DestroyUnitMode()
     {
+        if(GameManager.IsMapHidingMode)
+        {
+            Debug.Log("Aby usuwać jednostki, wyjdź z trybu ukrywania obszarów.");
+            return;
+        }
+
         IsUnitRemoving = true;
 
         //Zmienia kolor przycisku usuwania jednostek na aktywny
         _removeUnitButton.GetComponent<UnityEngine.UI.Image>().color = Color.green;
 
-        Debug.Log("Wybierz jednostkę, którą chcesz usunąć.");
+        Debug.Log("Wybierz jednostkę, którą chcesz usunąć. Możesz również zaznaczyć obszar, wtedy zostaną usunięte wszystkie znajdujące się w nim jednostki.");
     }
     public void DestroyUnit(GameObject unit = null)
     {
@@ -343,13 +349,14 @@ public class UnitsManager : MonoBehaviour
         AllUnits.Remove(unit.GetComponent<Unit>());
 
         Destroy(unit);
-        IsUnitRemoving = false;
-
-        //Resetuje kolor przycisku usuwania jednostek
-        _removeUnitButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;
 
         //Resetuje Tile, żeby nie było uznawane jako zajęte
         GridManager.Instance.ResetTileOccupancy(unit.transform.position);
+
+        // IsUnitRemoving = false;
+
+        //Resetuje kolor przycisku usuwania jednostek
+        _removeUnitButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;
     }
     #endregion
 

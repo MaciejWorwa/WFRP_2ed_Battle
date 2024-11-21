@@ -63,14 +63,7 @@ public class Unit : MonoBehaviour
     { 
         if(GameManager.Instance.IsPointerOverPanel() || GameManager.IsMapHidingMode) return;
 
-        if(!UnitsManager.IsUnitRemoving)
-        {
-            SelectUnit();
-        }
-        else
-        {
-            UnitsManager.Instance.DestroyUnit(this.gameObject);
-        }
+        SelectUnit();
     }
 
     private void OnMouseOver()
