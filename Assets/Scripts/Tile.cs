@@ -65,7 +65,7 @@ public class Tile : MonoBehaviour
 
     private void OnMouseUp()
     {
-        if(GameManager.IsMapHidingMode) return;
+        if(GameManager.IsMapHidingMode || UnitsManager.IsMultipleUnitsSelecting || UnitsManager.IsUnitRemoving) return;
         
         if(UnitsManager.IsTileSelecting == true)
         {

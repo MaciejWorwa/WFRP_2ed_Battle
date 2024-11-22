@@ -670,13 +670,15 @@ public class MapElementsData
 public class TileCoverData
 {
     public float[] Position; // Pozycja tile cover
+    public int Number;
 
-    public TileCoverData(Vector3 position)
+    public TileCoverData(Vector3 position, int number)
     {
         Position = new float[3];
         Position[0] = position.x;
         Position[1] = position.y;
         Position[2] = position.z;
+        Number = number;
     }
 }
 

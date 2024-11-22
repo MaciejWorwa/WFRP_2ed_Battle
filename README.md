@@ -68,6 +68,17 @@ In Battle Mode, manage and control units with these actions:
 - **Attacking**: Right-click on an enemy unit to initiate an attack.
 - **Editing Units**: After selecting a unit, you can edit its attributes in the panel located in the top-left corner of the screen.
 
+## Covering Areas
+
+This feature is accessible from the main menu. It allows you to hide or reveal parts of the map. To use it, activate the appropriate button, then either click on specific tiles or drag the mouse across the grid. You can toggle this mode on or off by pressing **Ctrl+Q**.
+
+Additionally you can use the **right mouse button (RMB)** to number covered tiles. The functionality works as follows:
+
+- **RMB**: Increment the number on the selected tile, cycling from `0` to `9`. When the number reaches `9`, pressing **RMB** again will disable numbering on that tile.
+- **Ctrl + RMB**: Immediately disable numbering on the selected tile, regardless of its current number.
+
+This numbering system is helpful for organizing or annotating hidden areas of the map.
+
 ## Game Modes and Settings
 
 Press **Esc** to open the main menu, where you can access **Settings**. By default, recommended settings are enabled.
@@ -82,7 +93,3 @@ Press **Esc** to open the main menu, where you can access **Settings**. By defau
 8. **Enemy Stats Hiding Mode** (Ctrl+I): Hides the statistics panel of enemy units when they are selected.
 9. **Unit Name Hiding Mode** (Ctrl+N): Hides the names of units on their tokens.
 10. **Health Points Hiding Mode** (Ctrl+H): Hides the health points of units on their tokens.
-
-## Covering Areas
-
-This feature is accessible from the main menu. It allows you to hide or reveal parts of the map. To use it, activate the appropriate button, then either click on specific tiles or drag the mouse across the grid. You can toggle this mode on or off by pressing **Ctrl+Q**.

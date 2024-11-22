@@ -15,7 +15,7 @@ public class DraggableObject : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if(GameManager.IsMapHidingMode || MapEditor.IsElementRemoving) return;
+        if(GameManager.IsMapHidingMode || MapEditor.IsElementRemoving || UnitsManager.IsMultipleUnitsSelecting) return;
         
         IsDragging = true;
 

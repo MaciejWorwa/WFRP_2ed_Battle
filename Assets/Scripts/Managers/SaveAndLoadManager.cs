@@ -225,7 +225,7 @@ public class SaveAndLoadManager : MonoBehaviour
         foreach (var tileCover in MapEditor.Instance.AllTileCovers)
         {
             if(tileCover == null) continue;   
-            TileCoverData data = new TileCoverData(tileCover.transform.position);
+            TileCoverData data = new TileCoverData(tileCover.transform.position, tileCover.GetComponent<TileCover>().Number);
             container.TileCovers.Add(data);
         }
 
@@ -429,6 +429,28 @@ public class SaveAndLoadManager : MonoBehaviour
             InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(unitGameObject.GetComponent<Unit>());
 
             if (unitGameObject.GetComponent<Unit>().IsSelected) unitGameObject.GetComponent<Unit>().SelectUnit();
+
+            //Jeżeli wklejamy jednostki, a istnieją już jednostki o tej nazwie to zmieniamy im nazwę
+            if(saveFolderPath == Path.Combine(Application.persistentDataPath, "temp"))
+            {
+                for (int i = 0; i < UnitsManager.Instance.AllUnits.Count; i++)
+                {
+                    Unit unit = UnitsManager.Instance.AllUnits[i];
+                    if (unit.gameObject.name == baseFileName && unit.gameObject != unitGameObject)
+                    {
+                        // Pozwala na zrobienie tylko jednej kopii
+                        if (!unitGameObject.GetComponent<Stats>().Name.Contains(" (kopia)"))
+                        {
+                            unitGameObject.GetComponent<Stats>().Name += " (kopia)";
+                            unitGameObject.GetComponent<Unit>().DisplayUnitName();
+                        }
+                        else
+                        {
+                            UnitsManager.Instance.DestroyUnit(unitGameObject);
+                        }
+                    }
+                }
+            }
         }
 
         LoadRoundsManager(saveFolderPath);
@@ -437,7 +459,11 @@ public class SaveAndLoadManager : MonoBehaviour
         InitiativeQueueManager.Instance.UpdateInitiativeQueue();
 
         IsLoading = false;
-        Debug.Log($"<color=green>Wczytano stan gry.</color>");
+
+        if(saveFolderPath != Path.Combine(Application.persistentDataPath, "temp"))
+        {
+            Debug.Log($"<color=green>Wczytano stan gry.</color>");
+        }
     }
 
     private void LoadComponentDataWithReflection<TData, TComponent>(GameObject gameObject, string filePath)

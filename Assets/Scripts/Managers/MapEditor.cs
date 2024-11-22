@@ -439,6 +439,8 @@ public class MapEditor : MonoBehaviour
             {
                 Vector3 position = new Vector3(tileCoverData.Position[0], tileCoverData.Position[1], tileCoverData.Position[2]);
                 GameObject tileCover = Instantiate(_tileCover, position, Quaternion.identity);
+                tileCover.GetComponent<TileCover>().Number = tileCoverData.Number;
+
                 AllTileCovers.Add(tileCover);
             }
         }
@@ -628,13 +630,14 @@ public class MapEditor : MonoBehaviour
             GameManager.Instance.TileCoveringState = "covering";
             _lastTilesPositions.Add(collider.transform.position);
 
-            // Sprawdzenie, czy na polu, które chcemy zasłonić znajduje się jednostka. Jeśli tak, to usuwamy ją z kolejki inicjatywy
             Collider2D unitCollider = Physics2D.OverlapPoint(collider.transform.position);
+            // Sprawdzenie, czy na polu, które chcemy zasłonić znajduje się jednostka. Jeśli tak, to usuwamy ją z kolejki inicjatywy
             if (unitCollider != null && unitCollider.GetComponent<Unit>() != null)
             {
                 InitiativeQueueManager.Instance.RemoveUnitFromInitiativeQueue(unitCollider.GetComponent<Unit>());
                 InitiativeQueueManager.Instance.UpdateInitiativeQueue();
             }
+            else if(unitCollider != null && unitCollider.GetComponent<TileCover>() != null) return; //Zapobiegamy tworzeniu kilku TileCoverów na jednym polu
 
             Vector3 coverPosition = new Vector3(collider.transform.position.x, collider.transform.position.y, -5);
             GameObject tileCover = Instantiate(_tileCover, coverPosition, Quaternion.identity);

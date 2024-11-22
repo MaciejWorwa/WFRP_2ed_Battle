@@ -6,6 +6,7 @@ using UnityEngine.EventSystems;
 using TMPro;
 using SimpleFileBrowser;
 using UnityEngine.SceneManagement;
+using System.IO;
 
 public class GameManager : MonoBehaviour
 {
@@ -182,6 +183,20 @@ public class GameManager : MonoBehaviour
             {
                 SetStatsHidingMode();
             }  
+            else if(Input.GetKeyDown(KeyCode.C)) //Kopiuje jednostki do schowka
+            {  
+                SaveAndLoadManager.Instance.SaveUnits(AreaSelector.Instance.SelectedUnits, "temp");
+            }
+            else if(Input.GetKeyDown(KeyCode.V)) //Wkleja jednostki ze schowka
+            {   
+                SaveAndLoadManager.Instance.IsLoading = true;      
+                string saveFolderPath = Path.Combine(Application.persistentDataPath, "temp");
+
+                if(!Directory.Exists(saveFolderPath)) return;
+
+                StartCoroutine(SaveAndLoadManager.Instance.LoadAllUnitsWithDelay(saveFolderPath));
+            }
+
         }
     }
 

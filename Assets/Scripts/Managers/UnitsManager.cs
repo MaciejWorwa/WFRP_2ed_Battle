@@ -51,10 +51,12 @@ public class UnitsManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Toggle _unitSizeToggle;
     [SerializeField] private UnityEngine.UI.Button _createUnitButton; // Przycisk do tworzenia jednostek na losowych pozycjach
     [SerializeField] private UnityEngine.UI.Button _removeUnitButton;
+    [SerializeField] private UnityEngine.UI.Button _selectUnitsButton; // Przycisk do zaznaczania wielu jednostek
     [SerializeField] private UnityEngine.UI.Button _updateUnitButton;
     [SerializeField] private UnityEngine.UI.Button _removeUnitConfirmButton;
     [SerializeField] private GameObject _removeUnitConfirmPanel;
     public static bool IsTileSelecting;
+    public static bool IsMultipleUnitsSelecting;
     public static bool IsUnitRemoving;
     public static bool IsUnitEditing = false;
     public List<Unit> AllUnits = new List<Unit>();
@@ -357,6 +359,23 @@ public class UnitsManager : MonoBehaviour
 
         //Resetuje kolor przycisku usuwania jednostek
         _removeUnitButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;
+    }
+    #endregion
+
+    #region Unit selecting
+    public void SelectMultipleUnitsMode(bool value = true)
+    {
+        // Jeśli `value` jest false, wyłącza tryb zaznaczania, w przeciwnym razie przełącza tryb
+        IsMultipleUnitsSelecting = value ? !IsMultipleUnitsSelecting : false;
+
+        // Ustawia kolor przycisku w zależności od stanu
+        _selectUnitsButton.GetComponent<UnityEngine.UI.Image>().color = IsMultipleUnitsSelecting ? Color.green : Color.white;
+
+        // Wyświetla komunikat, jeśli tryb zaznaczania jest aktywny
+        if (IsMultipleUnitsSelecting)
+        {
+            Debug.Log("Zaznacz jednostki na wybranym obszarze przy użyciu myszy. Klikając Ctrl+C możesz je skopiować, a następnie wkleić przy pomocy Ctrl+V.");
+        }
     }
     #endregion
 
