@@ -74,6 +74,8 @@ public class MapEditor : MonoBehaviour
 
     private void Start()
     {
+        Debug.Log("Start AllTileCovers.Count " +AllTileCovers.Count);
+
         ResetAllSelectedElements();
 
         // Konfiguracja SimpleFileBrowser
@@ -443,6 +445,7 @@ public class MapEditor : MonoBehaviour
 
                 AllTileCovers.Add(tileCover);
             }
+            Debug.Log("wczytanie AllTileCovers.Count " +AllTileCovers.Count);
         }
 
         if(SceneManager.GetActiveScene().buildIndex != 0)
@@ -648,6 +651,8 @@ public class MapEditor : MonoBehaviour
 
     public void UncoverAll()
     {
+        Debug.Log("usuwanie AllTileCovers.Count " +AllTileCovers.Count);
+
         for (int i = AllTileCovers.Count - 1; i >= 0; i--) 
         {
             Vector3 position = AllTileCovers[i].transform.position;   

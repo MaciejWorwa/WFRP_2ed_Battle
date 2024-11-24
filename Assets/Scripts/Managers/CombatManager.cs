@@ -587,9 +587,13 @@ public class CombatManager : MonoBehaviour
             {
                 Debug.Log($"{targetStats.Name} znegował {targetStats.Wt + armor} obrażeń.");
             }
-            else
+            else if(targetStats.TempHealth >= 0)
             {
                 Debug.Log($"{targetStats.Name} został zraniony.");
+            }
+            else
+            {
+                Debug.Log($"Żywotność {targetStats.Name} spadła poniżej zera i wynosi <color=red>{targetStats.TempHealth}</color>.");
             }
 
             // Aktualizacja punktów żywotności

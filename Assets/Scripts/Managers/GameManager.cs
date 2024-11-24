@@ -34,11 +34,11 @@ public class GameManager : MonoBehaviour
     }
 
     [Header("Tryby gry")]
-    public static bool IsAutoDiceRollingMode = true;
+    public static bool IsAutoDiceRollingMode = false;
     [SerializeField] private Button _autoDiceRollingButton;
-    public static bool IsAutoDefenseMode = true;
+    public static bool IsAutoDefenseMode = false;
     [SerializeField] private Button _autoDefenseButton;
-    public static bool IsAutoKillMode = true;
+    public static bool IsAutoKillMode = false;
     [SerializeField] private Button _autoKillButton;
     public static bool IsAutoSelectUnitMode = true;
     [SerializeField] private Button _autoSelectUnitButton;
@@ -51,9 +51,9 @@ public class GameManager : MonoBehaviour
     public static bool IsMapHidingMode = false;
     [SerializeField] private Button _mapCoverButton;
     [SerializeField] private Button _mapUncoverButton;
-    public static bool IsStatsHidingMode = false;
+    public static bool IsStatsHidingMode = true;
     [SerializeField] private Button _statsHidingButton;
-    public static bool IsNamesHidingMode = false;
+    public static bool IsNamesHidingMode = true;
     [SerializeField] private Button _healthPointsHidingButton;
     public static bool IsHealthPointsHidingMode = false;
     [SerializeField] private Button _namesHidingButton;
