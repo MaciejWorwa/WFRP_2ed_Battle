@@ -82,7 +82,7 @@ public class UnitsManager : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Delete) && Unit.SelectedUnit != null)
+        if(Input.GetKeyDown(KeyCode.Delete) && (Unit.SelectedUnit != null || (AreaSelector.Instance.SelectedUnits != null && AreaSelector.Instance.SelectedUnits.Count > 1)))
         {
             if(_removeUnitConfirmPanel.activeSelf == false)
             {
@@ -90,7 +90,19 @@ public class UnitsManager : MonoBehaviour
             }
             else
             {
-                DestroyUnit(Unit.SelectedUnit);
+                //Jeśli jest zaznaczone więcej jednostek, to usuwa wszystkie
+                if(AreaSelector.Instance.SelectedUnits != null && AreaSelector.Instance.SelectedUnits.Count > 1)
+                {
+                    for (int i = AreaSelector.Instance.SelectedUnits.Count - 1; i >= 0; i--) 
+                    {
+                        DestroyUnit(AreaSelector.Instance.SelectedUnits[i].gameObject);
+                    }
+                    AreaSelector.Instance.SelectedUnits.Clear();
+                }
+                else
+                {
+                    DestroyUnit(Unit.SelectedUnit);
+                }
                 _removeUnitConfirmPanel.SetActive(false);
             }
         }
@@ -312,12 +324,20 @@ public class UnitsManager : MonoBehaviour
             return;
         }
 
-        IsUnitRemoving = true;
+        IsUnitRemoving = !IsUnitRemoving;
 
         //Zmienia kolor przycisku usuwania jednostek na aktywny
-        _removeUnitButton.GetComponent<UnityEngine.UI.Image>().color = Color.green;
+        _removeUnitButton.GetComponent<UnityEngine.UI.Image>().color = IsUnitRemoving ? Color.green : Color.white;
 
-        Debug.Log("Wybierz jednostkę, którą chcesz usunąć. Możesz również zaznaczyć obszar, wtedy zostaną usunięte wszystkie znajdujące się w nim jednostki.");
+        if(IsUnitRemoving)
+        {
+            //Jeżeli jest włączony tryb zaznaczania wielu jednostek to go resetuje
+            if(IsMultipleUnitsSelecting)
+            {
+                SelectMultipleUnitsMode();
+            }
+            Debug.Log("Wybierz jednostkę, którą chcesz usunąć. Możesz również zaznaczyć obszar, wtedy zostaną usunięte wszystkie znajdujące się w nim jednostki.");
+        }
     }
     public void DestroyUnit(GameObject unit = null)
     {
@@ -374,6 +394,11 @@ public class UnitsManager : MonoBehaviour
         // Wyświetla komunikat, jeśli tryb zaznaczania jest aktywny
         if (IsMultipleUnitsSelecting)
         {
+            //Jeżeli jest włączony tryb usuwania jednostek to go resetuje
+            if(IsUnitRemoving)
+            {
+                DestroyUnitMode();
+            }
             Debug.Log("Zaznacz jednostki na wybranym obszarze przy użyciu myszy. Klikając Ctrl+C możesz je skopiować, a następnie wkleić przy pomocy Ctrl+V.");
         }
     }

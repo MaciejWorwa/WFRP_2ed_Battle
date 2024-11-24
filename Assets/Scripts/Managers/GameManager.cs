@@ -185,7 +185,17 @@ public class GameManager : MonoBehaviour
             }  
             else if(Input.GetKeyDown(KeyCode.C)) //Kopiuje jednostki do schowka
             {  
-                SaveAndLoadManager.Instance.SaveUnits(AreaSelector.Instance.SelectedUnits, "temp");
+                if(AreaSelector.Instance.SelectedUnits.Count > 1) //Kopiuje wszystkie zaznaczone jednostki
+                {
+                    SaveAndLoadManager.Instance.SaveUnits(AreaSelector.Instance.SelectedUnits, "temp");
+                }
+                else if(Unit.SelectedUnit != null) //Gdy jest zaznaczona tylko jedna jednostka, to kopiuje tylko ją
+                {
+                    List <Unit> selectedUnit = new List <Unit>();
+                    selectedUnit.Add(Unit.SelectedUnit.GetComponent<Unit>());
+
+                    SaveAndLoadManager.Instance.SaveUnits(selectedUnit, "temp");
+                }
             }
             else if(Input.GetKeyDown(KeyCode.V)) //Wkleja jednostki ze schowka
             {   

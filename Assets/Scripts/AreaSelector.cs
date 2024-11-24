@@ -167,7 +167,7 @@ public class AreaSelector : MonoBehaviour
             //Wyróżnia zaznaczone jednostki innym kolorem
             for (int i = SelectedUnits.Count - 1; i >= 0; i--) 
             {
-                SelectedUnits[i].GetComponent<Renderer>().material.color = Color.yellow;
+                SelectedUnits[i].GetComponent<Renderer>().material.color = SelectedUnits[i].HighlightColor;
             }
         }
 

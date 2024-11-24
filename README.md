@@ -62,11 +62,12 @@ When you start the game, you enter the **Map Editor**. Here, you can customize t
 
 In Battle Mode, manage and control units with these actions:
 
-- **Adding Units**: Open the **Unit Management Panel** to add new units to the battlefield.
-- **Selecting Units**: Left-click a unit to select it.
-- **Moving Units**: Click on an empty tile to move the selected unit.
-- **Attacking**: Right-click on an enemy unit to initiate an attack.
-- **Editing Units**: After selecting a unit, you can edit its attributes in the panel located in the top-left corner of the screen.
+- **Adding Units:** Open the Unit Management Panel, click on the name of a unit, and then click on the desired location on the grid to place it. Alternatively, use the button to add a unit at a random position on the battlefield.
+- **Selecting Units:** Left-click a unit to select it. To select multiple units, enable the appropriate mode in the Unit Management Panel and drag the mouse over the desired units. You can copy selected units with `Ctrl + C` and paste them using `Ctrl + V`.
+- **Moving Units:** Click on an empty tile within the unit's movement range to move the selected unit. Movement range is visually highlighted.
+- **Attacking:** Right-click on an enemy unit to initiate an attack.
+- **Editing Units:** After selecting a unit, you can edit its attributes in the panel located in the top-left corner of the screen.
+- **Deleting Units:** Press `Delete` to remove selected units or use the "Delete" button in the Unit Management Panel.
 
 ## Covering Areas
 
