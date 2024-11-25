@@ -93,7 +93,7 @@ public class InitiativeQueueManager : MonoBehaviour
             initiativeText.text = pair.Value.ToString();
 
             //Wyróżnia postać, która obecnie wykonuje turę. Sprawdza, czy postać ma jeszcze dostępne akcje, jeśli tak to jest jej tura (po zakończeniu tury liczba dostępnych akcji spada do 0)
-            if(RoundsManager.Instance.UnitsWithActionsLeft[pair.Key] > 0 && ActiveUnit == null)
+            if(RoundsManager.Instance.UnitsWithActionsLeft[pair.Key] > 0 && ActiveUnit == null && pair.Key.IsTurnFinished != true)
             {
                 ActiveUnit = pair.Key;
                 optionObj.GetComponent<Image>().color = _activeColor;

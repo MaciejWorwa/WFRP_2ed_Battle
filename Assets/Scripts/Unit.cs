@@ -17,6 +17,7 @@ public class Unit : MonoBehaviour
     public Color DefaultColor;
     public Color HighlightColor;
     public bool IsSelected = false;
+    public bool IsTurnFinished; // Określa, czy postać zakończyła swoją turę (bo mogła to zrobić, np. zostawiając jedną akcję)
     public bool IsRunning; // Biegnie
     public bool IsCharging; // Szarżuje
     public bool IsRetreating; // Wycofuje się

@@ -69,6 +69,7 @@ public class RoundsManager : MonoBehaviour
 
             UnitsWithActionsLeft[key] = 2;
 
+            key.IsTurnFinished = false;
             key.CanParry = true;
             if(key.GetComponent<Stats>().Dodge > 0) key.CanDodge = true;
             if(key.GetComponent<Stats>().Mag > 0) key.CanCastSpell = true;
@@ -320,6 +321,17 @@ public class RoundsManager : MonoBehaviour
         SaveAndLoadManager.Instance.LoadAllUnits("autosave");
 
         _useFortunePointsButton.SetActive(false);
+    }
+
+    //Zakończenie tury danej jednostki mimo tego, że ma jeszcze dostępne akcje
+    public void FinishTurn()
+    {
+        if (Unit.SelectedUnit == null) return;
+
+        Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
+        unit.IsTurnFinished = true;
+
+        InitiativeQueueManager.Instance.SelectUnitByQueue();
     }
     #endregion
 

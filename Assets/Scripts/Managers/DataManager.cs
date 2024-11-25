@@ -375,6 +375,7 @@ public class UnitData
     public float[] position;
 
     public bool IsSelected;
+    public bool IsTurnFinished; 
     public bool IsRunning; // Biegnie
     public bool IsCharging; // Szarżuje
     public int HelplessDuration; // Czas stanu bezbronności (podany w rundach). Wartość 0 oznacza, że postać nie jest bezbronna

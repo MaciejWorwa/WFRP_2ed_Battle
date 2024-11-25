@@ -183,10 +183,10 @@ public class AreaSelector : MonoBehaviour
         // Oblicz wierzchołki prostokąta na podstawie punktów start i end
         return new Vector3[]
         {
-            new Vector3(start.x, start.y, 0),
-            new Vector3(start.x, end.y, 0),
-            new Vector3(end.x, end.y, 0),
-            new Vector3(end.x, start.y, 0)
+            new Vector3(start.x, start.y, -6),
+            new Vector3(start.x, end.y, -6),
+            new Vector3(end.x, end.y, -6),
+            new Vector3(end.x, start.y, -6)
         };
     }
 

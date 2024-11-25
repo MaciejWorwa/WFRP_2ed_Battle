@@ -591,8 +591,8 @@ public class SaveAndLoadManager : MonoBehaviour
             // Uzyskanie nazwy folderu do wyświetlenia
             string folderName = new DirectoryInfo(folderPath).Name;
 
-            // Sprawdź, czy przycisk z tą nazwą zapisu już istnieje
-            if (existingButtonNames.Contains(folderName)) continue;
+            // Sprawdź, czy przycisk z tą nazwą zapisu już istnieje lub jest to folder tymczasowy ze skopiowanymi jednostkami
+            if (existingButtonNames.Contains(folderName) || folderName == "temp") continue;
 
             //Dodaje nazwę pliku do ScrollViewContent w postaci buttona
             GameObject buttonObj = Instantiate(_buttonPrefab, _savesScrollViewContent);

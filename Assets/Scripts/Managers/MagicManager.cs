@@ -371,7 +371,8 @@ public class MagicManager : MonoBehaviour
         //Uwzględnienie ujemnego modyfikatora za zbroję (z wyjątkiem Pancerza Eteru)
         if (etherArmor == false)
         {
-            modifier -= Math.Max(Math.Max(stats.Armor_head, stats.Armor_arms), Math.Max(stats.Armor_legs, stats.Armor_legs));
+            int[] armors = { stats.Armor_head, stats.Armor_arms, stats.Armor_torso, stats.Armor_legs };
+            modifier -= armors.Max(); // Znajdź maksymalną wartość w tablicy
         }
 
         castingNumber += modifier;
