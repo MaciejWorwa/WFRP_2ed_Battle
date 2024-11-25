@@ -25,15 +25,6 @@ public class MapEditor : MonoBehaviour
 
     void Awake()
     {
-        if (instance != null && instance != this)
-        {
-            AllElements = instance.AllElements;
-            AllTileCovers = instance.AllTileCovers;
-
-            // Niszczymy starą instancję, która już istnieje
-            Destroy(instance.gameObject);
-        }
-
         // Aktualizujemy referencję do nowej instancji
         instance = this;
 
@@ -74,7 +65,8 @@ public class MapEditor : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log("Start AllTileCovers.Count " +AllTileCovers.Count);
+        RefreshAllElementsList();
+        RefreshTileCoversList();
 
         ResetAllSelectedElements();
 
@@ -112,25 +104,22 @@ public class MapEditor : MonoBehaviour
                 GameManager.Instance.SetMapHidingMode();
             }
         }
+    }
 
-        // if (GameManager.IsMapHidingMode && GameManager.Instance.IsPointerOverPanel() == false)
-        // {
-        //     if (Input.GetMouseButton(0)) // Sprawdzanie, czy lewy przycisk myszy jest trzymany
-        //     {
-        //         CoverOrUncoverTile();
-        //     }
-        //     else if (Input.GetMouseButtonUp(0)) // Resetowanie listy ostatnio zasłanianych lub odsłanianych pól
-        //     {
-        //         TileCoveringState = null;
-        //         _lastTilesPositions.Clear();
+    #region Map elements managing
+    private void RefreshAllElementsList()
+    {
+        // Usuwamy brakujące referencje
+        AllElements.RemoveAll(element => element == null);
 
-        //         //Odświeża pola w zasięgu ruchu, aby uwzględnić nowo odsłonięte pola
-        //         if(Unit.SelectedUnit != null)
-        //         {
-        //             GridManager.Instance.HighlightTilesInMovementRange(Unit.SelectedUnit.GetComponent<Stats>());
-        //         }
-        //     }
-        // }
+        // Dodajemy nowe elementy (jeśli istnieją) do listy AllElements
+        foreach (var element in GameObject.FindGameObjectsWithTag("MapElement"))
+        {
+            if (!AllElements.Contains(element.gameObject))
+            {
+                AllElements.Add(element.gameObject);
+            }
+        }
     }
     
     private void ReplaceCursorWithMapElement()
@@ -385,6 +374,7 @@ public class MapEditor : MonoBehaviour
             }
         }
     }
+    #endregion
 
     public void LoadMapData(MapElementsContainer data)
     {
@@ -445,7 +435,6 @@ public class MapEditor : MonoBehaviour
 
                 AllTileCovers.Add(tileCover);
             }
-            Debug.Log("wczytanie AllTileCovers.Count " +AllTileCovers.Count);
         }
 
         if(SceneManager.GetActiveScene().buildIndex != 0)
@@ -600,6 +589,21 @@ public class MapEditor : MonoBehaviour
     #endregion
 
     #region Covering map
+    private void RefreshTileCoversList()
+    {
+        // Usuwamy brakujące referencje
+        AllTileCovers.RemoveAll(element => element == null);
+
+        // Dodajemy nowe elementy (jeśli istnieją) do listy AllTileCovers
+        foreach (var element in GameObject.FindGameObjectsWithTag("TileCover"))
+        {
+            if (!AllTileCovers.Contains(element.gameObject))
+            {
+                AllTileCovers.Add(element.gameObject);
+            }
+        }
+    }
+
     public void CoverOrUncoverTile(Collider2D collider)
     {
         // Obsługuje tylko pola typu Tile lub TileCover
@@ -651,8 +655,6 @@ public class MapEditor : MonoBehaviour
 
     public void UncoverAll()
     {
-        Debug.Log("usuwanie AllTileCovers.Count " +AllTileCovers.Count);
-
         for (int i = AllTileCovers.Count - 1; i >= 0; i--) 
         {
             Vector3 position = AllTileCovers[i].transform.position;   

@@ -277,12 +277,20 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    #region Uncovering map
-    public void UncoverAllFromBattleScene()
+    #region Uncovering map and removing MapEditor (this methods are useful only in BattleScene)
+    public void UncoverAll()
     {
         if(MapEditor.Instance == null) return;
 
         MapEditor.Instance.UncoverAll();
     }
+
+    public void DestroyMapEditor()
+    {
+        if(MapEditor.Instance == null) return;
+
+        Destroy(MapEditor.Instance.gameObject);
+    }
+
     #endregion
 }

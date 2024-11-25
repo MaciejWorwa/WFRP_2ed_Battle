@@ -45,11 +45,11 @@ public class DraggableObject : MonoBehaviour
         if(transform.position != _startPosition)
         {
             // Próbuje przypiąć obiekt do najbliższego pola siatki
-            SnapToGrid();
+            bool canBeMoved = SnapToGrid();
 
             //Zwalnia poprzednie pole
             Collider2D collider = Physics2D.OverlapPoint(_startPosition);
-            if (collider != null && collider.CompareTag("Tile"))
+            if (collider != null && collider.CompareTag("Tile") && canBeMoved)
             {
                 collider.GetComponent<Tile>().IsOccupied = false;
             }  
@@ -71,8 +71,14 @@ public class DraggableObject : MonoBehaviour
         return _mainCamera.ScreenToWorldPoint(mouseScreenPosition);
     }
 
-    private void SnapToGrid()
-    {
+    private bool SnapToGrid()
+    { 
+        //Jeżeli przesuwamy obiekt będący jednostką to odznaczamy ją
+        if (this.gameObject.GetComponent<Unit>() != null && Unit.SelectedUnit == this.gameObject)
+        {
+            this.gameObject.GetComponent<Unit>().SelectUnit();
+        }
+
         Collider2D[] colliders = Physics2D.OverlapPointAll(transform.position);
         foreach(var collider in colliders)
         if (collider != null && collider.CompareTag("Tile") && collider.GetComponent<Tile>().IsOccupied == false)
@@ -88,16 +94,12 @@ public class DraggableObject : MonoBehaviour
             {
                 tile.IsOccupied = true;
             }
-        }
-        else
-        {
-            transform.position = _startPosition;
+
+            return true;
         }
 
-        //Jeżeli przesuwamy obiekt będący jednostką to odznaczamy ją
-        if (this.gameObject.GetComponent<Unit>() != null && Unit.SelectedUnit == this.gameObject)
-        {
-            this.gameObject.GetComponent<Unit>().SelectUnit();
-        }
+        //Jeśli pole jest zajęte to wracamy na wcześniejszą pozycję
+        transform.position = _startPosition;
+        return false;
     }
 }

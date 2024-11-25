@@ -433,7 +433,10 @@ public class GameManager : MonoBehaviour
             UpdateButtonColor(_mapCoverButton, false);
             UpdateButtonColor(_mapUncoverButton, false);
 
-            Debug.Log("Tryb ukrywania obszarów mapy został wyłączony.");
+            if(!isDisabled)
+            {
+                Debug.Log("Tryb ukrywania obszarów mapy został wyłączony.");
+            }
 
             if (SceneManager.GetActiveScene().buildIndex != 0)
             {

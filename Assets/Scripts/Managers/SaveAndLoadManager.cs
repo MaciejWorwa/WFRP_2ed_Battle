@@ -327,10 +327,26 @@ public class SaveAndLoadManager : MonoBehaviour
             yield break;
         }
 
+        if(Unit.SelectedUnit != null)
+        {
+            Unit.SelectedUnit.GetComponent<Unit>().SelectUnit();
+        }
+
         foreach (string unitFile in unitFiles)
         {
             //Pobieramy nazwę jednostki, usuwając końcówkę nazwy pliku
             string baseFileName = Path.GetFileNameWithoutExtension(unitFile).Replace("_unit", "");
+
+            // Sprawdzenie, czy istnieje już jednostka będąca kopią
+            bool hasCopy = UnitsManager.Instance.AllUnits.Any(
+                unit => unit.GetComponent<Stats>().Name == baseFileName + " (kopia)"
+            );
+            // Jeśli istnieje kopia, pomijamy tworzenie nowej jednostki
+            if (hasCopy)
+            {
+                Debug.Log($"Istnieje już kopia {baseFileName}.");
+                continue;
+            }
 
             //Ścieżki do konkretnych plików z danymi
             string unitFilePath = Path.Combine(saveFolderPath, baseFileName + "_unit.json");
@@ -438,16 +454,8 @@ public class SaveAndLoadManager : MonoBehaviour
                     Unit unit = UnitsManager.Instance.AllUnits[i];
                     if (unit.gameObject.name == baseFileName && unit.gameObject != unitGameObject)
                     {
-                        // Pozwala na zrobienie tylko jednej kopii
-                        if (!unitGameObject.GetComponent<Stats>().Name.Contains(" (kopia)"))
-                        {
-                            unitGameObject.GetComponent<Stats>().Name += " (kopia)";
-                            unitGameObject.GetComponent<Unit>().DisplayUnitName();
-                        }
-                        else
-                        {
-                            UnitsManager.Instance.DestroyUnit(unitGameObject);
-                        }
+                        unitGameObject.GetComponent<Stats>().Name += " (kopia)";
+                        unitGameObject.GetComponent<Unit>().DisplayUnitName();
                     }
                 }
             }

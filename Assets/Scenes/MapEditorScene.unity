@@ -14371,6 +14371,7 @@ MonoBehaviour:
   _selectableLayer:
     serializedVersion: 2
     m_Bits: 192
+  SelectedUnits: []
 --- !u!1 &1078691038
 GameObject:
   m_ObjectHideFlags: 0
@@ -18805,8 +18806,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1076908331}
-        m_TargetAssemblyTypeName: MapEditor, Assembly-CSharp
+      - m_Target: {fileID: 1200338526}
+        m_TargetAssemblyTypeName: GridManager, Assembly-CSharp
         m_MethodName: UncoverAll
         m_Mode: 1
         m_Arguments:
