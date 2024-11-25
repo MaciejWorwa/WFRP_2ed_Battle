@@ -411,6 +411,7 @@ public class UnitsManager : MonoBehaviour
         
         _createUnitButton.gameObject.SetActive(false);
         _removeUnitButton.gameObject.SetActive(false);
+        _selectUnitsButton.gameObject.SetActive(false);
         _updateUnitButton.gameObject.SetActive(true);
     }
 
@@ -420,6 +421,7 @@ public class UnitsManager : MonoBehaviour
         
         _createUnitButton.gameObject.SetActive(true);
         _removeUnitButton.gameObject.SetActive(true);
+        _selectUnitsButton.gameObject.SetActive(true);
         _updateUnitButton.gameObject.SetActive(false);
     }
 
