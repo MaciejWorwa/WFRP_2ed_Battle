@@ -482,7 +482,7 @@ public class MapEditor : MonoBehaviour
         if (texture.LoadImage(byteTexture))
         {
             // Sprawdź rozdzielczość obrazu
-            if (texture.width > 2048 || texture.height > 2048) // Ograniczenia rozdzielczości
+            if (texture.width > 4096 || texture.height > 4096) // Ograniczenia rozdzielczości
             {
                 Debug.LogError("Obraz jest za duży.");
             }

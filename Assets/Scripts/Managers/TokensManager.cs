@@ -77,7 +77,7 @@ public class TokensManager : MonoBehaviour
         if (texture.LoadImage(byteTexture))
         {
             // Sprawdź rozdzielczość obrazu
-            if (texture.width > 1024 || texture.height > 1024) // Ograniczenia rozdzielczości
+            if (texture.width > 2048 || texture.height > 2048) // Ograniczenia rozdzielczości
             {
                 Debug.LogError("Obraz jest za duży.");
             }

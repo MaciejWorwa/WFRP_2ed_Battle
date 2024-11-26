@@ -589,14 +589,26 @@ public class UnitsManager : MonoBehaviour
         }
         else
         {
+            _unitPanel.SetActive(true);
+
             //W trybie ukrywania statystyk, panel wrogich jednostek pozostaje wyłączony
             if(GameManager.IsStatsHidingMode && unit.CompareTag("EnemyUnit"))
             {
-                _unitPanel.SetActive(false);
+                _unitPanel.transform.Find("Stats").gameObject.SetActive(false);
             }
             else
             {
-                _unitPanel.SetActive(true);
+                _unitPanel.transform.Find("Stats").gameObject.SetActive(true);
+            }
+            
+            //Ukrywa lub pokazuje nazwę jednostki w panelu
+            if(GameManager.IsNamesHidingMode)
+            {
+                _unitPanel.transform.Find("Name_text").gameObject.SetActive(false);
+            }
+            else
+            {
+                _unitPanel.transform.Find("Name_text").gameObject.SetActive(true);
             }
 
             Unit unitComponent = unit.GetComponent<Unit>();
@@ -920,4 +932,20 @@ public class UnitsManager : MonoBehaviour
         }
     }
     #endregion
+
+    public void ResetSelectedUnitState()
+    {
+        if(Unit.SelectedUnit == null) return;
+
+        Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
+
+        unit.StunDuration = 0; 
+        unit.HelplessDuration = 0;
+        unit.Trapped = false;
+        unit.TrappedUnitId = 0;
+        unit.IsScared = false;
+        unit.IsFearTestPassed = true;
+
+        UnitsManager.Instance.UpdateUnitPanel(Unit.SelectedUnit);
+    }
 }

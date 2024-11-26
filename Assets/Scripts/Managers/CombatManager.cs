@@ -275,8 +275,6 @@ public class CombatManager : MonoBehaviour
                     {
                         _attackModifier -= 20;
 
-                        Debug.Log(raycastHit.collider.GetComponent<Stats>().Name);
-
                         Debug.Log("Na linii strzału znajduje się inna jednostka. Zastosowano ujemny modyfikator do trafienia.");
 
                         break; //Żeby modyfikator nie kumulował się za każdą postać
@@ -493,54 +491,47 @@ public class CombatManager : MonoBehaviour
             //W przypadku, gdy atak następuje w trybie ręcznego rzucania kośćmi to nie sprawdzamy rzutu na obrażenia. W przeciwnym razie sprawdzamy
             if (attacker.CompareTag("PlayerUnit") && GameManager.IsAutoDiceRollingMode == false)
             {
-                if(GameManager.IsStatsHidingMode)
+                Debug.Log($"{attackerStats.Name} trafia w {targetStats.Name}. Zadaj obrażenia ręcznie wpisując wynik rzutu i kliknij \"Zatwierdź\".");
+
+                _applyDamagePanel.SetActive(true);
+
+                StartCoroutine(WaitForDamageValue());
+
+                // Korutyna obsługująca reakcję obronną
+                IEnumerator WaitForDamageValue()
                 {
-                    Debug.Log($"{attackerStats.Name} trafia w {targetStats.Name}. Zadaj obrażenia ręcznie wpisując wynik rzutu i kliknij \"Zatwierdź\".");
-
-                    _applyDamagePanel.SetActive(true);
-
-                    StartCoroutine(WaitForDamageValue());
-
-                    // Korutyna obsługująca reakcję obronną
-                    IEnumerator WaitForDamageValue()
+                    // Czekaj na kliknięcie przycisku
+                    yield return new WaitUntil(() => _applyDamagePanel.activeSelf == false);
+                    int damage = 0;
+                    if (int.TryParse(_damageInputField.text, out int inputDamage))
                     {
-                        // Czekaj na kliknięcie przycisku
-                        yield return new WaitUntil(() => _applyDamagePanel.activeSelf == false);
-                        int damage = 0;
-                        if (int.TryParse(_damageInputField.text, out int inputDamage))
-                        {
-                            damage = CalculateDamage(inputDamage, attackerStats, attackerWeapon);
-                            _damageInputField.text = null;
-                        }
-
-                        //Uwzględnienie strzału przebijającego zbroję (zdolność)
-                        if (attackerStats.SureShot && _attackDistance <= 1.5f && attackerWeapon.Type.Contains("ranged") && armor > 0) armor--;
-
-                        Debug.Log($"{attackerStats.Name} zadał {damage} obrażeń.");
-
-                        //Zadaje obrażenia
-                        ApplyDamage(damage, targetStats, armor, target);
-
-                        //Sprawdza, czy atak spowodował śmierć
-                        if (targetStats.TempHealth < 0 && GameManager.IsAutoKillMode)
-                        {
-                            HandleDeath(targetStats, target.gameObject, attackerStats);
-                        }
-
-                        //Aktualizuje aktywną postać na kolejce inicjatywy, jeśli atakujący nie ma już dostępnych akcji. Ta funkcja jest tu wywołana, dlatego że chcemy zastosować opóźnienie i poczekać ze zmianą jednostki do momentu wpisania wartości obrażeń
-                        if(RoundsManager.Instance.UnitsWithActionsLeft[attacker] == 0)
-                        {
-                            InitiativeQueueManager.Instance.SelectUnitByQueue();
-                        }
-
-                        IsManualPlayerAttack = false;
+                        damage = CalculateDamage(inputDamage, attackerStats, attackerWeapon);
+                        _damageInputField.text = null;
                     }
-                    return;
+
+                    //Uwzględnienie strzału przebijającego zbroję (zdolność)
+                    if (attackerStats.SureShot && _attackDistance <= 1.5f && attackerWeapon.Type.Contains("ranged") && armor > 0) armor--;
+
+                    Debug.Log($"{attackerStats.Name} zadał {damage} obrażeń.");
+
+                    //Zadaje obrażenia
+                    ApplyDamage(damage, targetStats, armor, target);
+
+                    //Sprawdza, czy atak spowodował śmierć
+                    if (targetStats.TempHealth < 0 && GameManager.IsAutoKillMode)
+                    {
+                        HandleDeath(targetStats, target.gameObject, attackerStats);
+                    }
+
+                    //Aktualizuje aktywną postać na kolejce inicjatywy, jeśli atakujący nie ma już dostępnych akcji. Ta funkcja jest tu wywołana, dlatego że chcemy zastosować opóźnienie i poczekać ze zmianą jednostki do momentu wpisania wartości obrażeń
+                    if(RoundsManager.Instance.UnitsWithActionsLeft[attacker] == 0)
+                    {
+                        InitiativeQueueManager.Instance.SelectUnitByQueue();
+                    }
+
+                    IsManualPlayerAttack = false;
                 }
-                else
-                {
-                    Debug.Log($"{attackerStats.Name} trafia w {targetStats.Name}, który neguje {targetStats.Wt + armor} obrażeń. Zadaj obrażenia ręcznie w panelu atakowanego (ikona \"-\" obok Żywotności).");
-                }
+                return;
             }
             else
             {
@@ -722,8 +713,8 @@ public class CombatManager : MonoBehaviour
         //Sprawdza czy atak jest atakiem w zwarciu
         if (attackerWeapon.Type.Contains("melee"))
         {
-            //Uwzględnienie zdolności bijatyka, w przypadku walki Pięściami (Id broni = 0)
-            if (attackerWeapon.Id == 0 && attackerStats.StreetFighting == true)
+            //Uwzględnienie zdolności bijatyka, w przypadku walki Pięściami lub Kastetem (Id broni = 0 lub Id broni = 11)
+            if ((attackerWeapon.Id == 0 || attackerWeapon.Id == 11)&& attackerStats.StreetFighting == true)
             {
                 _attackModifier += 10;
             }

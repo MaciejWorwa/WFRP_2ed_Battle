@@ -58,7 +58,13 @@ public class InventoryManager : MonoBehaviour
     #region Inventory panel managing
     private void Update()
     {
-        if(UnityEngine.Input.GetKeyDown(KeyCode.I) && Unit.SelectedUnit != null && !GameManager.Instance.IsAnyInputFieldFocused())
+        if (UnityEngine.Input.GetKeyDown(KeyCode.I) 
+                && Unit.SelectedUnit != null 
+                && !GameManager.Instance.IsAnyInputFieldFocused() 
+                && !UnityEngine.Input.GetKey(KeyCode.LeftControl) 
+                && !UnityEngine.Input.GetKey(KeyCode.RightControl) 
+                && !UnityEngine.Input.GetKey(KeyCode.LeftCommand) 
+                && !UnityEngine.Input.GetKey(KeyCode.RightCommand))
         {
             GameManager.Instance.HideActivePanels();
             GameManager.Instance.ShowPanel(_inventoryPanel);

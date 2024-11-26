@@ -541,6 +541,11 @@ public class GameManager : MonoBehaviour
             }
             Debug.Log("Panel ze statystykami przeciwników został ujawniony.");
         }
+
+        if(Unit.SelectedUnit != null)
+        {
+            UnitsManager.Instance.UpdateUnitPanel(Unit.SelectedUnit);
+        }
     }
 
     public void SetNamesHidingMode()
@@ -566,6 +571,11 @@ public class GameManager : MonoBehaviour
                 unit.DisplayUnitName();
             }
             Debug.Log("Imiona i nazwy jednostek zostały ujawnione.");
+        }
+
+        if(Unit.SelectedUnit != null)
+        {
+            UnitsManager.Instance.UpdateUnitPanel(Unit.SelectedUnit);
         }
     }
     #endregion
