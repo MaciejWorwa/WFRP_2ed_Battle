@@ -55,7 +55,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button _statsHidingButton;
     public static bool IsNamesHidingMode = true;
     [SerializeField] private Button _healthPointsHidingButton;
-    public static bool IsHealthPointsHidingMode = false;
+    public static bool IsHealthPointsHidingMode = true;
     [SerializeField] private Button _namesHidingButton;
     private Dictionary<Button, bool> allModes;
     public static bool IsGamePaused;

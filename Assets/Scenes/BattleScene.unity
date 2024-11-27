@@ -6201,6 +6201,7 @@ MonoBehaviour:
   _dodgeButton: {fileID: 977776333}
   _parryButton: {fileID: 165776373}
   _getDamageButton: {fileID: 1214902464}
+  _cancelButton: {fileID: 1971949750}
   _applyDamagePanel: {fileID: 2134261085}
   _damageInputField: {fileID: 1767491311}
   IsManualPlayerAttack: 0

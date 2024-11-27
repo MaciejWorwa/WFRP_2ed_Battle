@@ -60,6 +60,7 @@ public class CombatManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button _dodgeButton;
     [SerializeField] private UnityEngine.UI.Button _parryButton;
     [SerializeField] private UnityEngine.UI.Button _getDamageButton;
+    [SerializeField] private UnityEngine.UI.Button _cancelButton;
     private string _parryOrDodge;
     [SerializeField] private GameObject _applyDamagePanel;
     [SerializeField] private TMP_InputField _damageInputField;
@@ -74,6 +75,15 @@ public class CombatManager : MonoBehaviour
         _dodgeButton.onClick.AddListener(() => ParryOrDodgeButtonClick("dodge"));
         _parryButton.onClick.AddListener(() => ParryOrDodgeButtonClick("parry"));
         _getDamageButton.onClick.AddListener(() => ParryOrDodgeButtonClick(""));
+        _cancelButton.onClick.AddListener(() => ParryOrDodgeButtonClick("cancel"));
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape) && _parryAndDodgePanel.activeSelf)
+        {
+            ParryOrDodgeButtonClick("cancel");
+        }
     }
 
     #region Attack types
@@ -283,7 +293,7 @@ public class CombatManager : MonoBehaviour
             }
 
             //Sprawdza, czy jest to atak wykonywany przez gracza, po którym będzie trzeba wpisać obrażenia w odpowiednim panelu. Ta zmienna jest konieczna, aby nowa jednostka nie była wybierana dopóki nie wpiszemy obrażeń.
-            IsManualPlayerAttack = Unit.SelectedUnit.CompareTag("PlayerUnit") && GameManager.IsAutoDiceRollingMode == false && GameManager.IsStatsHidingMode;
+            IsManualPlayerAttack = attacker.CompareTag("PlayerUnit") && GameManager.IsAutoDiceRollingMode == false;
 
             //Wykonuje akcję (pomija tak okazyjny)
             bool canDoAction = true;
@@ -349,9 +359,44 @@ public class CombatManager : MonoBehaviour
 
 
             //W przypadku, gdy atak następuje po udanym rzucie na trafienie rzeczywistymi kośćmi to nie sprawdzamy rzutu na trafienie. W przeciwnym razie sprawdzamy
-            if(attacker.CompareTag("PlayerUnit") && GameManager.IsAutoDiceRollingMode == false)
+            if(IsManualPlayerAttack)
             {
-                _isSuccessful = true;
+                if(attackerWeapon.Quality != "Magiczna" && target.GetComponent<Stats>().Ethereal == true)
+                {
+                    Debug.Log("Przeciwnik jest odporny na niemagiczne ataki. Aby go zranić konieczne jest użycie magicznej broni lub zaklęcia.");
+                    _isSuccessful = false;
+                }
+                else
+                {
+                    _isSuccessful = true;
+                    
+                    //Obliczenie modyfikatora do ataku
+                    string attackType = AttackTypes["AllOutAttack"] ? "AllOutAttack" : AttackTypes["GuardedAttack"] ? "GuardedAttack" : "";
+                    int modifier = CalculateAttackModifier(attackerStats, attackerWeapon, target, attackType, _attackDistance);
+                    
+                    // Sprawdzenie ataku dystansowego i modyfikatora za tarczę
+                    if (attackerWeapon.Type.Contains("ranged"))
+                    {
+                        int shieldModifier = target.GetComponent<Inventory>().EquippedWeapons
+                            .Where(weapon => weapon != null && weapon.Name == "Tarcza")
+                            .Select(_ => 10).FirstOrDefault();
+
+                        modifier -= shieldModifier;
+                    }
+                    modifier -= target.DefensiveBonus;
+
+                    string message = $"Wykonaj rzut kośćmi na trafienie.";
+                    if(modifier > 0)
+                    {      
+                        message += $" Modyfikator: <color=green>{modifier}</color>.";
+                    }
+                    else if (modifier < 0)
+                    {
+                        message += $" Modyfikator: <color=red>{modifier}</color>.";
+                    }
+                    message += $" Jeśli atak chybi, wyłącz okno znajdujące się na środku ekranu.";
+                    Debug.Log(message);
+                }
                 
                 //Sprawia, że po ataku należy przeładować broń. Uwzględnia błyskawiczne przeładowanie
                 if (attackerWeapon.Type.Contains("ranged"))
@@ -582,7 +627,8 @@ public class CombatManager : MonoBehaviour
             {
                 Debug.Log($"{targetStats.Name} został zraniony.");
             }
-            else
+            
+            if ((targetStats.TempHealth < 0 && targetUnit.gameObject.CompareTag("EnemyUnit")) || (targetStats.TempHealth < 0 && GameManager.IsHealthPointsHidingMode))
             {
                 Debug.Log($"Żywotność {targetStats.Name} spadła poniżej zera i wynosi <color=red>{targetStats.TempHealth}</color>.");
             }
@@ -645,100 +691,96 @@ public class CombatManager : MonoBehaviour
     {
         bool _isSuccessful = false;
 
-        //Uwzględnia utrudnienie za atak słabszą ręką (sprawdza, czy dominująca ręka jest pusta lub inna od broni, którą wykonywany jest atak)
-        if(attackerStats.GetComponent<Inventory>().EquippedWeapons[0] == null || attackerWeapon.Name != attackerStats.GetComponent<Inventory>().EquippedWeapons[0].Name)
-        {
-            //Sprawdza, czy postać nie jest oburęczna, nie uderza pięściami lub broń nie jest wyważona
-            if (!attackerStats.Ambidextrous && attackerWeapon.Id != 0 && !attackerWeapon.Balanced)
-            {
-                _attackModifier -= 20;
-            }
-        }
+        // Określenie typu ataku
+        string attackType = AttackTypes["AllOutAttack"] ? "AllOutAttack" : AttackTypes["GuardedAttack"] ? "GuardedAttack" : "";
 
-        //Modyfikatory za szaleńczy lub ostrożny atak
-        if (AttackTypes["AllOutAttack"] == true) _attackModifier += 20;
-        else if (AttackTypes["GuardedAttack"] == true) _attackModifier -= 10;
+        // Obliczanie modyfikatora ataku
+        _attackModifier = CalculateAttackModifier(attackerStats, attackerWeapon, targetUnit, attackType, _attackDistance);
 
-        //Modyfikator za jakość wykonania broni
-        if(attackerWeapon.Quality == "Kiepska") _attackModifier -= 5;
-        else if(attackerWeapon.Quality == "Najlepsza" || attackerWeapon.Quality == "Magiczna") _attackModifier += 5;
-
-        //Modyfikatory za stany atakowanego (ogłuszenie, unieruchomienie, bezbronność)
-        if(targetUnit.StunDuration > 0) _attackModifier += 20;
-        if(targetUnit.Trapped == true) _attackModifier += 20;
+        // Automatyczne trafienie, jeśli cel jest bezbronny
         if (targetUnit.HelplessDuration > 0)
         {
-            return true; //Gdy postać jest bezbronna to trafienie następuje automatycznie
+            return true;
         }
 
-        //Modyfikator za przewagę liczebną
-        _attackModifier += CountOutnumber(attackerStats.GetComponent<Unit>(), targetUnit);
-
-        //Sprawdza, czy atak jest atakiem dystansowym
+        // Sprawdzenie ataku dystansowego
         if (attackerWeapon.Type.Contains("ranged"))
         {
-            _attackModifier -= _attackDistance > attackerWeapon.AttackRange ? 20 : 0;
-
-            //Uwzględnienie utrudnienia za tarcze
-            int shieldModifier = 0;
-
-            //Sprawdza, czy atakowany ma tarczę
-            if(targetUnit.GetComponent<Inventory>().EquippedWeapons.Length > 0)
-            {
-                foreach (var weapon in targetUnit.GetComponent<Inventory>().EquippedWeapons)
-                {
-                    if (weapon != null && weapon.Name == "Tarcza") 
-                    {
-                        shieldModifier = 10;
-                        break;
-                    }
-                }
-            }        
+            int shieldModifier = targetUnit.GetComponent<Inventory>().EquippedWeapons
+                .Where(weapon => weapon != null && weapon.Name == "Tarcza")
+                .Select(_ => 10).FirstOrDefault();
 
             _isSuccessful = rollResult <= (attackerStats.US + _attackModifier - targetUnit.DefensiveBonus - shieldModifier);
 
-            if (_attackModifier != 0 || targetUnit.DefensiveBonus != 0 || shieldModifier != 0)
-            {
-                Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na US: {rollResult} Wartość cechy: {attackerStats.US} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus - shieldModifier}");
-            }
-            else
-            {
-                Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na US: {rollResult} Wartość cechy: {attackerStats.US}");
-            }
-
-            //Sprawia, że po ataku należy przeładować broń. Uwzględnia błyskawiczne przeładowanie
+            Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na US: {rollResult} Wartość cechy: {attackerStats.US} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus - shieldModifier}");
             ResetWeaponLoad(attackerWeapon, attackerStats);
         }
 
-        //Sprawdza czy atak jest atakiem w zwarciu
+        // Sprawdzenie ataku w zwarciu
         if (attackerWeapon.Type.Contains("melee"))
         {
-            //Uwzględnienie zdolności bijatyka, w przypadku walki Pięściami lub Kastetem (Id broni = 0 lub Id broni = 11)
-            if ((attackerWeapon.Id == 0 || attackerWeapon.Id == 11)&& attackerStats.StreetFighting == true)
-            {
-                _attackModifier += 10;
-            }
-
             _isSuccessful = rollResult <= (attackerStats.WW + _attackModifier - targetUnit.DefensiveBonus);
 
-            if (_attackModifier != 0 || targetUnit.DefensiveBonus != 0)
-            {
-                Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na WW: {rollResult} Wartość cechy: {attackerStats.WW} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus}");
-            }
-            else
-            {
-                Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na WW: {rollResult} Wartość cechy: {attackerStats.WW}");
-            }
+            Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na WW: {rollResult} Wartość cechy: {attackerStats.WW} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus}");
         }
 
-        if(attackerWeapon.Quality != "Magiczna" && targetUnit.GetComponent<Stats>().Ethereal == true)
+        // Odporność przeciwnika na niemagiczne ataki
+        if (attackerWeapon.Quality != "Magiczna" && targetUnit.GetComponent<Stats>().Ethereal)
         {
-            Debug.Log("Przeciwnik jest odporny na niemagiczne ataki. Aby go zranić konieczne jest użycie magicznej broni lub zaklęcia.");
+            Debug.Log("Przeciwnik jest odporny na niemagiczne ataki. Aby go zranić, konieczne jest użycie magicznej broni lub zaklęcia.");
             return false;
         }
 
         return _isSuccessful;
     }
+
+
+    //Oblicza modyfikator do trafienia
+    private int CalculateAttackModifier(Stats attackerStats, Weapon attackerWeapon, Unit targetUnit, string attackType, float attackDistance = 0)
+    {
+        int attackModifier = _attackModifier;
+
+        // Utrudnienie za atak słabszą ręką
+        if (attackerStats.GetComponent<Inventory>().EquippedWeapons[0] == null || attackerWeapon.Name != attackerStats.GetComponent<Inventory>().EquippedWeapons[0].Name)
+        {
+            if (!attackerStats.Ambidextrous && attackerWeapon.Id != 0 && !attackerWeapon.Balanced)
+            {
+                attackModifier -= 20;
+            }
+        }
+
+        // Modyfikatory za typ ataku
+        if (attackType == "AllOutAttack") attackModifier += 20;
+        else if (attackType == "GuardedAttack") attackModifier -= 10;
+
+        // Modyfikatory za jakość broni
+        if (attackerWeapon.Quality == "Kiepska") attackModifier -= 5;
+        else if (attackerWeapon.Quality == "Najlepsza" || attackerWeapon.Quality == "Magiczna") attackModifier += 5;
+
+        // Stany celu
+        if (targetUnit.StunDuration > 0) attackModifier += 20;
+        if (targetUnit.Trapped) attackModifier += 20;
+
+        // Przewaga liczebna
+        attackModifier += CountOutnumber(attackerStats.GetComponent<Unit>(), targetUnit);
+
+        // Modyfikator za dystans
+        if (attackerWeapon.Type.Contains("ranged"))
+        {
+            attackModifier -= attackDistance > attackerWeapon.AttackRange ? 20 : 0;
+        }
+
+        // Bijatyka
+        if (attackerWeapon.Type.Contains("melee") && 
+            (attackerWeapon.Id == 0 || attackerWeapon.Id == 11) && 
+            attackerStats.StreetFighting)
+        {
+            attackModifier += 10;
+        }
+
+        return attackModifier;
+    }
+
 
     //Modyfikator za przewagę liczebną
     private int CountOutnumber(Unit attacker, Unit target)
@@ -1154,6 +1196,10 @@ public class CombatManager : MonoBehaviour
             else if (_parryOrDodge == "dodge")
             {
                 targetIsDefended = Dodge(targetStats, dodgeModifier);
+            }
+            else if(_parryOrDodge == "cancel")
+            {
+                return false;
             }
 
             return !targetIsDefended;

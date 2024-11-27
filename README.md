@@ -82,7 +82,7 @@ This numbering system is helpful for organizing or annotating hidden areas of th
 
 ## Game Modes and Settings
 
-Press **Esc** to open the main menu, where you can access **Settings**. By default, recommended settings are enabled.
+Press **Esc** to open the main menu, where you can access **Settings**. By default, the settings are optimized for manual gameplay during RPG sessions. For testing purposes, it is recommended to enable the automatic modes.
 
 1. **Automatic Combat** (Ctrl+A): Actions for all units are automated, preventing manual movement when enabled.
 2. **Automatic Death** (Ctrl+K): Units with health below zero are automatically removed.
