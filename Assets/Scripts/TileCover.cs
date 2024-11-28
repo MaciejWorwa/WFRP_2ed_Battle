@@ -16,7 +16,7 @@ public class TileCover : MonoBehaviour
         //Wyświetla numer pola, jeśli takowy posiada
         if(Number != 0)
         {
-            transform.GetChild(0).gameObject.SetActive(true);
+            transform.GetChild(1).gameObject.SetActive(true);
             GetComponentInChildren<TMP_Text>().text = Number.ToString();
         }
     }
@@ -32,13 +32,13 @@ public class TileCover : MonoBehaviour
             {
                 // Resetowanie numeru
                 Number = 0;
-                transform.GetChild(0).gameObject.SetActive(false);
+                transform.GetChild(1).gameObject.SetActive(false);
             }
             else
             {
                 // Zwiększanie numeru
                 Number++;
-                transform.GetChild(0).gameObject.SetActive(true);
+                transform.GetChild(1).gameObject.SetActive(true);
                 GetComponentInChildren<TMP_Text>().text = Number.ToString();
             }
         }

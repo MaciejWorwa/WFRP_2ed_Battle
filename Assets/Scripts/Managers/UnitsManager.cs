@@ -609,7 +609,7 @@ public class UnitsManager : MonoBehaviour
             }
             
             //Ukrywa lub pokazuje nazwę jednostki w panelu
-            if(GameManager.IsNamesHidingMode)
+            if(GameManager.IsNamesHidingMode && !MultiScreenDisplay.Instance.PlayersCamera.gameObject.activeSelf)
             {
                 _unitPanel.transform.Find("Name_text").gameObject.SetActive(false);
             }

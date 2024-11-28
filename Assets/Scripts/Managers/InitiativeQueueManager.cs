@@ -32,6 +32,7 @@ public class InitiativeQueueManager : MonoBehaviour
     public Dictionary <Unit, int> InitiativeQueue = new Dictionary<Unit, int>();
     public Unit ActiveUnit;
     public Transform InitiativeScrollViewContent;
+    public Transform PlayersCamera_InitiativeScrollViewContent;
     [SerializeField] private GameObject _initiativeOptionPrefab; // Prefab odpowiadający każdej jednostce na liście inicjatywy
     private Color _defaultColor = new Color(0f, 0f, 0f, 0f); // Domyślny kolor przycisku
     private Color _selectedColor = new Color(0f, 0f, 0f, 0.5f); // Kolor wybranego przycisku (zaznaczonej jednostki)
@@ -69,46 +70,70 @@ public class InitiativeQueueManager : MonoBehaviour
     private void DisplayInitiativeQueue()
     {
         // Resetuje wyświetlaną kolejkę, usuwając wszystkie obiekty "dzieci"
-        Transform contentTransform = InitiativeScrollViewContent.transform;
-        for (int i = contentTransform.childCount - 1; i >= 0; i--)
-        {
-            Transform child = contentTransform.GetChild(i);
-            Destroy(child.gameObject);
-        }
+        ResetScrollViewContent(InitiativeScrollViewContent);
+        ResetScrollViewContent(PlayersCamera_InitiativeScrollViewContent);
 
         ActiveUnit = null;
 
         // Ustala wyświetlaną kolejkę inicjatywy
         foreach (var pair in InitiativeQueue)
         {
-            // Dodaje jednostkę do ScrollViewContent w postaci gameObjectu jako opcja CustomDropdowna
-            GameObject optionObj = Instantiate(_initiativeOptionPrefab, InitiativeScrollViewContent);
+            // Dodaje jednostkę do głównej kolejki ScrollViewContent
+            GameObject optionObj = CreateInitiativeOption(pair, InitiativeScrollViewContent, false);
 
-            // Odniesienie do nazwy postaci
-            TextMeshProUGUI nameText = optionObj.transform.Find("Name_Text").GetComponent<TextMeshProUGUI>();
-            nameText.text = pair.Key.GetComponent<Stats>().Name;
+            // Dodaje jednostkę do Players kolejki ScrollViewContent
+            GameObject playersOptionObj = CreateInitiativeOption(pair, PlayersCamera_InitiativeScrollViewContent, true);
 
-            // Odniesienie do wartości inicjatywy
-            TextMeshProUGUI initiativeText = optionObj.transform.Find("Initiative_Text").GetComponent<TextMeshProUGUI>();
-            initiativeText.text = pair.Value.ToString();
-
-            //Wyróżnia postać, która obecnie wykonuje turę. Sprawdza, czy postać ma jeszcze dostępne akcje, jeśli tak to jest jej tura (po zakończeniu tury liczba dostępnych akcji spada do 0)
-            if(RoundsManager.Instance.UnitsWithActionsLeft[pair.Key] > 0 && ActiveUnit == null && pair.Key.IsTurnFinished != true)
+            // Sprawdza, czy jest aktywna tura dla tej jednostki
+            if (RoundsManager.Instance.UnitsWithActionsLeft[pair.Key] > 0 && ActiveUnit == null && pair.Key.IsTurnFinished != true)
             {
                 ActiveUnit = pair.Key;
-                optionObj.GetComponent<Image>().color = _activeColor;
+                SetOptionColor(optionObj, _activeColor);
+                SetOptionColor(playersOptionObj, _activeColor);
             }
-            
-            //Wyróżnia postać, która jest obecnie zaznaczona
+
+            // Wyróżnia zaznaczoną jednostkę
             if (Unit.SelectedUnit != null && pair.Key == Unit.SelectedUnit.GetComponent<Unit>())
             {
-                optionObj.GetComponent<Image>().color = pair.Key == ActiveUnit ? _selectedActiveColor : _selectedColor;
+                Color selectedColor = pair.Key == ActiveUnit ? _selectedActiveColor : _selectedColor;
+                SetOptionColor(optionObj, selectedColor);
+                SetOptionColor(playersOptionObj, selectedColor);
             }
             else if (pair.Key != ActiveUnit)
             {
-                optionObj.GetComponent<Image>().color = _defaultColor;
+                SetOptionColor(optionObj, _defaultColor);
+                SetOptionColor(playersOptionObj, _defaultColor);
             }
         }
+    }
+
+    private void ResetScrollViewContent(Transform scrollViewContent)
+    {
+        for (int i = scrollViewContent.childCount - 1; i >= 0; i--)
+        {
+            Transform child = scrollViewContent.GetChild(i);
+            Destroy(child.gameObject);
+        }
+    }
+
+    private GameObject CreateInitiativeOption(KeyValuePair<Unit, int> pair, Transform scrollViewContent, bool IsPlayersCamera_InitiativeQueue)
+    {
+        GameObject optionObj = Instantiate(_initiativeOptionPrefab, scrollViewContent);
+
+        // Odniesienie do nazwy postaci
+        TextMeshProUGUI nameText = optionObj.transform.Find("Name_Text").GetComponent<TextMeshProUGUI>();
+        nameText.text = pair.Key.GetComponent<Stats>().Name;
+
+        // Odniesienie do wartości inicjatywy
+        TextMeshProUGUI initiativeText = optionObj.transform.Find("Initiative_Text").GetComponent<TextMeshProUGUI>();
+        initiativeText.text = pair.Value.ToString();
+
+        return optionObj;
+    }
+
+    private void SetOptionColor(GameObject optionObj, Color color)
+    {
+        optionObj.GetComponent<Image>().color = color;
     }
 
     public void SelectUnitByQueue()
