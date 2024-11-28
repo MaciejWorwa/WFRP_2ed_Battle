@@ -49,7 +49,7 @@ public class AreaSelector : MonoBehaviour
 
         if(!GameManager.IsMapHidingMode && !UnitsManager.IsUnitRemoving && !UnitsManager.IsMultipleUnitsSelecting) return;
 
-        if (Input.GetMouseButtonDown(0) && !GameManager.Instance.IsPointerOverPanel()) // Start rysowania prostokąta
+        if (Input.GetMouseButtonDown(0) && !GameManager.Instance.IsPointerOverUI()) // Start rysowania prostokąta
         {
             StartSelection();
         }

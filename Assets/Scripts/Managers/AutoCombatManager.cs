@@ -54,11 +54,21 @@ public class AutoCombatManager : MonoBehaviour
         // Jeśli rywal jest w zasięgu ataku to wykonuje atak
         if (unit.CanAttack == true && (distance <= weapon.AttackRange || distance <= weapon.AttackRange * 2 && weapon.Type.Contains("ranged") && !weapon.Type.Contains("short-range-only")))
         {
-            ExecuteAttack(unit, closestOpponent, weapon, distance);      
+            if (weapon.Type.Contains("ranged"))
+            {
+                //Sprawdza konieczne warunki do wykonania ataku dystansowego
+                if(CombatManager.Instance.ValidateRangedAttack(unit, closestOpponent.GetComponent<Unit>(), weapon, distance) == false)
+                {
+                    AttemptToChangeDistanceAndAttack(unit, closestOpponent, weapon);
+                    return;
+                }
+            }
+
+            ExecuteAttack(unit, closestOpponent, weapon, distance);    
         }
         else
         {
-            AttemptToChangeDistanceAndAttack(unit, closestOpponent);
+            AttemptToChangeDistanceAndAttack(unit, closestOpponent, weapon);
         }
     }
 
@@ -75,6 +85,8 @@ public class AutoCombatManager : MonoBehaviour
 
                 CombatManager.Instance.Attack(unit, closestOpponent.GetComponent<Unit>(), false);
             }
+            
+            RoundsManager.Instance.FinishTurn();
             return;
         }
 
@@ -145,8 +157,6 @@ public class AutoCombatManager : MonoBehaviour
                     {
                         RoundsManager.Instance.DoHalfAction(unit.GetComponent<Unit>());
                     }
-
-                    Debug.Log($"{unit.GetComponent<Stats>().Name} zmienia broń na {weapon.Name}.");
                 }
                 else // Upuszcza broń, żeby walczyć przy użyciu pięści
                 {
@@ -156,7 +166,11 @@ public class AutoCombatManager : MonoBehaviour
                 }
             }
 
-            if (RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2)
+            var equippedWeapons = unit.GetComponent<Inventory>().EquippedWeapons;
+            bool isFirstWeaponShield = equippedWeapons[0] != null && equippedWeapons[0].Type.Contains("shield");
+            bool hasTwoOneHandedWeaponsOrShield = (equippedWeapons[0] != null && equippedWeapons[1] != null && equippedWeapons[0].Name != equippedWeapons[1].Name) || isFirstWeaponShield;
+
+            if (RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2 && (unit.GetComponent<Stats>().LightningParry || hasTwoOneHandedWeaponsOrShield))
             {
                 CombatManager.Instance.SetAim();
             }
@@ -165,10 +179,16 @@ public class AutoCombatManager : MonoBehaviour
             {
                 CombatManager.Instance.Attack(unit, closestOpponent.GetComponent<Unit>(), false);
             }
+
+            if (RoundsManager.Instance.UnitsWithActionsLeft[unit] != 0)
+            {
+                //Kończy turę, żeby zostawić sobie akcję na parowanie
+                RoundsManager.Instance.FinishTurn();
+            }
         }
     }
 
-    private void AttemptToChangeDistanceAndAttack(Unit unit, GameObject closestOpponent)
+    private void AttemptToChangeDistanceAndAttack(Unit unit, GameObject closestOpponent, Weapon weapon)
     {
         //Ustawia aktualną szybkość postaci na wysoką wartość, żeby ruch nie był ograniczony dystansem
         MovementManager.Instance.UpdateMovementRange(20);
@@ -192,7 +212,7 @@ public class AutoCombatManager : MonoBehaviour
         //Ścieżka ruchu atakującego
         List<Vector3> path = MovementManager.Instance.FindPath(unit.transform.position, targetTilePosition, unit.GetComponent<Stats>().TempSz); 
         
-        if (unit.CanAttack == true && path.Count <= unit.GetComponent<Stats>().Sz * 2 && path.Count >= 3 && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) // Jeśli rywal jest w zasięgu szarży to wykonuje szarżę
+        if ((!weapon.Type.Contains("ranged")) && unit.CanAttack == true && path.Count <= unit.GetComponent<Stats>().Sz * 2 && path.Count >= 3 && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) // Jeśli rywal jest w zasięgu szarży to wykonuje szarżę
         {
             Debug.Log($"{unit.GetComponent<Stats>().Name} szarżuje na {closestOpponent.GetComponent<Stats>().Name}.");
 
@@ -201,10 +221,10 @@ public class AutoCombatManager : MonoBehaviour
 
             CombatManager.Instance.Attack(unit, closestOpponent.GetComponent<Unit>(), false);
         }
-        else if (path.Count < 3 && path.Count > 0 && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) //Wykonuje ruch w kierunku przeciwnika, a następnie atak
+        else if (path.Count < 3 && path.Count > 0 && unit.CanAttack == true && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) //Wykonuje ruch w kierunku przeciwnika, a następnie atak
         {
             // Uruchomia korutynę odpowiedzialną za ruch i atak
-            StartCoroutine(MoveAndAttack(unit, targetTile, closestOpponent.GetComponent<Unit>()));
+            StartCoroutine(MoveAndAttack(unit, targetTile, closestOpponent.GetComponent<Unit>(), weapon));
         }
         else if (path.Count > 0) //Wykonuje ruch w kierunku przeciwnika
         {
@@ -232,7 +252,7 @@ public class AutoCombatManager : MonoBehaviour
         Physics2D.SyncTransforms();
     }
 
-    IEnumerator MoveAndAttack(Unit unit, GameObject targetTile, Unit closestOpponent)
+    IEnumerator MoveAndAttack(Unit unit, GameObject targetTile, Unit closestOpponent, Weapon weapon)
     {
         Debug.Log($"{unit.GetComponent<Stats>().Name} podchodzi do {closestOpponent.GetComponent<Stats>().Name} i atakuje.");
 
@@ -246,7 +266,7 @@ public class AutoCombatManager : MonoBehaviour
         yield return new WaitUntil(() => MovementManager.Instance.IsMoving == false);
 
         // Atak
-        CombatManager.Instance.Attack(unit, closestOpponent, false);
+        ExecuteAttack(unit, closestOpponent.gameObject, weapon, 1f);
     }
 
     public void WaitForMovementOrAttackOpportunity(Unit unit)
@@ -261,8 +281,20 @@ public class AutoCombatManager : MonoBehaviour
         }
         else if (RoundsManager.Instance.UnitsWithActionsLeft[unit] == 1) 
         {
-            // Przycelowuje
-            CombatManager.Instance.SetAim();
+            var equippedWeapons = unit.GetComponent<Inventory>().EquippedWeapons;
+            bool isFirstWeaponShield = equippedWeapons[0] != null && equippedWeapons[0].Type.Contains("shield");
+            bool hasTwoOneHandedWeaponsOrShield = (equippedWeapons[0] != null && equippedWeapons[1] != null && equippedWeapons[0].Name != equippedWeapons[1].Name) || isFirstWeaponShield;
+
+            if(unit.GetComponent<Stats>().LightningParry != true && hasTwoOneHandedWeaponsOrShield != true)
+            {
+                //Kończy turę, żeby zostawić sobie akcję na parowanie
+                RoundsManager.Instance.FinishTurn();
+            }
+            else
+            {
+                // Przycelowuje
+                CombatManager.Instance.SetAim();
+            }
         }
     }
 

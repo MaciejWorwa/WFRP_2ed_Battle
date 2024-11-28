@@ -2015,7 +2015,7 @@ GameObject:
   - component: {fileID: 162082145}
   - component: {fileID: 162082144}
   - component: {fileID: 162082143}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: Background_Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9481,7 +9481,7 @@ GameObject:
   - component: {fileID: 691416821}
   - component: {fileID: 691416820}
   - component: {fileID: 691416819}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: Map_Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -62,7 +62,7 @@ public class Unit : MonoBehaviour
     }
     private void OnMouseUp()
     { 
-        if(GameManager.Instance.IsPointerOverPanel() || GameManager.IsMapHidingMode) return;
+        if(GameManager.Instance.IsPointerOverUI() || GameManager.IsMapHidingMode) return;
 
         SelectUnit();
     }

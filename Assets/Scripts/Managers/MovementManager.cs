@@ -296,7 +296,7 @@ public class MovementManager : MonoBehaviour
             modifier = 1;
         }
 
-        if(modifier > 1 && RoundsManager.Instance.UnitsWithActionsLeft[unit.GetComponent<Unit>()] < 2) //Sprawdza, czy jednostka może wykonać akcję podwójną
+        if(modifier > 1 && modifier < 20 && RoundsManager.Instance.UnitsWithActionsLeft[unit.GetComponent<Unit>()] < 2) //Sprawdza, czy jednostka może wykonać akcję podwójną
         {
             Debug.Log("Ta jednostka nie może w tej rundzie wykonać akcji podwójnej.");
             return;

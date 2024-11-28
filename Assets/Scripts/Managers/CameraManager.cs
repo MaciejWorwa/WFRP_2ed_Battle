@@ -21,7 +21,7 @@ public class CameraManager : MonoBehaviour
 
     void Update()
     {
-        if(GameManager.IsGamePaused || GameManager.Instance.IsAnyInputFieldFocused()) return;
+        if(GameManager.IsGamePaused || GameManager.Instance.IsPointerOverUI() || GameManager.Instance.IsAnyInputFieldFocused()) return;
 
         if(SceneManager.GetActiveScene().buildIndex == 1)
         {

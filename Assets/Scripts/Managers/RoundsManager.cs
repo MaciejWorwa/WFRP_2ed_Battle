@@ -168,6 +168,8 @@ public class RoundsManager : MonoBehaviour
         {
             InitiativeQueueManager.Instance.SelectUnitByQueue();
 
+            if(unit.IsTurnFinished) continue;
+
             yield return new WaitForSeconds(0.1f);
 
             AutoCombatManager.Instance.Act(Unit.SelectedUnit.GetComponent<Unit>());

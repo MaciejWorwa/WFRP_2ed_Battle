@@ -98,8 +98,8 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        //Pauzuje grę (możliwość ruchu jednostek), gdy któryś z paneli konkretnej jednostki jest otwarty
-        IsGamePaused = IsPointerOverPanel() || FileBrowser.IsOpen? true : false;
+        //Pauzuje grę, gdy jest otwarteokno wczytywania plików
+        IsGamePaused = FileBrowser.IsOpen? true : false;
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -132,7 +132,7 @@ public class GameManager : MonoBehaviour
         }
 
         // Sprawdzenie, czy wciśnięto Ctrl lub Command (dla macOS)
-        if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand))
+        if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand)) && !IsAnyInputFieldFocused())
         {
             if (Input.GetKeyDown(KeyCode.Q))
             {
@@ -257,19 +257,22 @@ public class GameManager : MonoBehaviour
             panel.SetActive(false);
         }
     }
-    public bool IsPointerOverPanel()
+    public bool IsPointerOverUI()
     {
         // Tworzenie promienia od pozycji myszki
-        PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
-        eventDataCurrentPosition.position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+        PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current)
+        {
+            position = Input.mousePosition
+        };
 
         List<RaycastResult> results = new List<RaycastResult>();
-         // Wykonywanie promieniowania i dodawanie wyników do listy
+        // Wykonywanie promieniowania i dodawanie wyników do listy
         EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
 
         foreach (RaycastResult result in results)
         {
-            if (result.gameObject.CompareTag("Panel") || result.gameObject.CompareTag("SidePanel"))
+            // Sprawdzanie, czy warstwa obiektu to UI
+            if (result.gameObject.layer == LayerMask.NameToLayer("UI"))
             {
                 return true;
             }

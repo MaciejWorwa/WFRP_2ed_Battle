@@ -246,50 +246,11 @@ public class CombatManager : MonoBehaviour
         //Wykonuje atak, jeśli cel jest w zasięgu
         if (_attackDistance <= attackerWeapon.AttackRange || _attackDistance <= attackerWeapon.AttackRange * 2 && attackerWeapon.Type.Contains("ranged") && !attackerWeapon.Type.Contains("short-range-only"))
         {
-            //Sprawdza konieczne warunki do wykonania ataku dystansowego
+
             if (attackerWeapon.Type.Contains("ranged"))
             {
-                //Sprawdza, czy broń jest naładowana
-                if (attackerWeapon.ReloadLeft != 0)
-                {
-                    Debug.Log($"Broń wymaga przeładowania.");
-                    return;
-                }
-
-                //Sprawdza, czy cel nie znajduje się zbyt blisko
-                if (_attackDistance <= 1.5f)
-                {
-                    Debug.Log($"Stoisz zbyt blisko celu aby wykonać atak dystansowy.");
-                    return;
-                }
-
-                // Sprawdza, czy na linii strzału znajduje się przeszkoda
-                RaycastHit2D[] raycastHits = Physics2D.RaycastAll(attacker.transform.position, target.transform.position - attacker.transform.position, _attackDistance);
-
-                foreach (var raycastHit in raycastHits)
-                {
-                    if (raycastHit.collider != null && raycastHit.collider.GetComponent<MapElement>() != null && raycastHit.collider.GetComponent<MapElement>().IsHighObstacle)
-                    {
-                        Debug.Log("Na linii strzału znajduje się przeszkoda, przez którą strzał jest niemożliwy.");
-                        return;
-                    }
-                    if (raycastHit.collider != null && raycastHit.collider.GetComponent<MapElement>() != null && raycastHit.collider.GetComponent<MapElement>().IsLowObstacle)
-                    {
-                        _attackModifier -= 20;
-
-                        Debug.Log("Strzał jest wykonywany w jednostkę znajdującą się za przeszkodą. Zastosowano ujemny modyfikator do trafienia.");
-
-                        break; //Żeby modyfikator nie kumulował się za każdą przeszkodę
-                    }
-                    if (raycastHit.collider != null && raycastHit.collider.GetComponent<Unit>() != null && raycastHit.collider.GetComponent<Unit>() != target && raycastHit.collider.GetComponent<Unit>() != attacker)
-                    {
-                        _attackModifier -= 20;
-
-                        Debug.Log("Na linii strzału znajduje się inna jednostka. Zastosowano ujemny modyfikator do trafienia.");
-
-                        break; //Żeby modyfikator nie kumulował się za każdą postać
-                    }
-                }
+                //Sprawdza konieczne warunki do wykonania ataku dystansowego
+                if(ValidateRangedAttack(attacker, target, attackerWeapon, _attackDistance) == false) return;
             }
 
             //Sprawdza, czy jest to atak wykonywany przez gracza, po którym będzie trzeba wpisać obrażenia w odpowiednim panelu. Ta zmienna jest konieczna, aby nowa jednostka nie była wybierana dopóki nie wpiszemy obrażeń.
@@ -357,6 +318,8 @@ public class CombatManager : MonoBehaviour
             //Aktualizuje modyfikator ataku o celowanie
             _attackModifier += attacker.AimingBonus;
 
+            //Rzut na trafienie
+            int rollResult = Random.Range(1, 101);
 
             //W przypadku, gdy atak następuje po udanym rzucie na trafienie rzeczywistymi kośćmi to nie sprawdzamy rzutu na trafienie. W przeciwnym razie sprawdzamy
             if(IsManualPlayerAttack)
@@ -406,9 +369,6 @@ public class CombatManager : MonoBehaviour
             }
             else
             {
-                //Rzut na trafienie
-                int rollResult = Random.Range(1, 101);
-
                 //Wykonuje fintę. Po niej następuje zwykły atak (inaczej bez sensu jest robienie finty).
                 if (AttackTypes["Feint"] == true)
                 {
@@ -422,11 +382,16 @@ public class CombatManager : MonoBehaviour
                 //Sprawdza, czy atak jest atakiem dystansowym, czy atakiem w zwarciu i ustala jego skuteczność
                 _isSuccessful = CheckAttackEffectiveness(rollResult, attackerStats, attackerWeapon, target);
 
-                //Niepowodzenie przy pechu
+                //Niepowodzenie przy pechu lub powodzenie przy szczęściu
                 if (rollResult >= 96)
                 {
-                    Debug.Log($"<color=red>{attackerStats.Name} wyrzucił pecha na trafienie!</color>");
+                    Debug.Log($"{attackerStats.Name} wyrzucił <color=red>PECHA</color> na trafienie!");
                     _isSuccessful = false;
+                }
+                else if(rollResult <= 5)
+                {
+                    Debug.Log($"{attackerStats.Name} wyrzucił <color=green>SZCZĘŚCIE</color> na trafienie!</color>");
+                    _isSuccessful = true;
                 }
             }         
 
@@ -441,7 +406,7 @@ public class CombatManager : MonoBehaviour
             }
 
             //Atakowany próbuje parować lub unikać.
-            if (_isSuccessful && attackerWeapon.Type.Contains("melee") && (attacker.Feinted != true || AttackTypes["StandardAttack"] != true))
+            if (_isSuccessful && rollResult > 5 && attackerWeapon.Type.Contains("melee") && (attacker.Feinted != true || AttackTypes["StandardAttack"] != true))
             {
                 bool canParry = target.CanParry && (RoundsManager.Instance.UnitsWithActionsLeft[target] >= 1 || targetStats.LightningParry);
 
@@ -569,8 +534,9 @@ public class CombatManager : MonoBehaviour
                     }
 
                     //Aktualizuje aktywną postać na kolejce inicjatywy, jeśli atakujący nie ma już dostępnych akcji. Ta funkcja jest tu wywołana, dlatego że chcemy zastosować opóźnienie i poczekać ze zmianą jednostki do momentu wpisania wartości obrażeń
-                    if(RoundsManager.Instance.UnitsWithActionsLeft[attacker] == 0)
+                    if(RoundsManager.Instance.UnitsWithActionsLeft[attacker] == 0 && _availableAttacks <= 0)
                     {
+                        //Zmienia jednostkę wg kolejności inicjatywy
                         InitiativeQueueManager.Instance.SelectUnitByQueue();
                     }
 
@@ -628,7 +594,7 @@ public class CombatManager : MonoBehaviour
                 Debug.Log($"{targetStats.Name} został zraniony.");
             }
             
-            if ((targetStats.TempHealth < 0 && targetUnit.gameObject.CompareTag("EnemyUnit")) || (targetStats.TempHealth < 0 && GameManager.IsHealthPointsHidingMode))
+            if ((targetStats.TempHealth < 0 && GameManager.IsHealthPointsHidingMode) || (targetStats.TempHealth < 0 && targetUnit.gameObject.CompareTag("EnemyUnit") && GameManager.IsStatsHidingMode))
             {
                 Debug.Log($"Żywotność {targetStats.Name} spadła poniżej zera i wynosi <color=red>{targetStats.TempHealth}</color>.");
             }
@@ -643,7 +609,14 @@ public class CombatManager : MonoBehaviour
                 else
                 {
                     targetUnit.DisplayUnitHealthPoints();
-                    Debug.Log($"Punkty żywotności {targetStats.Name}: {targetStats.TempHealth}/{targetStats.MaxHealth}");
+                    if (targetStats.TempHealth < 0)
+                    {
+                        Debug.Log($"Punkty żywotności {targetStats.Name}: <color=red>{targetStats.TempHealth}/{targetStats.MaxHealth}</color>");
+                    }
+                    else
+                    {
+                        Debug.Log($"Punkty żywotności {targetStats.Name}: {targetStats.TempHealth}/{targetStats.MaxHealth}");
+                    }
                 }
             }
         }
@@ -669,7 +642,7 @@ public class CombatManager : MonoBehaviour
     }
     #endregion
 
-    #region Calculating distance
+    #region Calculating distance and validating distance attack
     private float CalculateDistance(GameObject attacker, GameObject target)
     {
         if (attacker != null && target != null)
@@ -684,6 +657,60 @@ public class CombatManager : MonoBehaviour
             return 0;
         }
     }
+
+    public bool ValidateRangedAttack(Unit attacker, Unit target, Weapon attackerWeapon, float attackDistance)
+    {
+        // Sprawdza, czy broń jest naładowana
+        if (attackerWeapon.ReloadLeft != 0)
+        {
+            Debug.Log($"Broń wymaga przeładowania.");
+            return false;
+        }
+
+        // Sprawdza, czy cel nie znajduje się zbyt blisko
+        if (attackDistance <= 1.5f)
+        {
+            Debug.Log($"Jednostka stoi zbyt blisko celu, aby wykonać atak dystansowy.");
+            return false;
+        }
+
+        // Sprawdza, czy na linii strzału znajduje się przeszkoda
+        RaycastHit2D[] raycastHits = Physics2D.RaycastAll(attacker.transform.position, target.transform.position - attacker.transform.position, attackDistance);
+
+        foreach (var raycastHit in raycastHits)
+        {
+            if (raycastHit.collider == null) continue;
+
+            var mapElement = raycastHit.collider.GetComponent<MapElement>();
+            var unit = raycastHit.collider.GetComponent<Unit>();
+
+            if (mapElement != null)
+            {
+                if (mapElement.IsHighObstacle)
+                {
+                    Debug.Log("Na linii strzału znajduje się przeszkoda, przez którą strzał jest niemożliwy.");
+                    return false;
+                }
+
+                if (mapElement.IsLowObstacle)
+                {
+                    _attackModifier -= 20;
+                    Debug.Log("Strzał jest wykonywany w jednostkę znajdującą się za przeszkodą. Zastosowano ujemny modyfikator do trafienia.");
+                    break; // Żeby modyfikator nie kumulował się za każdą przeszkodę
+                }
+            }
+
+            if (unit != null && unit != target && unit != attacker)
+            {
+                _attackModifier -= 20;
+                Debug.Log("Na linii strzału znajduje się inna jednostka. Zastosowano ujemny modyfikator do trafienia.");
+                break; // Żeby modyfikator nie kumulował się za każdą postać
+            }
+        }
+
+        return true;
+    }
+
     #endregion
 
     #region Check attack effectiveness
@@ -712,7 +739,7 @@ public class CombatManager : MonoBehaviour
 
             _isSuccessful = rollResult <= (attackerStats.US + _attackModifier - targetUnit.DefensiveBonus - shieldModifier);
 
-            Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na US: {rollResult} Wartość cechy: {attackerStats.US} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus - shieldModifier}");
+            Debug.Log($"{attackerStats.Name} atakuje {targetUnit.GetComponent<Stats>().Name} przy użyciu {attackerWeapon.Name}. Rzut na US: {rollResult} Wartość cechy: {attackerStats.US} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus - shieldModifier}");
             ResetWeaponLoad(attackerWeapon, attackerStats);
         }
 
@@ -721,7 +748,7 @@ public class CombatManager : MonoBehaviour
         {
             _isSuccessful = rollResult <= (attackerStats.WW + _attackModifier - targetUnit.DefensiveBonus);
 
-            Debug.Log($"{attackerStats.Name} atakuje przy użyciu {attackerWeapon.Name}. Rzut na WW: {rollResult} Wartość cechy: {attackerStats.WW} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus}");
+            Debug.Log($"{attackerStats.Name} atakuje {targetUnit.GetComponent<Stats>().Name} przy użyciu {attackerWeapon.Name}. Rzut na WW: {rollResult} Wartość cechy: {attackerStats.WW} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus}");
         }
 
         // Odporność przeciwnika na niemagiczne ataki
@@ -781,51 +808,69 @@ public class CombatManager : MonoBehaviour
         return attackModifier;
     }
 
-
     //Modyfikator za przewagę liczebną
     private int CountOutnumber(Unit attacker, Unit target)
     {
-        int adjacentOpponents = 0;
-        int adjacentAllies = 0;
+        int adjacentOpponents = 0; // Przeciwnicy atakującego stojący obok celu ataku
+        int adjacentAllies = 0;    // Sojusznicy atakującego stojący obok celu ataku
+        int adjacentOpponentsNearAttacker = 0; // Przeciwnicy atakującego stojący obok atakującego
         int modifier = 0;
 
-        Vector3 targetPos = target.transform.position;
+        // Zbiór do przechowywania już policzonych przeciwników
+        HashSet<Collider2D> countedOpponents = new HashSet<Collider2D>();
 
-        //Wszystkie przylegające pozycje do atakowanego
-        Vector3[] positions = { targetPos,
-            targetPos + Vector3.right,
-            targetPos + Vector3.left,
-            targetPos + Vector3.up,
-            targetPos + Vector3.down,
-            targetPos + new Vector3(1, 1, 0),
-            targetPos + new Vector3(-1, -1, 0),
-            targetPos + new Vector3(-1, 1, 0),
-            targetPos + new Vector3(1, -1, 0)
-        };
-
-        foreach (var pos in positions)
+        // Funkcja pomocnicza do zliczania jednostek w sąsiedztwie danej pozycji
+        void CountAdjacentUnits(Vector3 center, string allyTag, string opponentTag, ref int allies, ref int opponents)
         {
-            Collider2D collider = Physics2D.OverlapPoint(pos);
+            Vector3[] positions = {
+                center,
+                center + Vector3.right,
+                center + Vector3.left,
+                center + Vector3.up,
+                center + Vector3.down,
+                center + new Vector3(1, 1, 0),
+                center + new Vector3(-1, -1, 0),
+                center + new Vector3(-1, 1, 0),
+                center + new Vector3(1, -1, 0)
+            };
 
-            if(collider != null && collider.CompareTag(target.tag))
+            foreach (var pos in positions)
             {
-                adjacentAllies++;
-            }
-            else if (collider != null && collider.CompareTag(attacker.tag))
-            {
-                adjacentOpponents++;
+                Collider2D collider = Physics2D.OverlapPoint(pos);
+                if (collider == null) continue;
+
+                if (collider.CompareTag(allyTag))
+                {
+                    allies++;
+                }
+                else if (collider.CompareTag(opponentTag) && !countedOpponents.Contains(collider))
+                {
+                    opponents++;
+                    countedOpponents.Add(collider); // Dodajemy do zestawu zliczonych przeciwników
+                }
             }
         }
 
-        if(adjacentOpponents >= adjacentAllies * 4)
+        // Zlicza sojuszników i przeciwników atakującego w sąsiedztwie celu ataku
+        CountAdjacentUnits(target.transform.position, attacker.tag, target.tag, ref adjacentAllies, ref adjacentOpponents);
+
+        // Zlicza przeciwników atakujacego w sąsiedztwie atakującego (bez liczenia jego sojuszników, bo oni nie mają wpływu na przewagę)
+        int ignoredAllies = 0; // Tymczasowy licznik, ignorowany
+        CountAdjacentUnits(attacker.transform.position, attacker.tag, target.tag, ref ignoredAllies /* ignorujemy sojuszników */, ref adjacentOpponentsNearAttacker);
+
+        // Dodaje przeciwników w sąsiedztwie atakującego do całkowitej liczby jego przeciwników
+        adjacentOpponents += adjacentOpponentsNearAttacker;
+
+        // Wylicza modyfikator na podstawie stosunku przeciwników do sojuszników atakującego
+        if (adjacentAllies >= adjacentOpponents * 4)
         {
             modifier = 30;
         }
-        else if(adjacentOpponents >= adjacentAllies * 3)
+        else if (adjacentAllies >= adjacentOpponents * 3)
         {
             modifier = 20;
         }
-        else if (adjacentOpponents >= adjacentAllies * 2)
+        else if (adjacentAllies >= adjacentOpponents * 2)
         {
             modifier = 10;
         }
@@ -1261,13 +1306,18 @@ public class CombatManager : MonoBehaviour
             Debug.Log($"Rzut {targetStats.Name} na parowanie: {rollResult} Wartość cechy: {targetStats.WW}");
         }
 
-        if (rollResult <= targetStats.WW + parryModifier && rollResult < 96)
+        if(rollResult <= 5)
+        {
+            Debug.Log($"{targetStats.Name} wyrzucił <color=green>SZCZĘŚCIE</color> na parowanie!</color>");
+            return true;
+        }
+        else if (rollResult <= targetStats.WW + parryModifier && rollResult < 96)
         {
             return true;
         }
         else if (rollResult >= 96)
         {
-            Debug.Log($"<color=red>{targetStats.Name} wyrzucił pecha na parowanie!</color>");
+            Debug.Log($"{targetStats.Name} wyrzucił <color=red>PECHA</color> na parowanie!");
             return false;
         }
         else
@@ -1292,13 +1342,18 @@ public class CombatManager : MonoBehaviour
             Debug.Log($"Rzut {targetStats.Name} na unik: {rollResult} Wartość cechy: {targetStats.Zr}");
         }
 
-        if (rollResult <= targetStats.Zr + (targetStats.Dodge * 10) - 10 + modifier + targetStats.GetComponent<Unit>().GuardedAttackBonus && rollResult < 96)
+        if(rollResult <= 5)
+        {
+            Debug.Log($"{targetStats.Name} wyrzucił <color=green>SZCZĘŚCIE</color> na unik!</color>");
+            return true;
+        }
+        else if (rollResult <= targetStats.Zr + (targetStats.Dodge * 10) - 10 + modifier + targetStats.GetComponent<Unit>().GuardedAttackBonus && rollResult < 96)
         {
             return true;
         }      
         else if (rollResult >= 96)
         {
-            Debug.Log($"<color=red>{targetStats.Name} wyrzucił pecha na unik!</color>");
+            Debug.Log($"{targetStats.Name} wyrzucił <color=red>PECHA</color> na unik!");
             return false;
         }
         else

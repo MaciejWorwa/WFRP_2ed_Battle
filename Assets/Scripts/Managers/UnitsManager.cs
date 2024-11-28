@@ -514,12 +514,19 @@ public class UnitsManager : MonoBehaviour
         if (Unit.SelectedUnit == null) return;
 
         GameObject unit = Unit.SelectedUnit;
+        Stats stats = unit.GetComponent<Stats>();
 
         //Ustala nową inicjatywę
-        unit.GetComponent<Stats>().Initiative = unit.GetComponent<Stats>().Zr + UnityEngine.Random.Range(1, 11);
+        stats.Initiative = stats.Zr + UnityEngine.Random.Range(1, 11);
+
+        //Uwzględnienie kary do Zręczności za pancerz
+        if(stats.Armor_head >= 3 || stats.Armor_torso >= 3 || stats.Armor_arms >= 3 || stats.Armor_legs >= 3)
+        {
+            stats.Initiative -= 10;
+        }
 
         //Aktualizuje kolejkę inicjatywy
-        InitiativeQueueManager.Instance.InitiativeQueue[unit.GetComponent<Unit>()] = unit.GetComponent<Stats>().Initiative;
+        InitiativeQueueManager.Instance.InitiativeQueue[unit.GetComponent<Unit>()] = stats.Initiative;
         InitiativeQueueManager.Instance.UpdateInitiativeQueue();
 
         UpdateUnitPanel(unit);
@@ -678,7 +685,6 @@ public class UnitsManager : MonoBehaviour
         }
         _nameDisplay.text = stats.Name;
         _raceDisplay.text = stats.Race;
-        _initiativeDisplay.text = stats.Initiative.ToString();
         _healthDisplay.text = stats.TempHealth + "/" + stats.MaxHealth;
         _tokenDisplay.sprite = unit.transform.Find("Token").GetComponent<SpriteRenderer>().sprite;
 
@@ -707,7 +713,7 @@ public class UnitsManager : MonoBehaviour
             if(field == null) continue;
 
             // Jeśli znajdzie takie pole, to zmienia wartość wyświetlanego tekstu na wartość tej cechy
-            if (field.FieldType == typeof(int) && inputField.GetComponent<UnityEngine.UI.Slider>() == null) // to działa dla cech opisywanych wartościami int (pomija umiejętności, które nie są ustawiane przy użyciu slidera)
+            if (field.FieldType == typeof(int) && inputField.GetComponent<UnityEngine.UI.Slider>() == null) // to działa dla cech opisywanych wartościami int
             {
                 int value = (int)field.GetValue(unit.GetComponent<Stats>());
 
@@ -720,15 +726,17 @@ public class UnitsManager : MonoBehaviour
                     inputField.GetComponent<UnityEngine.UI.Slider>().value = value;
                 }
             }
-            else if (field.FieldType == typeof(int) && inputField.GetComponent<UnityEngine.UI.Slider>() != null) // to działa dla umiejętnościami
-            {
-                int value = (int)field.GetValue(unit.GetComponent<Stats>());
-                inputField.GetComponent<UnityEngine.UI.Slider>().value = value;
-            }
             else if (field.FieldType == typeof(bool)) // to działa dla cech opisywanych wartościami bool
             {
                 bool value = (bool)field.GetValue(unit.GetComponent<Stats>());
                 inputField.GetComponent<UnityEngine.UI.Toggle>().isOn = value;
+            }
+
+            if(attributeName == "Initiative")
+            {
+                //Aktualizuje kolejkę inicjatywy
+                InitiativeQueueManager.Instance.InitiativeQueue[unit.GetComponent<Unit>()] = unit.GetComponent<Stats>().Initiative;
+                InitiativeQueueManager.Instance.UpdateInitiativeQueue();
             }
         }
     }

@@ -145,6 +145,7 @@ MonoBehaviour:
   DefaultColor: {r: 0, g: 0, b: 0, a: 0}
   HighlightColor: {r: 0, g: 0, b: 0, a: 0}
   IsSelected: 0
+  IsTurnFinished: 0
   IsRunning: 0
   IsCharging: 0
   IsRetreating: 0
@@ -181,6 +182,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Id: 2
   Index: 0
+  IsBig: 0
   Name: 
   Race: 
   PrimaryWeaponId: 0
@@ -388,7 +390,7 @@ GameObject:
   - component: {fileID: 1654780562525486154}
   - component: {fileID: 4765236492451149771}
   - component: {fileID: 1306580773643467112}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Health_text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -523,7 +525,7 @@ GameObject:
   - component: {fileID: 7272838209087747158}
   - component: {fileID: 7210115083120675569}
   - component: {fileID: 693077173380377061}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -710,7 +712,7 @@ GameObject:
   - component: {fileID: 6528713681144346615}
   - component: {fileID: 2146598739874914358}
   - component: {fileID: 5344260523014033116}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Name_text
   m_TagString: Untagged
   m_Icon: {fileID: 0}

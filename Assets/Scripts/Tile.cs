@@ -65,7 +65,7 @@ public class Tile : MonoBehaviour
 
     private void OnMouseUp()
     {
-        if(GameManager.IsMapHidingMode || UnitsManager.IsMultipleUnitsSelecting || UnitsManager.IsUnitRemoving) return;
+        if(GameManager.IsMapHidingMode || UnitsManager.IsMultipleUnitsSelecting || UnitsManager.IsUnitRemoving || GameManager.Instance.IsPointerOverUI()) return;
         
         if(UnitsManager.IsTileSelecting == true)
         {
@@ -120,7 +120,7 @@ public class Tile : MonoBehaviour
         if (SceneManager.GetActiveScene().buildIndex != 0 ||  GameManager.IsMousePressed == false) return;
 
         //Sprawdzamy, czy jest aktywny tryb usuwania elementów 
-        if (MapEditor.IsElementRemoving || GameManager.Instance.IsPointerOverPanel() || DraggableObject.IsDragging) return;
+        if (MapEditor.IsElementRemoving || GameManager.Instance.IsPointerOverUI() || DraggableObject.IsDragging) return;
    
         Vector3 position = new Vector3(transform.position.x, transform.position.y, 1);
 
