@@ -429,8 +429,15 @@ public class CombatManager : MonoBehaviour
 
                         _isSuccessful = CheckForParryAndDodge(attackerWeapon, targetWeapon, targetStats, target, false);
                         ExecuteAttack(attacker, target, attackerWeapon);
+
+                        //Zmienia jednostkę wg kolejności inicjatywy
+                        if(RoundsManager.Instance.UnitsWithActionsLeft[attacker] == 0 && _availableAttacks <= 0)
+                        {
+                            InitiativeQueueManager.Instance.SelectUnitByQueue();
+                        }
                     }
                     _parryOrDodge = "";
+
                     return;
                 }
 
@@ -788,13 +795,15 @@ public class CombatManager : MonoBehaviour
         if (targetUnit.StunDuration > 0) attackModifier += 20;
         if (targetUnit.Trapped) attackModifier += 20;
 
-        // Przewaga liczebna
-        attackModifier += CountOutnumber(attackerStats.GetComponent<Unit>(), targetUnit);
-
         // Modyfikator za dystans
         if (attackerWeapon.Type.Contains("ranged"))
         {
             attackModifier -= attackDistance > attackerWeapon.AttackRange ? 20 : 0;
+        }
+        else
+        {
+            // Przewaga liczebna
+            attackModifier += CountOutnumber(attackerStats.GetComponent<Unit>(), targetUnit);
         }
 
         // Bijatyka

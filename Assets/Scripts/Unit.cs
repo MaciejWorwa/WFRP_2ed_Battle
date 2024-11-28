@@ -146,7 +146,7 @@ public class Unit : MonoBehaviour
         InitiativeQueueManager.Instance.UpdateInitiativeQueue();
 
         //Włącza lub wyłącza podgląd dostępnych akcji dla jednostki (w zależności, czy ją zaznaczamy, czy odznaczamy)
-        RoundsManager.Instance.DisplayActionsLeft(this);
+        RoundsManager.Instance.DisplayActionsLeft();
 
         //Zresetowanie rzucania zaklęć
         MagicManager.Instance.ResetSpellCasting();

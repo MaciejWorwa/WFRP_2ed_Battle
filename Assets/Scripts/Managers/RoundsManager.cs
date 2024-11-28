@@ -128,10 +128,7 @@ public class RoundsManager : MonoBehaviour
         }
 
         //Aktualizuje wyświetlane dostępne akcje
-        if(Unit.SelectedUnit != null)
-        {
-            DisplayActionsLeft(Unit.SelectedUnit.GetComponent<Unit>());
-        }
+        DisplayActionsLeft();
 
         InitiativeQueueManager.Instance.UpdateInitiativeQueue();
 
@@ -201,7 +198,7 @@ public class RoundsManager : MonoBehaviour
             }
 
             UnitsWithActionsLeft[unit]--;
-            DisplayActionsLeft(unit);
+            DisplayActionsLeft();
 
             Debug.Log($"<color=green>{unit.GetComponent<Stats>().Name} wykonał/a akcję pojedynczą. </color>");
 
@@ -238,7 +235,7 @@ public class RoundsManager : MonoBehaviour
             }
 
             UnitsWithActionsLeft[unit] -= 2;
-            DisplayActionsLeft(unit);
+            DisplayActionsLeft();
 
             Debug.Log($"<color=green>{unit.GetComponent<Stats>().Name} wykonał/a akcję podwójną. </color>");
 
@@ -261,9 +258,9 @@ public class RoundsManager : MonoBehaviour
         }     
     }
 
-    public void DisplayActionsLeft(Unit unit)
+    public void DisplayActionsLeft()
     {
-        if (!UnitsWithActionsLeft.ContainsKey(unit)) return;
+        if (Unit.SelectedUnit != null && !UnitsWithActionsLeft.ContainsKey(Unit.SelectedUnit.GetComponent<Unit>())) return;
 
         if(Unit.SelectedUnit == null)
         {
@@ -272,6 +269,8 @@ public class RoundsManager : MonoBehaviour
         }
         else
         {
+            Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
+
             _actionsLeftInfo.SetActive(true);
             _actionsLeftText.text = UnitsWithActionsLeft[unit].ToString();
 
@@ -296,7 +295,7 @@ public class RoundsManager : MonoBehaviour
         if (UnitsWithActionsLeft[unit] < 0) UnitsWithActionsLeft[unit] = 0;
         else if (UnitsWithActionsLeft[unit] > 2) UnitsWithActionsLeft[unit] = 2;
 
-        DisplayActionsLeft(unit);
+        DisplayActionsLeft();
     }
 
     public void UseFortunePoint()
