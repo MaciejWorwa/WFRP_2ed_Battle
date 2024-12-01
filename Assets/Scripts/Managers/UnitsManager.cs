@@ -37,9 +37,9 @@ public class UnitsManager : MonoBehaviour
     [SerializeField] private GameObject _spellbookButton;
     [SerializeField] private GameObject _actionsPanel;
     [SerializeField] private GameObject _statesPanel; //Panel opisujący obecny stan postaci, np. unieruchomienie
-    [SerializeField] private TMP_Text _nameDisplay;
+    //[SerializeField] private TMP_Text _nameDisplay;
     [SerializeField] private TMP_Text _raceDisplay;
-    [SerializeField] private TMP_Text _initiativeDisplay;
+    //[SerializeField] private TMP_Text _initiativeDisplay;
     [SerializeField] private TMP_Text _healthDisplay;
     [SerializeField] private UnityEngine.UI.Image _tokenDisplay;
     [SerializeField] private GameObject _unitPrefab;
@@ -563,6 +563,11 @@ public class UnitsManager : MonoBehaviour
             bool boolValue = textInput.GetComponent<UnityEngine.UI.Toggle>().isOn; 
             field.SetValue(unit.GetComponent<Stats>(), boolValue);
         }
+        else if (field.FieldType == typeof(string))
+        {
+            string value = textInput.GetComponent<TMP_InputField>().text;
+            field.SetValue(unit.GetComponent<Stats>(), value);
+        }
         else
         {
             Debug.Log($"Nie udało się zmienić wartości cechy.");
@@ -574,9 +579,13 @@ public class UnitsManager : MonoBehaviour
 
             unit.GetComponent<Unit>().DisplayUnitHealthPoints();
         }
-        if(attributeName == "K" || attributeName == "Odp")
+        else if(attributeName == "K" || attributeName == "Odp")
         {
             unit.GetComponent<Unit>().CalculateStrengthAndToughness();
+        }
+        else if(attributeName == "Name")
+        {
+            unit.GetComponent<Unit>().DisplayUnitName();
         }
 
         UpdateUnitPanel(unit);
@@ -611,11 +620,11 @@ public class UnitsManager : MonoBehaviour
             //Ukrywa lub pokazuje nazwę jednostki w panelu
             if(GameManager.IsNamesHidingMode && !MultiScreenDisplay.Instance.PlayersCamera.gameObject.activeSelf)
             {
-                _unitPanel.transform.Find("Name_text").gameObject.SetActive(false);
+                _unitPanel.transform.Find("Name_input").gameObject.SetActive(false);
             }
             else
             {
-                _unitPanel.transform.Find("Name_text").gameObject.SetActive(true);
+                _unitPanel.transform.Find("Name_input").gameObject.SetActive(true);
             }
 
             Unit unitComponent = unit.GetComponent<Unit>();
@@ -683,7 +692,7 @@ public class UnitsManager : MonoBehaviour
         {
             _spellbookButton.SetActive(false);
         }
-        _nameDisplay.text = stats.Name;
+        //_nameDisplay.text = stats.Name;
         _raceDisplay.text = stats.Race;
         _healthDisplay.text = stats.TempHealth + "/" + stats.MaxHealth;
         _tokenDisplay.sprite = unit.transform.Find("Token").GetComponent<SpriteRenderer>().sprite;
@@ -730,6 +739,15 @@ public class UnitsManager : MonoBehaviour
             {
                 bool value = (bool)field.GetValue(unit.GetComponent<Stats>());
                 inputField.GetComponent<UnityEngine.UI.Toggle>().isOn = value;
+            }
+            else if (field.FieldType == typeof(string)) // to działa dla cech opisywanych wartościami string
+            {
+                string value = (string)field.GetValue(unit.GetComponent<Stats>());
+
+                if (inputField.GetComponent<TMPro.TMP_InputField>() != null)
+                {
+                    inputField.GetComponent<TMPro.TMP_InputField>().text = value;
+                }
             }
 
             if(attributeName == "Initiative")

@@ -98,6 +98,13 @@ public class MapEditor : MonoBehaviour
         {
             ReplaceCursorWithMapElement();
 
+            if (Input.GetMouseButtonDown(1)) // Sprawdza, czy prawy przycisk myszy jest wciśnięty
+            {
+                //Obraca element o 90 stopni przed umieszczeniem go na mapie
+                _rotationSlider.value = (_rotationSlider.value + 90) % 360;
+                ChangeElementRotation(_rotationSlider.gameObject);
+            }
+
             //Jeśli jest aktywny tryb ukrywania obszarów to po wyborze elementu mapy wyłączamy go
             if(GameManager.IsMapHidingMode)
             {

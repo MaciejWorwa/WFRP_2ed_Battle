@@ -266,7 +266,7 @@
     },
     {
       "Id": 28,
-      "Name": "Rusznica wielestrzałowa",
+      "Name": "Rusznica wielostrzałowa",
       "Type": ["ranged", "gunpowder"],
       "TwoHanded": true,
       "AttackRange": 12,

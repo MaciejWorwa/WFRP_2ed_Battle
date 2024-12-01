@@ -41,7 +41,7 @@ When you start the game, you enter the **Map Editor**. Here, you can customize t
 - **Grid Size**: Adjust the grid size to fit your gameplay needs.
 - **Background Settings**: Load a custom background and modify its size and position to align with your grid.
 - **Map Elements**: Place various elements on the map and adjust their rotation:
-  - **Element Rotation**: Right-click on an element to rotate it by 90 degrees. You can also set random rotation. When enabled, each placed element will have a random rotation.
+  - **Element Rotation**: Right-click before placing an element on the map to rotate it by 90 degrees. You can also set random rotation. When enabled, each placed element will have a random rotation.
   - **Element Types**:
     - **High Obstacle**: Fully covers units behind it.
     - **Low Obstacle**: Partially covers units behind it.

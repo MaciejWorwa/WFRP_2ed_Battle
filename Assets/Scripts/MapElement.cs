@@ -30,21 +30,10 @@ public class MapElement : MonoBehaviour
         // Tak samo nie wywołujemy jej, gdy lewy przycisk myszy nie jest wciśnięty
         if (SceneManager.GetActiveScene().buildIndex != 0) return;
 
-        if (Input.GetMouseButtonDown(1)) // Sprawdza, czy prawy przycisk myszy jest wciśnięty
-        {
-            RotateElement();
-        }
-
         if (GameManager.IsMousePressed)
         {
             DestroyElement();
         }
-    }
-
-    private void RotateElement()
-    {
-        // Obraca element o 90 stopni wokół osi Z
-        transform.Rotate(0, 0, 90);
     }
 
     private void DestroyElement()

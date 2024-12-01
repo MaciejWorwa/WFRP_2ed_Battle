@@ -188,6 +188,9 @@ public class RoundsManager : MonoBehaviour
     #region Units actions
     public bool DoHalfAction(Unit unit)
     {
+        //Zapobiega zużywaniu akcji przed rozpoczęciem bitwy
+        if(RoundNumber == 0) return true;
+
         if (UnitsWithActionsLeft.ContainsKey(unit) && UnitsWithActionsLeft[unit] >= 1)
         {
             // Automatyczny zapis, aby możliwe było użycie punktów szczęścia. Jeżeli jednostka ich nie posiada to zapis nie jest wykonywany
@@ -225,6 +228,9 @@ public class RoundsManager : MonoBehaviour
 
     public bool DoFullAction(Unit unit)
     {
+        //Zapobiega zużywaniu akcji przed rozpoczęciem bitwy
+        if(RoundNumber == 0) return true;
+
         if (UnitsWithActionsLeft.ContainsKey(unit) && UnitsWithActionsLeft[unit] == 2)
         {
             // Automatyczny zapis, aby możliwe było użycie punktów szczęścia. Jeżeli jednostka ich nie posiada to zapis nie jest wykonywany. W przypadku szarży gra jest zapisywana przed wykonaniem ruchu (w klasie CombatManager), a nie w momencie zużywania akcji
