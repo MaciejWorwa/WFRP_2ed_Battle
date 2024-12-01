@@ -39,7 +39,7 @@ public class DraggableObject : MonoBehaviour
 
     private void OnMouseUp()
     {
-        if(GameManager.IsMapHidingMode) return;
+        if(GameManager.IsMapHidingMode || MapEditor.IsElementRemoving || UnitsManager.IsMultipleUnitsSelecting) return;
 
         //Sprawdza, czy obiekt został przesunięty
         if(transform.position != _startPosition)

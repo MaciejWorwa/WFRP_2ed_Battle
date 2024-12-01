@@ -37,12 +37,17 @@ public class AreaSelector : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetMouseButton(0) && SelectedUnits != null && SelectedUnits.Count > 0)
+        if (Input.GetMouseButton(0) && SelectedUnits != null && SelectedUnits.Count > 1)
         {
             //Odznacza wizualnie zaznaczone jednostki
             for (int i = SelectedUnits.Count - 1; i >= 0; i--) 
             {
                 SelectedUnits[i].GetComponent<Renderer>().material.color = SelectedUnits[i].DefaultColor;
+                //Aktualizuje kolor tokena, jeśli nie jest wgrany żaden obraz
+                if (SelectedUnits[i].TokenFilePath.Length < 1)
+                {
+                    SelectedUnits[i].transform.Find("Token").GetComponent<SpriteRenderer>().material.color = SelectedUnits[i].DefaultColor;
+                }
             }
             SelectedUnits.Clear();
         }
@@ -168,7 +173,16 @@ public class AreaSelector : MonoBehaviour
             for (int i = SelectedUnits.Count - 1; i >= 0; i--) 
             {
                 SelectedUnits[i].GetComponent<Renderer>().material.color = SelectedUnits[i].HighlightColor;
+                //Aktualizuje kolor tokena, jeśli nie jest wgrany żaden obraz
+                if (SelectedUnits[i].TokenFilePath.Length < 1)
+                {
+                    SelectedUnits[i].transform.Find("Token").GetComponent<SpriteRenderer>().material.color = SelectedUnits[i].HighlightColor;
+                }
             }
+        }
+        else if(SelectedUnits.Count == 1)
+        {
+            SelectedUnits[0].SelectUnit();
         }
 
         if(collidersContainsUnit)
