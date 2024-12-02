@@ -1,10 +1,19 @@
 fileFormatVersion: 2
-guid: 7ec5db85841674349b890c3b68d4fc1d
+guid: 1e4822322730ffb42bde948ed1a6b19e
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -56392911493697116
-    second: panel_frame_0
+      213: 5521361577598620543
+    second: square_button_frame_0
+  - first:
+      213: 5868077775379891426
+    second: square_button_frame_1
+  - first:
+      213: 4846805480500239235
+    second: square_button_frame_2
+  - first:
+      213: 8694914293852461788
+    second: square_button_frame_3
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,13 +55,13 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 200
-  spriteBorder: {x: 5015, y: 3696, z: 5033, w: 3722}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
@@ -72,7 +81,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 512
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -100,23 +109,89 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: panel_frame_0
+      name: square_button_frame_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 10602
-        height: 14730
+        y: 7
+        width: 36
+        height: 384
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 4a1719e12f6a73ff0800000000000000
-      internalID: -56392911493697116
+      spriteID: f739145f911df9c40800000000000000
+      internalID: 5521361577598620543
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: square_button_frame_1
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 362
+        width: 384
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e402e375a99f6150800000000000000
+      internalID: 5868077775379891426
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: square_button_frame_2
+      rect:
+        serializedVersion: 2
+        x: 362
+        y: 7
+        width: 35
+        height: 384
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38b12a0b7ef434340800000000000000
+      internalID: 4846805480500239235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: square_button_frame_3
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 0
+        width: 384
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cdada8d8b7a8aa870800000000000000
+      internalID: 8694914293852461788
       vertices: []
       indices: 
       edges: []
@@ -125,8 +200,8 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
-    internalID: 1537655665
+    spriteID: 
+    internalID: 0
     vertices: []
     indices: 
     edges: []
@@ -135,7 +210,10 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      panel_frame_0: -56392911493697116
+      square_button_frame_0: 5521361577598620543
+      square_button_frame_1: 5868077775379891426
+      square_button_frame_2: 4846805480500239235
+      square_button_frame_3: 8694914293852461788
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
