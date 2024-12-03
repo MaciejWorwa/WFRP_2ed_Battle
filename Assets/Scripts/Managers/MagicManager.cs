@@ -344,7 +344,7 @@ public class MagicManager : MonoBehaviour
             allRollResults.Add(rollResult);
             castingNumber += rollResult;
 
-            resultString += $"kość {i+1}: <color=green>{rollResult}</color> ";
+            resultString += $"kość {i+1}: <color=#4dd2ff>{rollResult}</color> ";
         }
 
         //Modyfikator do poziomu mocy
@@ -384,7 +384,14 @@ public class MagicManager : MonoBehaviour
         }
 
         Debug.Log(resultString);
-        Debug.Log($"Uzyskany poziom mocy na kościach: {castingNumber - modifier}.{modifierString} Wymagany poziom mocy: {spellCastingNumber}");
+        if((castingNumber + modifier) < spellCastingNumber)
+        {
+            Debug.Log($"Uzyskany poziom mocy na kościach: {castingNumber - modifier}.{modifierString} Wymagany poziom mocy: <color=red>{spellCastingNumber}</color>");
+        }
+        else
+        {
+            Debug.Log($"Uzyskany poziom mocy na kościach: {castingNumber - modifier}.{modifierString} Wymagany poziom mocy: <color=green>{spellCastingNumber}</color>");
+        }
 
         // Liczenie dubletów
         foreach (int rollResult in allRollResults)

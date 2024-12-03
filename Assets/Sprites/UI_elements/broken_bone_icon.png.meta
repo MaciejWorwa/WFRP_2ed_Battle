@@ -1,10 +1,13 @@
 fileFormatVersion: 2
-guid: f8dea56a85042c24ca69846797c5be77
+guid: 173223a121d457a44a4225d3358f0344
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4168934290384846456
-    second: tooltip_image1_0
+      213: 5235890987572691783
+    second: broken_bone_icon_0
+  - first:
+      213: 885586685640770150
+    second: broken_bone_icon_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +49,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -72,7 +75,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 256
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -100,13 +103,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: tooltip_image1_0
+      name: broken_bone_icon_0
       rect:
         serializedVersion: 2
-        x: 15
-        y: 0
-        width: 711
-        height: 246
+        x: 0
+        y: 2
+        width: 98
+        height: 74
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +118,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 87e755e26a70bd930800000000000000
-      internalID: 4168934290384846456
+      spriteID: 74380fcbc1f99a840800000000000000
+      internalID: 5235890987572691783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: broken_bone_icon_1
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 0
+        width: 100
+        height: 76
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6620f67066c3a4c00800000000000000
+      internalID: 885586685640770150
       vertices: []
       indices: 
       edges: []
@@ -125,7 +150,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +160,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      tooltip_image1_0: 4168934290384846456
+      broken_bone_icon_0: 5235890987572691783
+      broken_bone_icon_1: 885586685640770150
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,89 +1,88 @@
 using UnityEngine;
-using UnityEngine.UI;
 using System.Collections.Generic;
-using UnityEngine.SceneManagement;
+using TMPro;
+using UnityEngine.UI;
 
 public class ConsoleView : MonoBehaviour
 {
-    private List<string> _myLogs = new List<string>();
-    private Vector2 _scrollPosition = Vector2.zero;
-    private bool _doShow = true;
-    //[SerializeField] private Slider _slider;
-    private float _consoleWidth;
-    private float _consoleHeight;
+    [SerializeField] private TextMeshProUGUI _consoleText;    // TextMeshPro do wyświetlania logów
+    [SerializeField] private RectTransform _contentRect;      // RectTransform dla Content ScrollView
+    [SerializeField] private ScrollRect _scrollRect;          // ScrollRect do przewijania
+    [SerializeField] private RectTransform _scrollRectTransform; // RectTransform dla ScrollRect
+    [SerializeField] private Animator _animator;
+ 
+
+    private List<string> _myLogs = new List<string>();        // Lista do przechowywania logów
+    private bool _doShow = true;                              // Flaga do pokazywania/ukrywania konsoli
 
     void Start()
     {
-        _consoleHeight = Screen.height * 0.33f;
-        _consoleWidth = Screen.width * 0.4f;
+        if (_consoleText != null)
+        {
+            _consoleText.text = ""; // Początkowe wyczyszczenie tekstu konsoli
+        }
     }
 
     private void OnEnable()
     {
+        // Zarejestruj metodę do odbierania logów aplikacji
         Application.logMessageReceived += HandleLog;
     }
 
     private void OnDisable()
     {
+        // Wyrejestruj metodę
         Application.logMessageReceived -= HandleLog;
     }
 
     private void HandleLog(string logString, string stackTrace, LogType type)
     {
+        // Dodaj log do listy
         _myLogs.Add(logString);
-        // Ogranicz do 100 wiadomości i usuń najstarsze
+
+        // Ogranicz do 100 wiadomości, usuń najstarsze
         if (_myLogs.Count > 100)
         {
             _myLogs.RemoveAt(0);
         }
-        // Zapewnij automatyczne przewijanie do najnowszej wiadomości
-        _scrollPosition.y = Mathf.Infinity;
+
+        // Zaktualizuj zawartość TextMeshPro z logami
+        UpdateConsoleText();
     }
 
-    void OnGUI()
+    private void UpdateConsoleText()
     {
-        if (!_doShow) return;
-        
-        float consolePosX = Screen.width - _consoleWidth - 10;
-        float consolePosY = Screen.height / 13;
-
-        Rect consoleRect = new Rect(consolePosX, consolePosY, _consoleWidth, _consoleHeight);
-
-        GUIStyle style = new GUIStyle(GUI.skin.box)
+        if (_consoleText != null && _doShow)
         {
-            fontSize = (int)(Screen.width * 0.008f),
-            alignment = TextAnchor.UpperLeft,
-            wordWrap = true,
-            padding = new RectOffset(5, 5, 5, 5)
-        };
-        
-        // Usuń tło dla różnych stanów
-        style.normal.background = null;
-        style.hover.background = null;
-        style.active.background = null;
-        style.focused.background = null;
+            _consoleText.text = string.Join("\n", _myLogs);
+            
+            // Dostosuj wysokość Content do ilości tekstu
+            AdjustContentHeight();
 
-        // Ustaw ten sam kolor tekstu dla różnych stanów, aby zapobiec zmianie koloru
-        Color textColor = Color.white;
-        style.normal.textColor = textColor;
-        style.hover.textColor = textColor;
-        style.active.textColor = textColor;
-        style.focused.textColor = textColor;
-
-        GUILayout.BeginArea(consoleRect);
-        _scrollPosition = GUILayout.BeginScrollView(_scrollPosition, false, true);
-
-        foreach (string log in _myLogs)
-        {
-            GUILayout.Label(log, style);
+            // Przewiń do dołu po dodaniu nowej wiadomości
+            Canvas.ForceUpdateCanvases(); // Upewnia się, że interfejs UI został zaktualizowany przed przewijaniem
+            _scrollRect.verticalNormalizedPosition = 0f; // Przewiń na dół
         }
+    }
 
-        GUILayout.EndScrollView();
-        GUILayout.EndArea();
+    private void AdjustContentHeight()
+    {
+        if (_consoleText != null && _contentRect != null)
+        {
+            // Wyznacz wysokość na podstawie preferowanej wysokości tekstu
+            float preferredHeight = _consoleText.preferredHeight;
+            _contentRect.sizeDelta = new Vector2(_contentRect.sizeDelta.x, preferredHeight);
+        }
     }
 
     public void ShowOrHideConsole()
     {
         _doShow = !_doShow;
+
+        // Pokazywanie lub ukrywanie konsoli
+        if (_consoleText != null)
+        {
+            _consoleText.gameObject.SetActive(_doShow);
+        }
     }
 }

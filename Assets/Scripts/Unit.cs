@@ -205,13 +205,45 @@ public class Unit : MonoBehaviour
         {
             HideUnitHealthPoints();
         }
+        else
+        {
+            ResetUnitHealthState();
+        }
     }
 
     public void HideUnitHealthPoints()
     {
+        UpdateUnitHealthState();
+
         if (HealthDisplay == null) return;
 
         HealthDisplay.text = "";
+    }
+
+    private void UpdateUnitHealthState()
+    {
+        ResetUnitHealthState();
+
+        //Wyświetla symbol obrazujący stan zdrowia jednostki
+        if(Stats.TempHealth < 0)
+        {
+            gameObject.transform.Find("Canvas/Dead_image").gameObject.SetActive(true);
+        }
+        else if(Stats.TempHealth <= 3)
+        {
+            gameObject.transform.Find("Canvas/Heavy_wounded_image").gameObject.SetActive(true);
+        }
+        else if(Stats.TempHealth < Stats.MaxHealth)
+        {
+            gameObject.transform.Find("Canvas/Wounded_image").gameObject.SetActive(true);
+        }
+    }
+
+    private void ResetUnitHealthState()
+    {
+        transform.Find("Canvas/Dead_image").gameObject.SetActive(false);
+        transform.Find("Canvas/Heavy_wounded_image").gameObject.SetActive(false);
+        transform.Find("Canvas/Wounded_image").gameObject.SetActive(false);
     }
 
     public void CalculateStrengthAndToughness()

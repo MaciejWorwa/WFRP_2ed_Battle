@@ -5,7 +5,7 @@ public class AnimationManager : MonoBehaviour
 {
     private Dictionary<Animator, bool> _panelStates = new Dictionary<Animator, bool>(); // Mapowanie Animator -> stan panelu
 
-    public void TogglePanel(Animator panelAnimator)
+ public void TogglePanel(Animator panelAnimator)
     {
         // Sprawdza, czy animator ma już zapisany stan; jeśli nie, ustaw domyślny na "schowany"
         if (!_panelStates.ContainsKey(panelAnimator))
@@ -18,14 +18,30 @@ public class AnimationManager : MonoBehaviour
         isPanelOpen = !isPanelOpen;
         _panelStates[panelAnimator] = isPanelOpen;
 
-        // Odtwarzanie odpowiedniej animacji
-        if (isPanelOpen)
+        // Sprawdza, czy animator ma parametr "IsExpanded"
+        if (HasParameter(panelAnimator, "IsExpanded"))
         {
-            panelAnimator.Play("ShowPanel"); // Nazwa animacji otwierającej panel
+            bool isExpanded = panelAnimator.GetBool("IsExpanded");
+
+            if (isExpanded)
+            {
+                if (isPanelOpen)
+                {
+                    panelAnimator.Play("ShowExpandedPanel"); // Nazwa animacji otwierającej rozszerzony panel
+                }
+                else
+                {
+                    panelAnimator.Play("HideExpandedPanel"); // Nazwa animacji zamykającej rozszerzony panel
+                }
+            }
+            else
+            {
+                PlayDefaultPanelAnimation(panelAnimator, isPanelOpen);
+            }
         }
         else
         {
-            panelAnimator.Play("HidePanel"); // Nazwa animacji zamykającej panel
+            PlayDefaultPanelAnimation(panelAnimator, isPanelOpen);
         }
 
         // Rotacja przycisku strzałki
@@ -36,5 +52,43 @@ public class AnimationManager : MonoBehaviour
             float rotationAngle = isPanelOpen ? currentZRotation - 180 : currentZRotation + 180; // Oblicza nowy kąt
             arrowButtonTransform.localRotation = Quaternion.Euler(0, 0, rotationAngle); // Ustawia nową rotację
         }
+    }
+
+    // Funkcja pomocnicza do sprawdzania, czy animator posiada parametr o podanej nazwie
+    private bool HasParameter(Animator animator, string paramName)
+    {
+        foreach (AnimatorControllerParameter param in animator.parameters)
+        {
+            if (param.name == paramName)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Funkcja do odtwarzania domyślnej animacji
+    private void PlayDefaultPanelAnimation(Animator panelAnimator, bool isPanelOpen)
+    {
+        if (isPanelOpen)
+        {
+            panelAnimator.Play("ShowPanel"); // Nazwa animacji otwierającej panel
+        }
+        else
+        {
+            panelAnimator.Play("HidePanel"); // Nazwa animacji zamykającej panel
+        }
+    }
+
+    public void ExpandPanel(Animator panelAnimator)
+    {
+        panelAnimator.Play("ExpandPanel");
+        panelAnimator.SetBool("IsExpanded", true);
+    }
+
+    public void CollapsePanel(Animator panelAnimator)
+    {
+        panelAnimator.Play("CollapsePanel");
+        panelAnimator.SetBool("IsExpanded", false);
     }
 }

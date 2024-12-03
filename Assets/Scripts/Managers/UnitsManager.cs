@@ -41,6 +41,7 @@ public class UnitsManager : MonoBehaviour
     [SerializeField] private TMP_Text _raceDisplay;
     //[SerializeField] private TMP_Text _initiativeDisplay;
     [SerializeField] private TMP_Text _healthDisplay;
+    [SerializeField] private UnityEngine.UI.Slider _healthBar;
     [SerializeField] private UnityEngine.UI.Image _tokenDisplay;
     [SerializeField] private GameObject _unitPrefab;
     [SerializeField] private CustomDropdown _unitsDropdown;
@@ -65,6 +66,9 @@ public class UnitsManager : MonoBehaviour
     {
         //Wczytuje listę wszystkich jednostek
         DataManager.Instance.LoadAndUpdateStats();
+
+        //Wyłączenie możliwości zmiany wartości slidera, który jest paskiem żywotności
+        _healthBar.interactable = false;
 
         _removeUnitConfirmButton.onClick.AddListener(() =>
         {
@@ -610,11 +614,11 @@ public class UnitsManager : MonoBehaviour
             //W trybie ukrywania statystyk, panel wrogich jednostek pozostaje wyłączony
             if(GameManager.IsStatsHidingMode && unit.CompareTag("EnemyUnit"))
             {
-                _unitPanel.transform.Find("Stats").gameObject.SetActive(false);
+                _unitPanel.transform.Find("VerticalLayoutGroup/Stats_Panel").gameObject.SetActive(false);
             }
             else
             {
-                _unitPanel.transform.Find("Stats").gameObject.SetActive(true);
+                _unitPanel.transform.Find("VerticalLayoutGroup/Stats_Panel").gameObject.SetActive(true);
             }
             
             //Ukrywa lub pokazuje nazwę jednostki w panelu
@@ -682,6 +686,7 @@ public class UnitsManager : MonoBehaviour
         if (stats.Mag > 0)
         {
             _spellbookButton.SetActive(true);
+            unit.GetComponent<Unit>().CanCastSpell = true;
 
             if(unit.GetComponent<Spell>() == null)
             {
@@ -694,10 +699,33 @@ public class UnitsManager : MonoBehaviour
         }
         //_nameDisplay.text = stats.Name;
         _raceDisplay.text = stats.Race;
+
         _healthDisplay.text = stats.TempHealth + "/" + stats.MaxHealth;
+        _healthBar.maxValue = stats.MaxHealth;
+        _healthBar.value = stats.TempHealth;
+        UpdateHealthBarColor(stats.TempHealth, stats.MaxHealth, _healthBar.transform.Find("Fill Area/Fill").GetComponent<UnityEngine.UI.Image>());
+
         _tokenDisplay.sprite = unit.transform.Find("Token").GetComponent<SpriteRenderer>().sprite;
 
         LoadAttributes(unit);
+    }
+
+    private void UpdateHealthBarColor(float tempHealth, float maxHealth, UnityEngine.UI.Image image)
+    {
+        float percentage = tempHealth / maxHealth * 100;
+
+        if (percentage <= 30)
+        {
+            image.color = new Color(0.81f, 0f, 0.137f); // Kolor czerwony, jeśli wartość <= 30%
+        }
+        else if (percentage > 30 && percentage <= 70)
+        {
+            image.color = new Color(1f, 0.81f, 0f); // Kolor żółty, jeśli wartość jest między 31% a 70%
+        }
+        else
+        {
+            image.color = new Color(0.3f, 0.65f, 0.125f); // Kolor zielony, jeśli wartość > 70%
+        }
     }
 
     public void LoadAttributesByButtonClick()

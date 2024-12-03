@@ -607,24 +607,21 @@ public class CombatManager : MonoBehaviour
             }
 
             // Aktualizacja punktów żywotności
-            if (!GameManager.IsHealthPointsHidingMode)
+            if (!GameManager.IsHealthPointsHidingMode && !(GameManager.IsStatsHidingMode && targetUnit.gameObject.CompareTag("EnemyUnit")))
             {
-                if (GameManager.IsStatsHidingMode && targetUnit.gameObject.CompareTag("EnemyUnit"))
+                targetUnit.DisplayUnitHealthPoints();
+                if (targetStats.TempHealth < 0)
                 {
-                    targetUnit.HideUnitHealthPoints();
+                    Debug.Log($"Punkty żywotności {targetStats.Name}: <color=red>{targetStats.TempHealth}/{targetStats.MaxHealth}</color>");
                 }
                 else
                 {
-                    targetUnit.DisplayUnitHealthPoints();
-                    if (targetStats.TempHealth < 0)
-                    {
-                        Debug.Log($"Punkty żywotności {targetStats.Name}: <color=red>{targetStats.TempHealth}/{targetStats.MaxHealth}</color>");
-                    }
-                    else
-                    {
-                        Debug.Log($"Punkty żywotności {targetStats.Name}: {targetStats.TempHealth}/{targetStats.MaxHealth}");
-                    }
+                    Debug.Log($"Punkty żywotności {targetStats.Name}: {targetStats.TempHealth}/{targetStats.MaxHealth}");
                 }
+            }
+            else
+            {
+                targetUnit.HideUnitHealthPoints();
             }
         }
         else

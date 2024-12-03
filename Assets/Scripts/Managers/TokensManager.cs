@@ -124,7 +124,7 @@ public class TokensManager : MonoBehaviour
         if (tokenSprite == null) return;
 
         _tokenImage.sprite = tokenSprite; // Ustaw obraz tokena
-        _tokenDisplayPanel.SetActive(true); // Wyświetl panel
+        _tokenDisplayPanel.SetActive(!_tokenDisplayPanel.activeSelf); // Wyświetla lub chowa panel
     }
 }
 
