@@ -588,6 +588,9 @@ public class GameManager : MonoBehaviour
         if (condition)
         {
             button.GetComponent<Image>().color = new Color(0.15f, 1f, 0.45f);
+
+            //button.GetComponent<Image>().color = new Color(0f, 0.82f, 1f);
+            
         }
         else
         {

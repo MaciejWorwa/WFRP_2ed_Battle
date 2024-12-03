@@ -31,6 +31,9 @@ public class TokensManager : MonoBehaviour
         }
     }
 
+    [SerializeField] private GameObject _tokenDisplayPanel; // Panel do wyświetlania tokena
+    [SerializeField] private Image _tokenImage; // UI Image w panelu
+
     void Start()
     {
         // Konfiguracja SimpleFileBrowser po opóźnieniu
@@ -114,6 +117,14 @@ public class TokensManager : MonoBehaviour
         }
 
         yield return null;
+    }
+
+    public void ShowTokenDisplayPanel(Sprite tokenSprite)
+    {
+        if (tokenSprite == null) return;
+
+        _tokenImage.sprite = tokenSprite; // Ustaw obraz tokena
+        _tokenDisplayPanel.SetActive(true); // Wyświetl panel
     }
 }
 

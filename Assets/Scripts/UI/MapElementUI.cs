@@ -41,5 +41,6 @@ public class MapElementUI : MonoBehaviour, IPointerClickHandler
     public void HighlightElement(Image image)
     {
         image.color = new Color(0f, 0.8f, 0f, 0.35f);
+        //image.color = new Color(0.47f, 0.6f, 0.725f, 1f);
     }
 }

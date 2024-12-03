@@ -337,7 +337,9 @@ public class MapEditor : MonoBehaviour
         IsElementRemoving = isOn;
 
         //Zmienia kolor przycisku usuwania jednostek na aktywny lub nieaktywny w zależności od stanu
-        _removeElementButton.GetComponent<UnityEngine.UI.Image>().color = isOn ? Color.green : Color.white;
+        //Color highlightColor = new Color(0f, 0.82f, 1f);
+        Color highlightColor = new Color(0.15f, 1f, 0.45f);
+        _removeElementButton.GetComponent<UnityEngine.UI.Image>().color = isOn ? highlightColor : Color.white;
 
         if(isOn)
         {

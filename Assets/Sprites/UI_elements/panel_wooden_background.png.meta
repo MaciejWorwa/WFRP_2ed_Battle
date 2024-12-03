@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 1e5c41b2baace32488226860e64ea118
+guid: 6a7cf02e9b13ad647bcbff5897cb6983
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8652995096890185057
-    second: button_image2_0
+      213: 9211822190467487827
+    second: panel_wooden_background_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: button_image2_0
+      name: panel_wooden_background_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 400
-        height: 102
+        width: 1016
+        height: 1643
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f9ae9ae0ec26ae780800000000000000
-      internalID: -8652995096890185057
+      spriteID: 35810e4d977f6df70800000000000000
+      internalID: 9211822190467487827
       vertices: []
       indices: 
       edges: []
@@ -134,8 +134,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      button_image2_0: -8652995096890185057
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
