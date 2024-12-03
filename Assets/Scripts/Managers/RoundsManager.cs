@@ -34,7 +34,7 @@ public class RoundsManager : MonoBehaviour
     }
     public static int RoundNumber;
     [SerializeField] private TMP_Text _roundNumberDisplay;
-    [SerializeField] private TMP_Text _nextRoundButtonText;
+    public Button NextRoundButton;
     public Dictionary <Unit, int> UnitsWithActionsLeft = new Dictionary<Unit, int>();
     [SerializeField] private GameObject _actionsLeftInfo;
     [SerializeField] private TMP_Text _actionsLeftText;
@@ -45,7 +45,8 @@ public class RoundsManager : MonoBehaviour
     {
         RoundNumber = 0;
         _roundNumberDisplay.text = "Zaczynamy?";
-        _nextRoundButtonText.text = "Start";
+
+        NextRoundButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "Start";
 
         _actionsLeftInfo.SetActive(false);
         _useFortunePointsButton.SetActive(false);
@@ -55,7 +56,7 @@ public class RoundsManager : MonoBehaviour
     {
         RoundNumber++;
         _roundNumberDisplay.text = "Runda: " + RoundNumber;
-        _nextRoundButtonText.text = "Następna runda";
+        NextRoundButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "Następna runda";
  
         Debug.Log($"<color=#4dd2ff>--------------------------------------------- RUNDA {RoundNumber} ---------------------------------------------</color>");
 
@@ -100,6 +101,10 @@ public class RoundsManager : MonoBehaviour
                 UnitsWithActionsLeft[key] = 0;
                 CombatManager.Instance.EscapeFromTheSnare(key);
             }
+            if(key.IsScared)
+            {
+                UnitsWithActionsLeft[key] = 0;
+            }
 
             if (key.TrappedUnitId != 0)
             {
@@ -122,7 +127,7 @@ public class RoundsManager : MonoBehaviour
         }
 
         //Wykonuje testy grozy i strachu jeśli na polu bitwy są jednostki straszne lub przerażające
-        if(GameManager.IsFearIncluded == true && GameManager.IsAutoDiceRollingMode)
+        if(GameManager.IsFearIncluded == true)
         {
             UnitsManager.Instance.LookForScaryUnits();
         }
@@ -153,7 +158,7 @@ public class RoundsManager : MonoBehaviour
 
     IEnumerator AutoCombat()
     {
-        _nextRoundButtonText.transform.parent.gameObject.SetActive(false);
+        NextRoundButton.gameObject.SetActive(false);
         _useFortunePointsButton.SetActive(false);
 
         // Posortowanie wszystkich jednostek wg inicjatywy
@@ -181,7 +186,7 @@ public class RoundsManager : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
         }
 
-        _nextRoundButtonText.transform.parent.gameObject.SetActive(true);
+        NextRoundButton.gameObject.SetActive(true);
         _useFortunePointsButton.SetActive(true);
     }
 
@@ -345,8 +350,16 @@ public class RoundsManager : MonoBehaviour
     public void LoadRoundsManagerData(RoundsManagerData data)
     {
         RoundNumber = data.RoundNumber;
-        _roundNumberDisplay.text = "Runda: " + RoundNumber;
-        _nextRoundButtonText.text = "Następna runda";
+        if(RoundNumber > 0)
+        {
+            _roundNumberDisplay.text = "Runda: " + RoundNumber;
+            NextRoundButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "Następna runda";
+        }
+        else
+        {
+            _roundNumberDisplay.text = "Zaczynamy?";
+            NextRoundButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "Start";
+        }
 
         // UnitsWithActionsLeft.Clear(); // Czyści słownik przed uzupełnieniem nowymi danymi
 

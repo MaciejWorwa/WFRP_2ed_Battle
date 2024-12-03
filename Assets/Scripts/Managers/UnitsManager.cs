@@ -67,9 +67,6 @@ public class UnitsManager : MonoBehaviour
         //Wczytuje listę wszystkich jednostek
         DataManager.Instance.LoadAndUpdateStats();
 
-        //Wyłączenie możliwości zmiany wartości slidera, który jest paskiem żywotności
-        _healthBar.interactable = false;
-
         _removeUnitConfirmButton.onClick.AddListener(() =>
         {
             if(Unit.SelectedUnit!= null)
@@ -614,15 +611,15 @@ public class UnitsManager : MonoBehaviour
             //W trybie ukrywania statystyk, panel wrogich jednostek pozostaje wyłączony
             if(GameManager.IsStatsHidingMode && unit.CompareTag("EnemyUnit"))
             {
-                _unitPanel.transform.Find("VerticalLayoutGroup/Stats_Panel").gameObject.SetActive(false);
+                _unitPanel.transform.Find("VerticalLayoutGroup/Stats_Panel/Stats_display").gameObject.SetActive(false);
             }
             else
             {
-                _unitPanel.transform.Find("VerticalLayoutGroup/Stats_Panel").gameObject.SetActive(true);
+                _unitPanel.transform.Find("VerticalLayoutGroup/Stats_Panel/Stats_display").gameObject.SetActive(true);
             }
             
             //Ukrywa lub pokazuje nazwę jednostki w panelu
-            if(GameManager.IsNamesHidingMode && !MultiScreenDisplay.Instance.PlayersCamera.gameObject.activeSelf)
+            if(GameManager.IsNamesHidingMode && !MultiScreenDisplay.Instance.PlayersCamera.gameObject.activeSelf && Display.displays.Length == 1)
             {
                 _unitPanel.transform.Find("Name_input").gameObject.SetActive(false);
             }
@@ -846,22 +843,22 @@ public class UnitsManager : MonoBehaviour
         bool enemyUnitExists = false;
         bool playerUnitExists = false;
 
-        foreach (var unit in AllUnits)
+        foreach (var pair in InitiativeQueueManager.Instance.InitiativeQueue)
         {
-            Stats unitStats = unit.GetComponent<Stats>();
+            Stats unitStats = pair.Key.GetComponent<Stats>();
 
-            if (unit.CompareTag("EnemyUnit")) enemyUnitExists = true;
-            if (unit.CompareTag("PlayerUnit")) playerUnitExists = true;
+            if (pair.Key.CompareTag("EnemyUnit")) enemyUnitExists = true;
+            if (pair.Key.CompareTag("PlayerUnit")) playerUnitExists = true;
 
             if(unitStats.Terryfying)
             {
-                if(unit.CompareTag("EnemyUnit")) terryfyingEnemyExist = true;
-                else if (unit.CompareTag("PlayerUnit")) terryfyingPlayerExist = true;
+                if(pair.Key.CompareTag("EnemyUnit")) terryfyingEnemyExist = true;
+                else if (pair.Key.CompareTag("PlayerUnit")) terryfyingPlayerExist = true;
             }
             else if(unitStats.Frightening)
             {
-                if(unit.CompareTag("EnemyUnit")) frighteningEnemyExist = true;
-                else if (unit.CompareTag("PlayerUnit"))frighteningPlayerExist = true;
+                if(pair.Key.CompareTag("EnemyUnit")) frighteningEnemyExist = true;
+                else if (pair.Key.CompareTag("PlayerUnit"))frighteningPlayerExist = true;
             }
         }
 
@@ -869,9 +866,9 @@ public class UnitsManager : MonoBehaviour
         if (!enemyUnitExists || !playerUnitExists)
         {
             // Jeśli istnieje tylko jeden typ jednostek, wszystkie jednostki przestają się bać
-            foreach (var unit in AllUnits)
+            foreach (var pair in InitiativeQueueManager.Instance.InitiativeQueue)
             {
-                unit.IsScared = false;
+                pair.Key.IsScared = false;
             }
 
             return;
@@ -923,6 +920,7 @@ public class UnitsManager : MonoBehaviour
 
         if (rollResult <= (unitStats.SW + rollModifier))
         {
+            RoundsManager.Instance.UnitsWithActionsLeft[unit] = 2;
             unit.IsScared = false;
             unit.IsFearTestPassed = true;
 
@@ -972,6 +970,7 @@ public class UnitsManager : MonoBehaviour
 
         if (rollResult <= unitStats.SW)
         {
+            RoundsManager.Instance.UnitsWithActionsLeft[unit] = 2;
             unit.IsScared = false;
             unit.IsFearTestPassed = true;
             Debug.Log($"<color=green> {unitStats.Name} zdał test grozy. Wynik rzutu: {rollResult} </color>");
@@ -984,6 +983,20 @@ public class UnitsManager : MonoBehaviour
 
             Debug.Log($"<color=red> {unitStats.Name} nie zdał testu grozy. Wynik rzutu: {rollResult} </color>");
         }
+    }
+
+    public void SetSelectedUnitFearState(bool value)
+    {
+        if(Unit.SelectedUnit == null) return;
+
+        Unit.SelectedUnit.GetComponent<Unit>().IsScared = value;
+
+        if(value == true)
+        {
+            RoundsManager.Instance.UnitsWithActionsLeft[Unit.SelectedUnit.GetComponent<Unit>()] = 0;
+        }
+
+        UpdateUnitPanel(Unit.SelectedUnit);
     }
     #endregion
 
@@ -1000,6 +1013,8 @@ public class UnitsManager : MonoBehaviour
         unit.IsScared = false;
         unit.IsFearTestPassed = true;
 
-        UnitsManager.Instance.UpdateUnitPanel(Unit.SelectedUnit);
+        RoundsManager.Instance.UnitsWithActionsLeft[unit] = 2;
+
+        UpdateUnitPanel(Unit.SelectedUnit);
     }
 }

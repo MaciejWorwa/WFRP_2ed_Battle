@@ -34,6 +34,11 @@ public class MultiScreenDisplay : MonoBehaviour
         // Zachowaj oryginalną maskę culling dla głównej kamery
         _originalCullingMask = GamemasterCamera.cullingMask;
 
+       ActivateDualScreen();
+    }
+
+    public void ActivateDualScreen()
+    {
         // Upewnia się, że masz podłączone dwa monitory
         if (Display.displays.Length > 1)
         {

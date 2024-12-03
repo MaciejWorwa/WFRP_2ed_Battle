@@ -94,6 +94,15 @@ public class GameManager : MonoBehaviour
         {
             UpdateButtonColor(pair.Key, pair.Value);
         }
+
+        if (Display.displays.Length > 1)
+        {
+            IsStatsHidingMode = false;
+        }
+        else
+        {
+            IsStatsHidingMode = true;
+        }
     }
 
     private void Update()
@@ -285,6 +294,12 @@ public class GameManager : MonoBehaviour
     #region Game modes
     public void SetAutoCombatMode()
     {
+        if(!RoundsManager.Instance.NextRoundButton.gameObject.activeSelf)
+        {
+            Debug.Log("Nie możesz teraz zmienić trybu. Poczekaj aż wszystkie jednostki skończą swoje akcje.");
+            return;
+        }
+
         IsAutoCombatMode = !IsAutoCombatMode;
 
         UpdateButtonColor(_autoCombatButton, IsAutoCombatMode);
