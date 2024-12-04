@@ -45,7 +45,7 @@ public class MovementManager : MonoBehaviour
 
         // Pozycja postaci przed zaczęciem wykonywania ruchu
         Vector3 startCharPos = unit.transform.position;
-        
+
         // Aktualizuje informację o zajęciu pola, które postać opuszcza
         GridManager.Instance.ResetTileOccupancy(startCharPos);
 
@@ -69,7 +69,7 @@ public class MovementManager : MonoBehaviour
                 canDoAction = RoundsManager.Instance.DoHalfAction(unit.GetComponent<Unit>());
             }
 
-            if(!canDoAction) return;   
+            if(!canDoAction) return;
 
             //Resetuje przycelowanie, jeśli było aktywne
             if (Unit.SelectedUnit.GetComponent<Unit>().AimingBonus != 0)
@@ -133,7 +133,7 @@ public class MovementManager : MonoBehaviour
             {
                 IsMoving = false;
                 yield break;
-            } 
+            }
 
             unit.transform.position = nextPos;
         }
@@ -142,7 +142,7 @@ public class MovementManager : MonoBehaviour
         {
             IsMoving = false;
             Retreat(false);
-            
+
             GridManager.Instance.HighlightTilesInMovementRange(Unit.SelectedUnit.GetComponent<Stats>());
         }
 
@@ -275,60 +275,68 @@ public class MovementManager : MonoBehaviour
         return (int)(Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y));
     }
 
+    enum MovementModifier : int {
+    Walk = 1,
+    Charge = 2,
+    Run = 3,
+    // To replace the "20", which is magically appearing in the code?
+    // What does "20" mean?
+    Special = 4
+    };
+
     #region Charge and Run modes
-    public void UpdateMovementRange(int modifier)
+    public void UpdateMovementRange(MovementModifier modifier)
     {
         if (Unit.SelectedUnit == null) return;
 
         Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
         Stats stats = Unit.SelectedUnit.GetComponent<Stats>();
 
-        //Uwzględnia, że Zombie nie mogą biegać
-        if(stats.Race == "Zombie" && modifier == 3)
-        {
-            Debug.Log("Ta jednostka nie może wykonywać akcji biegu.");
-            return;
+        int actions_left = RoundsManager.Instance.UnitsWithActionsLeft[unit.GetComponent<Unit>()];
+        int is_weapon_ranged = unit.GetComponent<Inventory>().EquippedWeapons[0].Type.Contains("ranged");
+
+        unit.IsCharging = false;
+        unit.IsRunning = false;
+
+        if (modifier == MovementModifier.Walk){
+            // Do nothing
+        } else if (modifier == MovementModifier.Charge ){
+            if (actions_left < 2) {
+                // You do not have enough Action Points to Run or Charge
+                return;
+            }
+            if (!is_weapon_ranged){
+                // You can not charge with a ranged weapon
+                return;
+            }
+            unit.IsCharging = true;
+        } else if( modifier == MovementModifier.Run){
+            if (actions_left < 2) {
+                // You do not have enough Action Points to Run or Charge
+                return;
+            }
+            if(stats.Race == "Zombie") {
+                // Zombies can not run
+                return;
+            }
+            unit.IsRunning = true;
+        } else {
+            // Why are we setting it to "20" sometimes?
         }
 
-        //Jeżeli postać już jest w trybie szarży lub biegu, resetuje je
-        if (unit.IsCharging && modifier == 2 || unit.IsRunning && modifier == 3)
-        {
-            modifier = 1;
-        }
-
-        if(modifier > 1 && modifier < 20 && RoundsManager.Instance.UnitsWithActionsLeft[unit.GetComponent<Unit>()] < 2) //Sprawdza, czy jednostka może wykonać akcję podwójną
-        {
-            Debug.Log("Ta jednostka nie może w tej rundzie wykonać akcji podwójnej.");
-            return;
-        }
-
-        // //Sprawdzenie, czy postać walczy bronia dystansową. Jeśli tak, to szarża nie jest możliwa
-        // if(modifier == 2 && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type.Contains("ranged"))
-        // {
-        //     Debug.Log("Jednostka walcząca bronią dystansową nie może wykonywać szarży.");
-        //     return;
-        // }
-
-        //Aktualizuje obecny tryb poruszania postaci
-        unit.IsCharging = modifier == 2; //operator trójargumentowegy. Jeśli modifier == 2 to wartość == true, jeśli nie to wartość == false
-        unit.IsRunning = modifier == 3; //operator trójargumentowegy. Jeśli modifier == 3 to wartość == true, jeśli nie to wartość == false
-
-        //Zmienia typ ataku w menadżerze walki
+        // Do we really need this?
         if(unit.IsRunning)
         {
-            CombatManager.Instance.ChangeAttackType("StandardAttack"); //Resetuje szarże jako obecny typ ataku i ustawia standardowy atak
+            CombatManager.Instance.ChangeAttackType("StandardAttack");
         }
 
         //Oblicza obecną szybkość
         //Uwzględnia karę do Szybkości za zbroję płytową
-        if(stats.Sturdy == false && (stats.Armor_head >= 5 || stats.Armor_torso >= 5 || stats.Armor_arms >= 5 || stats.Armor_legs >= 5))
-        {
-            stats.TempSz = (stats.Sz - 1) * modifier;
-        }
-        else
-        {
-            stats.TempSz = stats.Sz * modifier;
-        }
+        bool has_plate_armor = (stats.Armor_head >= 5 || stats.Armor_torso >= 5 || stats.Armor_arms >= 5 || stats.Armor_legs >= 5);
+        bool is_sturdy = stats.Sturdy
+        int movement_armor_penalty = (has_plate_armor && !is_sturdy) ? 1 : 0;
+
+        stats.TempSz = (stats.Sz - movement_armor_penalty) * modifier;
 
         // Aktualizuje podświetlenie pól w zasięgu ruchu
         GridManager.Instance.HighlightTilesInMovementRange(stats);
@@ -353,9 +361,9 @@ public class MovementManager : MonoBehaviour
     }
 
     private void ChangeButtonColor(int modifier)
-    {  
+    {
         //_chargeButton.GetComponent<Image>().color = modifier == 1 ? Color.white : modifier == 2 ? Color.green : Color.white;
-        _runButton.GetComponent<Image>().color = modifier == 1 ? Color.white : modifier == 3 ? Color.green : Color.white;    
+        _runButton.GetComponent<Image>().color = modifier == 1 ? Color.white : modifier == 3 ? Color.green : Color.white;
     }
     #endregion
 
@@ -386,7 +394,7 @@ public class MovementManager : MonoBehaviour
                 Debug.Log($"Ruch spowodował atak okazyjny od {unit.GetComponent<Stats>().Name}.");
 
                 // Wywołanie ataku okazyjnego
-                CombatManager.Instance.Attack(unit, movingUnit.GetComponent<Unit>(), true);             
+                CombatManager.Instance.Attack(unit, movingUnit.GetComponent<Unit>(), true);
             }
         }
     }
