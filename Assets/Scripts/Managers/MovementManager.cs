@@ -362,8 +362,7 @@ public class MovementManager : MonoBehaviour
 
     private void ChangeButtonColor(int modifier)
     {
-        //_chargeButton.GetComponent<Image>().color = modifier == 1 ? Color.white : modifier == 2 ? Color.green : Color.white;
-        _runButton.GetComponent<Image>().color = modifier == 1 ? Color.white : modifier == 3 ? Color.green : Color.white;
+        _runButton.GetComponent<Image>().color = modifier == 3 ? Color.green : Color.white;
     }
     #endregion
 
