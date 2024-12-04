@@ -374,6 +374,15 @@ public class MovementManager : MonoBehaviour
         if(Unit.SelectedUnit != null && Unit.SelectedUnit.GetComponent<Unit>().IsRetreating) return;
 
         //Stworzenie tablicy wszystkich jednostek
+
+        // FIXME: First, you should find only neighbors of the Unit
+        // Otherwise the foreach is triggered for ALL units in the game, which is a lot
+        // If you do:
+        //  - get unit position
+        //  - calculate neighboring tiles
+        //  - check if there is a player on them
+        //  - resolve opportunity attacks
+        // the for loop will do at most 8 iterations
         Unit[] units = FindObjectsByType<Unit>(FindObjectsSortMode.None);
 
         // Atak okazyjny wywolywany dla kazdego wroga bedacego w zwarciu z bohaterem gracza
