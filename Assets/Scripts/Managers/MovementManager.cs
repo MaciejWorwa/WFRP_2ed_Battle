@@ -44,16 +44,16 @@ public class MovementManager : MonoBehaviour
         int movementRange = unit.GetComponent<Stats>().TempSz;
 
         // Pozycja postaci przed zaczęciem wykonywania ruchu
-        Vector3 startCharPos = unit.transform.position;
+        Vector2 startCharPos = unit.transform.position;
         
         // Aktualizuje informację o zajęciu pola, które postać opuszcza
         GridManager.Instance.ResetTileOccupancy(startCharPos);
 
         // Pozycja pola wybranego jako cel ruchu
-        Vector3 selectedTilePos = new Vector3(selectedTile.transform.position.x, selectedTile.transform.position.y, 0);
+        Vector2 selectedTilePos = new Vector2(selectedTile.transform.position.x, selectedTile.transform.position.y);
 
         // Znajdź najkrótszą ścieżkę do celu
-        List<Vector3> path = FindPath(startCharPos, selectedTilePos, movementRange);
+        List<Vector2> path = FindPath(startCharPos, selectedTilePos, movementRange);
 
         // Sprawdza czy wybrane pole jest w zasięgu ruchu postaci. W przypadku automatycznej walki ten warunek nie jest wymagany.
         if (path.Count > 0 && path.Count <= movementRange || GameManager.IsAutoCombatMode)
@@ -106,15 +106,14 @@ public class MovementManager : MonoBehaviour
         }
     }
 
-    private IEnumerator MoveWithDelay(GameObject unit, List<Vector3> path, int movementRange)
+    private IEnumerator MoveWithDelay(GameObject unit, List<Vector2> path, int movementRange)
     {
         // Ogranicz iterację do mniejszej wartości: movementRange lub liczby elementów w liście path
         int iterations = Mathf.Min(movementRange, path.Count);
 
         for (int i = 0; i < iterations; i++)
         {
-            Vector3 nextPos = path[i];
-            nextPos.z = 0f;
+            Vector2 nextPos = path[i];
 
             float elapsedTime = 0f;
             float duration = 0.2f; // Czas trwania interpolacji
@@ -123,7 +122,7 @@ public class MovementManager : MonoBehaviour
             {
                 IsMoving = true;
 
-                unit.transform.position = Vector3.Lerp(unit.transform.position, nextPos, elapsedTime / duration);
+                unit.transform.position = Vector2.Lerp(unit.transform.position, nextPos, elapsedTime / duration);
                 elapsedTime += Time.deltaTime;
                 yield return null; // Poczekaj na odświeżenie klatki animacji
             }
@@ -138,7 +137,7 @@ public class MovementManager : MonoBehaviour
             unit.transform.position = nextPos;
         }
 
-        if (unit.transform.position == path[iterations - 1])
+        if ((Vector2)unit.transform.position == path[iterations - 1])
         {
             IsMoving = false;
             Retreat(false);
@@ -153,7 +152,7 @@ public class MovementManager : MonoBehaviour
         }
     }
 
-    public List<Vector3> FindPath(Vector3 start, Vector3 goal, int movementRange)
+    public List<Vector2> FindPath(Vector2 start, Vector2 goal, int movementRange)
     {
         // Tworzy listę otwartych węzłów
         List<Node> openNodes = new List<Node>();
@@ -170,7 +169,7 @@ public class MovementManager : MonoBehaviour
         openNodes.Add(startNode);
 
         // Tworzy listę zamkniętych węzłów
-        List<Vector3> closedNodes = new List<Vector3>();
+        List<Vector2> closedNodes = new List<Vector2>();
 
         while (openNodes.Count > 0)
         {
@@ -185,12 +184,12 @@ public class MovementManager : MonoBehaviour
             if (current.Position == goal)
             {
                 // Tworzy listę punktów i dodaje do niej węzły od węzła docelowego do początkowego
-                List<Vector3> path = new List<Vector3>();
+                List<Vector2> path = new List<Vector2>();
                 Node node = current;
 
                 while (node.Position != start)
                 {
-                    path.Add(new Vector3(node.Position.x, node.Position.y, 0));
+                    path.Add(new Vector2(node.Position.x, node.Position.y));
                     node = node.Parent;
                 }
 
@@ -202,10 +201,10 @@ public class MovementManager : MonoBehaviour
 
             // Pobiera sąsiadów bieżącego węzła
             List<Node> neighbors = new List<Node>();
-            neighbors.Add(new Node { Position = current.Position + Vector3.up });
-            neighbors.Add(new Node { Position = current.Position + Vector3.down });
-            neighbors.Add(new Node { Position = current.Position + Vector3.left });
-            neighbors.Add(new Node { Position = current.Position + Vector3.right });
+            neighbors.Add(new Node { Position = current.Position + Vector2.up });
+            neighbors.Add(new Node { Position = current.Position + Vector2.down });
+            neighbors.Add(new Node { Position = current.Position + Vector2.left });
+            neighbors.Add(new Node { Position = current.Position + Vector2.right });
 
             // Przetwarza każdego sąsiada
             foreach (Node neighbor in neighbors)
@@ -265,12 +264,12 @@ public class MovementManager : MonoBehaviour
         }
 
         // Jeśli nie udało się znaleźć ścieżki, to zwraca pustą listę
-        return new List<Vector3>();
+        return new List<Vector2>();
     }
     #endregion
 
     // Funkcja obliczająca odległość pomiędzy dwoma punktami na płaszczyźnie XY
-    private int CalculateDistance(Vector3 a, Vector3 b)
+    private int CalculateDistance(Vector2 a, Vector2 b)
     {
         return (int)(Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y));
     }
@@ -283,12 +282,7 @@ public class MovementManager : MonoBehaviour
         Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
         Stats stats = Unit.SelectedUnit.GetComponent<Stats>();
 
-        //Uwzględnia, że Zombie nie mogą biegać
-        if(stats.Race == "Zombie" && modifier == 3)
-        {
-            Debug.Log("Ta jednostka nie może wykonywać akcji biegu.");
-            return;
-        }
+        int actions_left = RoundsManager.Instance.UnitsWithActionsLeft[unit.GetComponent<Unit>()];
 
         //Jeżeli postać już jest w trybie szarży lub biegu, resetuje je
         if (unit.IsCharging && modifier == 2 || unit.IsRunning && modifier == 3)
@@ -296,22 +290,21 @@ public class MovementManager : MonoBehaviour
             modifier = 1;
         }
 
-        if(modifier > 1 && modifier < 20 && RoundsManager.Instance.UnitsWithActionsLeft[unit.GetComponent<Unit>()] < 2) //Sprawdza, czy jednostka może wykonać akcję podwójną
+        //Sprawdza, czy jednostka może wykonać bieg lub szarże
+        if ((modifier == 2 || modifier == 3) && actions_left < 2)
         {
             Debug.Log("Ta jednostka nie może w tej rundzie wykonać akcji podwójnej.");
             return;
-        }
-
-        // //Sprawdzenie, czy postać walczy bronia dystansową. Jeśli tak, to szarża nie jest możliwa
-        // if(modifier == 2 && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type.Contains("ranged"))
-        // {
-        //     Debug.Log("Jednostka walcząca bronią dystansową nie może wykonywać szarży.");
-        //     return;
-        // }
+        } 
+        else if( modifier == 3 && stats.Race == "Zombie")
+        {
+            Debug.Log("Ta jednostka nie może wykonywać akcji biegu.");
+            return;
+        } 
 
         //Aktualizuje obecny tryb poruszania postaci
-        unit.IsCharging = modifier == 2; //operator trójargumentowegy. Jeśli modifier == 2 to wartość == true, jeśli nie to wartość == false
-        unit.IsRunning = modifier == 3; //operator trójargumentowegy. Jeśli modifier == 3 to wartość == true, jeśli nie to wartość == false
+        unit.IsCharging = modifier == 2;
+        unit.IsRunning = modifier == 3;
 
         //Zmienia typ ataku w menadżerze walki
         if(unit.IsRunning)
@@ -321,14 +314,11 @@ public class MovementManager : MonoBehaviour
 
         //Oblicza obecną szybkość
         //Uwzględnia karę do Szybkości za zbroję płytową
-        if(stats.Sturdy == false && (stats.Armor_head >= 5 || stats.Armor_torso >= 5 || stats.Armor_arms >= 5 || stats.Armor_legs >= 5))
-        {
-            stats.TempSz = (stats.Sz - 1) * modifier;
-        }
-        else
-        {
-            stats.TempSz = stats.Sz * modifier;
-        }
+        bool has_plate_armor = (stats.Armor_head >= 5 || stats.Armor_torso >= 5 || stats.Armor_arms >= 5 || stats.Armor_legs >= 5);
+        bool is_sturdy = stats.Sturdy;
+        int movement_armor_penalty = (has_plate_armor && !is_sturdy) ? 1 : 0;
+
+        stats.TempSz = (stats.Sz - movement_armor_penalty) * modifier;
 
         // Aktualizuje podświetlenie pól w zasięgu ruchu
         GridManager.Instance.HighlightTilesInMovementRange(stats);
@@ -355,33 +345,33 @@ public class MovementManager : MonoBehaviour
     private void ChangeButtonColor(int modifier)
     {  
         //_chargeButton.GetComponent<Image>().color = modifier == 1 ? Color.white : modifier == 2 ? Color.green : Color.white;
-        _runButton.GetComponent<Image>().color = modifier == 1 ? Color.white : modifier == 3 ? Color.green : Color.white;    
+        _runButton.GetComponent<Image>().color = modifier == 3 ? Color.green : Color.white;   
     }
     #endregion
 
     #region Check for opportunity attack
     // Sprawdza czy ruch powoduje atak okazyjny
-    public void CheckForOpportunityAttack(GameObject movingUnit, Vector3 selectedTilePosition)
+    public void CheckForOpportunityAttack(GameObject movingUnit, Vector2 selectedTilePosition)
     {
         //Przy bezpiecznym odwrocie nie występuje atak okazyjny
         if(Unit.SelectedUnit != null && Unit.SelectedUnit.GetComponent<Unit>().IsRetreating) return;
 
-        //Stworzenie tablicy wszystkich jednostek
-        Unit[] units = FindObjectsByType<Unit>(FindObjectsSortMode.None);
+        List<Unit> adjacentOpponents = AdjacentOpponents(movingUnit.transform.position, movingUnit.tag);
+
+        if(adjacentOpponents.Count == 0) return;
 
         // Atak okazyjny wywolywany dla kazdego wroga bedacego w zwarciu z bohaterem gracza
-        foreach (Unit unit in units)
+        foreach (Unit unit in adjacentOpponents)
         {
             Weapon weapon = InventoryManager.Instance.ChooseWeaponToAttack(unit.gameObject);
 
-            //Jeżeli jest to sojusznik, jednostka ogłuszona, unieruchomiona, bezbronna lub jednostka z bronią dystansową to ją pomijamy
-            if (unit.CompareTag(movingUnit.tag) || weapon.Type.Contains("ranged") || unit.Trapped || unit.StunDuration > 0 || unit.HelplessDuration > 0) continue;
+            //Jeżeli jest tojednostka ogłuszona, unieruchomiona, bezbronna lub jednostka z bronią dystansową to ją pomijamy
+            if (weapon.Type.Contains("ranged") || unit.Trapped || unit.StunDuration > 0 || unit.HelplessDuration > 0) continue;
 
-            // Sprawdzenie ilu przeciwników jest w zwarciu z aktywną jednostką i czy jej ruch powoduje oddalenie się od nich (czyli atak okazyjny)
-            float distanceFromOpponent = Vector3.Distance(movingUnit.transform.position, unit.transform.position);
-            float distanceFromOpponentAfterMove = Vector3.Distance(selectedTilePosition, unit.transform.position);
+            // Sprawdzenie czy ruch powoduje oddalenie się od przeciwników (czyli atak okazyjny)
+            float distanceFromOpponentAfterMove = Vector2.Distance(selectedTilePosition, unit.transform.position);
 
-            if (distanceFromOpponent <= 1.8f && distanceFromOpponentAfterMove > 1.8f)
+            if (distanceFromOpponentAfterMove > 1.8f)
             {
                 Debug.Log($"Ruch spowodował atak okazyjny od {unit.GetComponent<Stats>().Name}.");
 
@@ -390,16 +380,47 @@ public class MovementManager : MonoBehaviour
             }
         }
     }
+
+    // Funkcja pomocnicza do sprawdzania jednostek w sąsiedztwie danej pozycji
+    private List<Unit> AdjacentOpponents(Vector2 center, string movingUnitTag)
+    {
+        Vector2[] positions = {
+            center,
+            center + Vector2.right,
+            center + Vector2.left,
+            center + Vector2.up,
+            center + Vector2.down,
+            center + new Vector2(1, 1),
+            center + new Vector2(-1, -1),
+            center + new Vector2(-1, 1),
+            center + new Vector2(1, -1)
+        };
+
+        List<Unit> units = new List<Unit>();
+
+        foreach (var pos in positions)
+        {
+            Collider2D collider = Physics2D.OverlapPoint(pos);
+            if (collider == null || collider.GetComponent<Unit>() == null) continue;
+
+            if (!collider.CompareTag(movingUnitTag))
+            {
+                units.Add(collider.GetComponent<Unit>());
+            }
+        }
+
+        return units;
+    }
     #endregion
 
     #region Highlight path
     public void HighlightPath(GameObject unit, GameObject tile)
     {
-        var path = FindPath(unit.transform.position, new Vector3 (tile.transform.position.x, tile.transform.position.y, 0), unit.GetComponent<Stats>().TempSz);
+        var path = FindPath(unit.transform.position, new Vector2 (tile.transform.position.x, tile.transform.position.y), unit.GetComponent<Stats>().TempSz);
 
         if(path.Count <= unit.GetComponent<Stats>().TempSz)
         {
-            foreach (Vector3 tilePosition in path)
+            foreach (Vector2 tilePosition in path)
             {
                 Collider2D collider = Physics2D.OverlapPoint(tilePosition);
                 collider.gameObject.GetComponent<Tile>().HighlightTile();
@@ -411,7 +432,7 @@ public class MovementManager : MonoBehaviour
 
 public class Node
 {
-    public Vector3 Position; // Pozycja węzła na siatce
+    public Vector2 Position; // Pozycja węzła na siatce
     public int G; // Koszt dotarcia do węzła
     public int H; // Szacowany koszt dotarcia z węzła do celu
     public int F; // Całkowity koszt (G + H)

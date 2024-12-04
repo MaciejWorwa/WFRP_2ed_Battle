@@ -49,7 +49,7 @@ public class AutoCombatManager : MonoBehaviour
         }
         if (closestOpponent == null || RoundsManager.Instance.UnitsWithActionsLeft[unit] == 0) return;
 
-        float distance = Vector3.Distance(closestOpponent.transform.position, unit.transform.position);
+        float distance = Vector2.Distance(closestOpponent.transform.position, unit.transform.position);
 
         // Jeśli rywal jest w zasięgu ataku to wykonuje atak
         if (unit.CanAttack == true && (distance <= weapon.AttackRange || distance <= weapon.AttackRange * 2 && weapon.Type.Contains("ranged") && !weapon.Type.Contains("short-range-only")))
@@ -195,11 +195,11 @@ public class AutoCombatManager : MonoBehaviour
 
         // Szuka wolnej pozycji obok celu, do której droga postaci jest najkrótsza
         GameObject targetTile = CombatManager.Instance.GetTileAdjacentToTarget(unit.gameObject, closestOpponent);
-        Vector3 targetTilePosition = Vector3.zero;
+        Vector2 targetTilePosition = Vector2.zero;
 
         if (targetTile != null)
         {
-            targetTilePosition = new Vector3(targetTile.transform.position.x, targetTile.transform.position.y, 0);
+            targetTilePosition = new Vector2(targetTile.transform.position.x, targetTile.transform.position.y);
         }
         else
         {
@@ -210,7 +210,7 @@ public class AutoCombatManager : MonoBehaviour
         }
 
         //Ścieżka ruchu atakującego
-        List<Vector3> path = MovementManager.Instance.FindPath(unit.transform.position, targetTilePosition, unit.GetComponent<Stats>().TempSz); 
+        List<Vector2> path = MovementManager.Instance.FindPath(unit.transform.position, targetTilePosition, unit.GetComponent<Stats>().TempSz); 
         
         if ((!weapon.Type.Contains("ranged")) && unit.CanAttack == true && path.Count <= unit.GetComponent<Stats>().Sz * 2 && path.Count >= 3 && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) // Jeśli rywal jest w zasięgu szarży to wykonuje szarżę
         {
@@ -303,8 +303,8 @@ public class AutoCombatManager : MonoBehaviour
         //Zaznacza jako zajęte faktyczne pole, na którym jednostka zakończy ruch, a nie pole do którego próbowała dojść
         if(TargetTile != null)
         {
-            Vector3 unitPos = new Vector3(unit.transform.position.x, unit.transform.position.y, 1);
-            if(TargetTile.transform.position != unitPos)
+            Vector2 unitPos = new Vector2(unit.transform.position.x, unit.transform.position.y);
+            if((Vector2)TargetTile.transform.position != unitPos)
             {
                 TargetTile.IsOccupied = false;
 
@@ -329,7 +329,7 @@ public class AutoCombatManager : MonoBehaviour
         {
             if (unit.gameObject == attacker || unit.CompareTag(attacker.tag) == true) continue;
 
-            float distance = Vector3.Distance(unit.transform.position, attacker.transform.position);
+            float distance = Vector2.Distance(unit.transform.position, attacker.transform.position);
 
             if (closestOpponentInDistanceRangeNeeded == true && distance < 1.5f) continue;
 

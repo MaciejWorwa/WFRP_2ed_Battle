@@ -72,6 +72,7 @@ public class ConsoleView : MonoBehaviour
             // Wyznacz wysokość na podstawie preferowanej wysokości tekstu
             float preferredHeight = _consoleText.preferredHeight;
             _contentRect.sizeDelta = new Vector2(_contentRect.sizeDelta.x, preferredHeight);
+            
         }
     }
 

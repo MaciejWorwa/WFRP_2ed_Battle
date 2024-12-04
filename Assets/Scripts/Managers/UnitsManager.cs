@@ -128,7 +128,7 @@ public class UnitsManager : MonoBehaviour
 
     public void CreateUnitOnRandomTile()
     {
-        List<Vector3> availablePositions = AvailablePositions();
+        List<Vector2> availablePositions = AvailablePositions();
         Vector2 position = Vector2.zero;
 
         if (!SaveAndLoadManager.Instance.IsLoading)
@@ -147,9 +147,9 @@ public class UnitsManager : MonoBehaviour
         CreateUnit(_unitsDropdown.GetSelectedIndex(), _unitNameInputField.text, position);
     }
 
-    private List<Vector3> AvailablePositions()
+    private List<Vector2> AvailablePositions()
     {
-        List<Vector3> availablePositions = new List<Vector3>();
+        List<Vector2> availablePositions = new List<Vector2>();
 
         // Przejście przez wszystkie Tile w tablicy Tiles
         for (int x = 0; x < GridManager.Width; x++)
@@ -185,7 +185,7 @@ public class UnitsManager : MonoBehaviour
         //Gdy próbujemy wczytać jednostkę na polu, które nie istnieje (bo np. siatka jest obecnie mniejsza niż siatka, na której były zapisywane jednostki) lub jest zajęte to wybiera im losową pozycję
         if ((selectedTile == null || selectedTile.GetComponent<Tile>().IsOccupied) && SaveAndLoadManager.Instance.IsLoading == true)
         {
-            List<Vector3> availablePositions = AvailablePositions();
+            List<Vector2> availablePositions = AvailablePositions();
 
             if (availablePositions.Count == 0)
             {

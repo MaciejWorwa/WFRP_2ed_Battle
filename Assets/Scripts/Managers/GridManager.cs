@@ -174,7 +174,7 @@ public class GridManager : MonoBehaviour
         objectsInMovementRange.Add(unitStats.gameObject);
 
         // wektor w prawo, lewo, góra, dół
-        Vector3[] directions = { Vector3.right, Vector3.left, Vector3.up, Vector3.down };
+        Vector2[] directions = { Vector2.right, Vector2.left, Vector2.up, Vector2.down };
 
         // Wykonuje pojedynczy ruch tyle razy ile wynosi zasieg ruchu postaci
         for (int i = 0; i < movementRange; i++)
@@ -185,15 +185,15 @@ public class GridManager : MonoBehaviour
             foreach (var obj in objectsInMovementRange)
             {
                 // Szuka pol w każdym kierunku
-                foreach (Vector3 direction in directions)
+                foreach (Vector2 direction in directions)
                 {
                     // Szuka colliderów w czterech kierunkach
-                    Collider2D[] colliders = Physics2D.OverlapCircleAll(obj.transform.position + direction, 0.1f);
+                    Collider2D collider = Physics2D.OverlapPoint((Vector2)obj.transform.position + direction);
 
                     // Jeżeli collider to 'Tile' to dodajemy go do listy
-                    if (colliders != null && colliders.Length == 1 && colliders[0].gameObject.CompareTag("Tile"))
+                    if (collider != null && collider.gameObject.CompareTag("Tile"))
                     {
-                        tilesToAdd.Add(colliders[0].gameObject);
+                        tilesToAdd.Add(collider.gameObject);
                     }
                 }
             }
@@ -254,11 +254,11 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    public void ResetTileOccupancy(Vector3 unitPosition)
+    public void ResetTileOccupancy(Vector2 unitPosition)
     {
         foreach (Tile tile in Tiles)
         {
-            if(unitPosition.x == tile.transform.position.x && unitPosition.y == tile.transform.position.y)
+            if(unitPosition == (Vector2)tile.transform.position)
                 tile.IsOccupied = false;
         }
     }

@@ -329,6 +329,14 @@ public class CombatManager : MonoBehaviour
                     Debug.Log("Przeciwnik jest odporny na niemagiczne ataki. Aby go zranić konieczne jest użycie magicznej broni lub zaklęcia.");
                     _isSuccessful = false;
                 }
+                else if (AttackTypes["Feint"] == true)
+                {
+                    attacker.Feinted = Feint(rollResult, attackerStats, targetStats);
+
+                    ChangeAttackType("StandardAttack");
+
+                    return; //Kończy akcję ataku, żeby nie przechodzić do dalszych etapów jak np. zadanie obrażeń
+                }
                 else
                 {
                     _isSuccessful = true;
@@ -651,7 +659,7 @@ public class CombatManager : MonoBehaviour
     {
         if (attacker != null && target != null)
         {
-            _attackDistance = Vector3.Distance(attacker.transform.position, target.transform.position);
+            _attackDistance = Vector2.Distance(attacker.transform.position, target.transform.position);
 
             return _attackDistance;
         }
@@ -826,18 +834,18 @@ public class CombatManager : MonoBehaviour
         HashSet<Collider2D> countedOpponents = new HashSet<Collider2D>();
 
         // Funkcja pomocnicza do zliczania jednostek w sąsiedztwie danej pozycji
-        void CountAdjacentUnits(Vector3 center, string allyTag, string opponentTag, ref int allies, ref int opponents)
+        void CountAdjacentUnits(Vector2 center, string allyTag, string opponentTag, ref int allies, ref int opponents)
         {
-            Vector3[] positions = {
+            Vector2[] positions = {
                 center,
-                center + Vector3.right,
-                center + Vector3.left,
-                center + Vector3.up,
-                center + Vector3.down,
-                center + new Vector3(1, 1, 0),
-                center + new Vector3(-1, -1, 0),
-                center + new Vector3(-1, 1, 0),
-                center + new Vector3(1, -1, 0)
+                center + Vector2.right,
+                center + Vector2.left,
+                center + Vector2.up,
+                center + Vector2.down,
+                center + new Vector2(1, 1),
+                center + new Vector2(-1, -1),
+                center + new Vector2(-1, 1),
+                center + new Vector2(1, -1)
             };
 
             foreach (var pos in positions)
@@ -1073,11 +1081,11 @@ public class CombatManager : MonoBehaviour
         //Sprawdza pole, w którym atakujący zatrzyma się po wykonaniu szarży
         GameObject targetTile = GetTileAdjacentToTarget(attacker, target);
 
-        Vector3 targetTilePosition = Vector3.zero;
+        Vector2 targetTilePosition = Vector2.zero;
 
         if(targetTile != null)
         {
-            targetTilePosition = new Vector3(targetTile.transform.position.x, targetTile.transform.position.y, 0);
+            targetTilePosition = new Vector2(targetTile.transform.position.x, targetTile.transform.position.y);
         }
         else
         {
@@ -1086,7 +1094,7 @@ public class CombatManager : MonoBehaviour
         }
 
         //Ścieżka ruchu szarżującego
-        List<Vector3> path = MovementManager.Instance.FindPath(attacker.transform.position, targetTilePosition, attacker.GetComponent<Stats>().TempSz);
+        List<Vector2> path = MovementManager.Instance.FindPath(attacker.transform.position, targetTilePosition, attacker.GetComponent<Stats>().TempSz);
 
         //Sprawdza, czy postać jest wystarczająco daleko do wykonania szarży
         if (path.Count >= 3 && path.Count <= attacker.GetComponent<Stats>().TempSz)
@@ -1122,17 +1130,17 @@ public class CombatManager : MonoBehaviour
     // Szuka wolnej pozycji obok celu szarży, do której droga postaci jest najkrótsza
     public GameObject GetTileAdjacentToTarget(GameObject attacker, GameObject target)
     {
-        Vector3 targetPos = target.transform.position;
+        Vector2 targetPos = target.transform.position;
 
         //Wszystkie przylegające pozycje do atakowanego
-        Vector3[] positions = { targetPos + Vector3.right,
-            targetPos + Vector3.left,
-            targetPos + Vector3.up,
-            targetPos + Vector3.down,
-            targetPos + new Vector3(1, 1, 0),
-            targetPos + new Vector3(-1, -1, 0),
-            targetPos + new Vector3(-1, 1, 0),
-            targetPos + new Vector3(1, -1, 0)
+        Vector2[] positions = { targetPos + Vector2.right,
+            targetPos + Vector2.left,
+            targetPos + Vector2.up,
+            targetPos + Vector2.down,
+            targetPos + new Vector2(1, 1),
+            targetPos + new Vector2(-1, -1),
+            targetPos + new Vector2(-1, 1),
+            targetPos + new Vector2(1, -1)
         };
 
         GameObject targetTile = null;
@@ -1141,9 +1149,9 @@ public class CombatManager : MonoBehaviour
         int shortestPathLength = int.MaxValue;
 
         //Lista przechowująca ścieżkę ruchu szarżującego
-        List<Vector3> path = new List<Vector3>();
+        List<Vector2> path = new List<Vector2>();
 
-        foreach (Vector3 pos in positions)
+        foreach (Vector2 pos in positions)
         {
             GameObject tile = GameObject.Find($"Tile {pos.x - GridManager.Instance.transform.position.x} {pos.y - GridManager.Instance.transform.position.y}");
 

@@ -39,12 +39,12 @@ public class TooltipManager : MonoBehaviour
 
             // Przesunięcie tooltipa w górę jeśli nachodzi na kursor
             Vector2 newPosition = new Vector2(mousePosition.x, mousePosition.y + offsetY);
-            float tooltipHeight = _tooltipTransform.rect.height;
-            float tooltipWidth = _tooltipTransform.rect.width;
+            float tooltipHeight = _tooltipTransform.rect.height * (Screen.height / 1920f); // Skalowanie wysokości tooltipa w zależności od rozdzielczości ekranu
+            float tooltipWidth = _tooltipTransform.rect.width * (Screen.width / 1920f); // Skalowanie szerokości tooltipa w zależności od rozdzielczości ekranu
 
             if (newPosition.y - (tooltipHeight / 2) < mousePosition.y)
             {
-                newPosition.y = mousePosition.y + (tooltipHeight / 2) + (0.035f * Screen.height);
+                newPosition.y = mousePosition.y + (tooltipHeight / 2) + (0.025f * Screen.height);
             }
 
             // Zapobieganie wychodzeniu tooltipa poza krawędzie ekranu
@@ -53,16 +53,21 @@ public class TooltipManager : MonoBehaviour
 
             if (newPosition.x + (tooltipWidth / 2) > screenWidth)
             {
-                newPosition.x = screenWidth - (tooltipWidth / 2) - 10f; // Dodaje odstęp od prawej krawędzi
+                // Jeśli tooltip miałby wyjść poza prawą krawędź ekranu, umieść go po lewej stronie kursora
+                newPosition.x = mousePosition.x - (tooltipWidth / 2) - (0.01f * screenWidth);
+                newPosition.y = mousePosition.y;
             }
             else if (newPosition.x - (tooltipWidth / 2) < 0)
             {
-                newPosition.x = (tooltipWidth / 2) + 10f; // Dodaje odstęp od lewej krawędzi
+                // Jeśli tooltip miałby wyjść poza lewą krawędź ekranu, umieść go po prawej stronie kursora
+                newPosition.x = mousePosition.x + (tooltipWidth / 2) + (0.01f * screenWidth);
+                newPosition.y = mousePosition.y;
             }
 
             if (newPosition.y + (tooltipHeight / 2) > screenHeight)
             {
-                newPosition.y = screenHeight - (tooltipHeight / 2) - 10f; // Dodaje odstęp od górnej krawędzi
+                // Jeśli tooltip miałby wyjść poza górną krawędź ekranu, umieść go poniżej kursora
+                newPosition.y = mousePosition.y - (tooltipHeight / 2) - (0.025f * screenHeight);
             }
             else if (newPosition.y - (tooltipHeight / 2) < 0)
             {
