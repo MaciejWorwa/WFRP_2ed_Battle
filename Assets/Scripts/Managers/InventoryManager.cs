@@ -301,7 +301,7 @@ public class InventoryManager : MonoBehaviour
         // Ustawia kolor aktywnych przycisków na zielony, a nieaktywnych na domyślny
         foreach(var activeButton in activeButtons)
         {
-            Color activeColor = new Color(0.15f, 1f, 0.45f);
+            Color activeColor = new Color(0.3f, 0.65f, 0.125f);
             activeButton.GetComponent<UnityEngine.UI.Image>().color = activeColor;
         }
         foreach(var inactiveButton in inactiveButtons)

@@ -406,7 +406,7 @@ public class UnitsManager : MonoBehaviour
     #endregion
 
     #region Unit editing
-    public void EditUnitModeOn()
+    public void EditUnitModeOn(Animator panelAnimator)
     {
         IsUnitEditing = true;
         
@@ -414,6 +414,12 @@ public class UnitsManager : MonoBehaviour
         _removeUnitButton.gameObject.SetActive(false);
         _selectUnitsButton.gameObject.SetActive(false);
         _updateUnitButton.gameObject.SetActive(true);
+
+        //Jeśli panel edycji jednostek jest schowany to wysuwamy go
+        if(AnimationManager.Instance.PanelStates[panelAnimator] == false)
+        {
+            AnimationManager.Instance.TogglePanel(panelAnimator);
+        }
     }
 
     public void EditUnitModeOff()
@@ -717,7 +723,7 @@ public class UnitsManager : MonoBehaviour
         }
         else if (percentage > 30 && percentage <= 70)
         {
-            image.color = new Color(1f, 0.81f, 0f); // Kolor żółty, jeśli wartość jest między 31% a 70%
+            image.color = new Color(1f, 0.6f, 0f); // Kolor pomarańczowy, jeśli wartość jest między 31% a 70%
         }
         else
         {

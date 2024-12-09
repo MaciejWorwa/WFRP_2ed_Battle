@@ -695,5 +695,20 @@ public class MapElementsContainer
     public float BackgroundScale;
 }
 
+[System.Serializable]
+public class GameSettings
+{
+    public bool IsAutoDiceRollingMode;
+    public bool IsAutoDefenseMode;
+    public bool IsAutoKillMode;
+    public bool IsAutoSelectUnitMode;
+    public bool IsFriendlyFire;
+    public bool IsFearIncluded;
+    public bool IsAutoCombatMode;
+    public bool IsStatsHidingMode;
+    public bool IsNamesHidingMode;
+    public bool IsHealthPointsHidingMode;
+}
+
 #endregion
 

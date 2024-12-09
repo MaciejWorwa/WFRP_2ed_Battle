@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,22 +8,29 @@ public class CameraManager : MonoBehaviour
 {
     [SerializeField] private Camera _camera;
     [SerializeField] private float _moveSpeed = 5f;
-    [SerializeField] private float _minZoom = 4f;
-    [SerializeField] private float _maxZoom = 30f;
-    [SerializeField] private Vector2 _maxXRange = new Vector2(-40f, 40f);
-    [SerializeField] private Vector2 _maxYRange = new Vector2(-20f, 20f);
+    public static float MinZoom = 4f;
+    public static float MaxZoom = 30f;
+    public static Vector2 MaxXRange = new Vector2(-40f, 40f);
+    public static Vector2 MaxYRange = new Vector2(-20f, 20f);
+    public static Color BackgroundColor;
 
     private Vector3 _dragOrigin;
+
+    void Start()
+    {
+        if(BackgroundColor != null)
+        {
+            _camera.backgroundColor = BackgroundColor;
+        }
+        else
+        {
+            _camera.backgroundColor = new Color(0.29f, 0.52f, 0.6f);
+        }
+    }
 
     void Update()
     {
         if(GameManager.IsGamePaused || GameManager.Instance.IsPointerOverUI() || GameManager.Instance.IsAnyInputFieldFocused()) return;
-
-        if(SceneManager.GetActiveScene().buildIndex == 1)
-        {
-            bool isCursorOnConsoleView = CursorPositionOnConsoleView();
-            if(isCursorOnConsoleView) return;
-        }
 
         float scrollInput = Input.GetAxis("Mouse ScrollWheel");
 
@@ -30,7 +38,7 @@ public class CameraManager : MonoBehaviour
         float zoomSize = _camera.orthographicSize - scrollInput * _moveSpeed;
 
         // Ogranicza rozmiar pola widzenia kamery do ustalonych granic
-        zoomSize = Mathf.Clamp(zoomSize, _minZoom, _maxZoom);
+        zoomSize = Mathf.Clamp(zoomSize, MinZoom, MaxZoom);
 
         // Aktualizuje rozmiar pola widzenia kamery
         _camera.orthographicSize = zoomSize;
@@ -53,8 +61,8 @@ public class CameraManager : MonoBehaviour
         Vector3 moveDirection = new Vector3(horizontalInput, verticalInput, 0f) * _moveSpeed * Time.deltaTime;
 
         // Sprawdza, czy ruch przekracza zakresy i ogranicza go do zakresów
-        float newX = Mathf.Clamp(transform.position.x + moveDirection.x, _maxXRange.x, _maxXRange.y);
-        float newY = Mathf.Clamp(transform.position.y + moveDirection.y, _maxYRange.x, _maxYRange.y);
+        float newX = Mathf.Clamp(transform.position.x + moveDirection.x, MaxXRange.x, MaxXRange.y);
+        float newY = Mathf.Clamp(transform.position.y + moveDirection.y, MaxYRange.x, MaxYRange.y);
         moveDirection = new Vector3(newX, newY, -10f) - transform.position;
 
         // Przesuwa kamerę
@@ -79,27 +87,16 @@ public class CameraManager : MonoBehaviour
         }
     }
 
-    private bool CursorPositionOnConsoleView()
+    public static void ChangeCameraRange(int width, int height)
     {
-        // Pobieranie pozycji kursora
-        Vector3 mousePos = Input.mousePosition;
+        MaxZoom = Math.Max(width, height) / 1.7f;
+        MaxXRange = new Vector2(-width * 1.2f, width * 1.2f);
+        MaxYRange = new Vector2(-height / 1.2f, height / 1.2f);
+    }
 
-        // Definiowanie obszarów granicznych
-        float rightBoundaryWidth = Screen.width * 0.39f; // Prawe 39% szerokości ekranu
-        float topRectHeight = Screen.height * 0.38f; // Górne 38% wysokości ekranu
-        float rightBoundaryStart = Screen.width * (1 - 0.39f); // Początek prawej granicy
-        float topRectStart = Screen.height * (1 - 0.38f); // Początek górnej granicy prostokąta
-
-        // Sprawdzanie, czy kursor znajduje się w wyznaczonym obszarze
-        bool isInRightRect = mousePos.x >= rightBoundaryStart && mousePos.y >= topRectStart;
-
-        if (isInRightRect)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+    public void ChangeBackgroundColor(Color color)
+    {
+        _camera.backgroundColor = color;
+        BackgroundColor = color;
     }
 }

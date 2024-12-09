@@ -44,11 +44,65 @@ public class SaveAndLoadManager : MonoBehaviour
     [SerializeField] private Transform _savesScrollViewContent;
     [SerializeField] private GameObject _buttonPrefab; // Przycisk odpowiadający każdemu zapisowi na liście
     [SerializeField] private GameObject _loadGamePanel; 
+    [SerializeField] private UnityEngine.UI.Toggle _sortByDateToggle;
 
     public bool IsLoading;
     public bool IsOnlyUnitsLoading;
 
     #region Saving methods
+    public void SaveSettings()
+    {
+        // Ścieżka do pliku ustawień
+        string settingsFilePath = Path.Combine(Application.persistentDataPath, "GameSettings.json");
+
+        // Tworzenie obiektu ustawień na podstawie aktualnych wartości
+        GameSettings settings = new GameSettings
+        {
+            IsAutoDiceRollingMode = GameManager.IsAutoDiceRollingMode,
+            IsAutoDefenseMode = GameManager.IsAutoDefenseMode,
+            IsAutoKillMode = GameManager.IsAutoKillMode,
+            IsAutoSelectUnitMode = GameManager.IsAutoSelectUnitMode,
+            IsFriendlyFire = GameManager.IsFriendlyFire,
+            IsFearIncluded = GameManager.IsFearIncluded,
+            IsAutoCombatMode = GameManager.IsAutoCombatMode,
+            IsStatsHidingMode = GameManager.IsStatsHidingMode,
+            IsNamesHidingMode = GameManager.IsNamesHidingMode,
+            IsHealthPointsHidingMode = GameManager.IsHealthPointsHidingMode
+        };
+
+        // Serializacja do JSON
+        string json = JsonUtility.ToJson(settings, true);
+        File.WriteAllText(settingsFilePath, json);
+    }
+
+    public void LoadSettings()
+    {
+        // Ścieżka do pliku ustawień
+        string settingsFilePath = Path.Combine(Application.persistentDataPath, "GameSettings.json");
+
+        // Sprawdzanie, czy plik istnieje
+        if (File.Exists(settingsFilePath))
+        {
+            // Deserializacja z JSON
+            string json = File.ReadAllText(settingsFilePath);
+            GameSettings settings = JsonUtility.FromJson<GameSettings>(json);
+
+            // Ustawianie wartości na podstawie załadowanych danych
+            GameManager.IsAutoDiceRollingMode = settings.IsAutoDiceRollingMode;
+            GameManager.IsAutoDefenseMode = settings.IsAutoDefenseMode;
+            GameManager.IsAutoKillMode = settings.IsAutoKillMode;
+            GameManager.IsAutoSelectUnitMode = settings.IsAutoSelectUnitMode;
+            GameManager.IsFriendlyFire = settings.IsFriendlyFire;
+            GameManager.IsFearIncluded = settings.IsFearIncluded;
+            GameManager.IsAutoCombatMode = settings.IsAutoCombatMode;
+            GameManager.IsStatsHidingMode = settings.IsStatsHidingMode;
+            GameManager.IsNamesHidingMode = settings.IsNamesHidingMode;
+            GameManager.IsHealthPointsHidingMode = settings.IsHealthPointsHidingMode;
+        }
+
+        Debug.Log("zapisano");
+    }
+
     public void SaveAllUnits(GameObject saveGamePanel)
     {
         if (_saveNameInput.text.Length < 1 || _saveNameInput.text == "autosave")
@@ -580,19 +634,30 @@ public class SaveAndLoadManager : MonoBehaviour
         // Wczytanie wszystkich zapisanych folderów w Application.persistentDataPath
         string[] saveFolders = Directory.GetDirectories(Application.persistentDataPath);
 
-        // Pobranie wszystkich istniejących buttonów na wyświetlanej liście zapisanych plików
-        List<UnityEngine.UI.Button> existingButtons = dropdown.Buttons;
+        // Sortowanie zapisów w zależności od stanu Toggle
+        if (_sortByDateToggle.isOn)
+        {
+            saveFolders = saveFolders.OrderByDescending(folder => Directory.GetLastWriteTime(folder)).ToArray(); // Sortowanie według daty modyfikacji
+        }
+        else
+        {
+            saveFolders = saveFolders.OrderBy(folder => folder).ToArray(); // Sortowanie alfabetyczne
+        }
 
-        // Przygotowanie listy do przechowywania istniejących nazw zapisów
-        List<string> existingButtonNames = existingButtons.Select(button => button.GetComponentInChildren<TextMeshProUGUI>().text).ToList();
+        // Usunięcie istniejących przycisków z listy i ekranu
+        foreach (Transform child in _savesScrollViewContent)
+        {
+            Destroy(child.gameObject); // Usunięcie obiektów przycisków
+        }
+        dropdown.Buttons.Clear(); // Wyczyszczenie listy przycisków w dropdownie
 
         foreach (var folderPath in saveFolders)
         {
             // Uzyskanie nazwy folderu do wyświetlenia
             string folderName = new DirectoryInfo(folderPath).Name;
 
-            // Sprawdź, czy przycisk z tą nazwą zapisu już istnieje lub jest to folder tymczasowy ze skopiowanymi jednostkami
-            if (existingButtonNames.Contains(folderName) || folderName == "temp") continue;
+            // Sprawdź, czy jest to folder tymczasowy ze skopiowanymi jednostkami
+            if (folderName == "temp") continue;
 
             //Dodaje nazwę pliku do ScrollViewContent w postaci buttona
             GameObject buttonObj = Instantiate(_buttonPrefab, _savesScrollViewContent);

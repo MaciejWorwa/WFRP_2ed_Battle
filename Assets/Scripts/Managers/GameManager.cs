@@ -72,6 +72,8 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        SaveAndLoadManager.Instance.LoadSettings();
+
         // Inicjalizacja słownika z wszystkimi trybami i przyciskami. Ustawienie ich początkowych wartości
         allModes = new Dictionary<Button, bool>()
         {
@@ -628,6 +630,7 @@ public class GameManager : MonoBehaviour
 
     public void QuitGame()
     {
+        SaveAndLoadManager.Instance.SaveSettings();
         Application.Quit();
     }
 }

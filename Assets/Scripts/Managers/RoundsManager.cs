@@ -36,8 +36,7 @@ public class RoundsManager : MonoBehaviour
     [SerializeField] private TMP_Text _roundNumberDisplay;
     public Button NextRoundButton;
     public Dictionary <Unit, int> UnitsWithActionsLeft = new Dictionary<Unit, int>();
-    [SerializeField] private GameObject _actionsLeftInfo;
-    [SerializeField] private TMP_Text _actionsLeftText;
+    [SerializeField] private Slider _actionsLeftSlider;
     [SerializeField] private GameObject _useFortunePointsButton;
     private bool _isFortunePointSpent; //informacja o tym, że punkt szczęścia został zużyty, aby nie można było ponownie go użyć do wczytania tego samego autozapisu
 
@@ -48,7 +47,6 @@ public class RoundsManager : MonoBehaviour
 
         NextRoundButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "Start";
 
-        _actionsLeftInfo.SetActive(false);
         _useFortunePointsButton.SetActive(false);
     }
 
@@ -275,15 +273,13 @@ public class RoundsManager : MonoBehaviour
 
         if(Unit.SelectedUnit == null)
         {
-            _actionsLeftInfo.SetActive(false);
             _useFortunePointsButton.SetActive(false);
         }
         else
         {
             Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
 
-            _actionsLeftInfo.SetActive(true);
-            _actionsLeftText.text = UnitsWithActionsLeft[unit].ToString();
+            _actionsLeftSlider.value = UnitsWithActionsLeft[unit];
 
             if (_isFortunePointSpent != true && UnitsWithActionsLeft[unit] != 2 && !GameManager.IsAutoCombatMode)
             {
@@ -318,6 +314,7 @@ public class RoundsManager : MonoBehaviour
 
         if (UnitsWithActionsLeft[unit] == 2)
         {
+            if (Unit.LastSelectedUnit == null) return;
             stats = Unit.LastSelectedUnit.GetComponent<Stats>();
         }
 

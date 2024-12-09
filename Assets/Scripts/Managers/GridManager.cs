@@ -49,6 +49,7 @@ public class GridManager : MonoBehaviour
     void Start()
     {
         GenerateGrid();
+        CameraManager.ChangeCameraRange(Width, Height);
 
         if(SceneManager.GetActiveScene().buildIndex != 0 && MapEditor.Instance != null)
         {
@@ -132,6 +133,8 @@ public class GridManager : MonoBehaviour
         GenerateGrid();
 
         StartCoroutine(RemoveElementsOutsideTheGrid());
+
+        CameraManager.ChangeCameraRange(Width, Height);
     }
 
     public void ChangeGridColor()

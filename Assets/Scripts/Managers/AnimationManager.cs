@@ -3,20 +3,42 @@ using UnityEngine;
 
 public class AnimationManager : MonoBehaviour
 {
-    private Dictionary<Animator, bool> _panelStates = new Dictionary<Animator, bool>(); // Mapowanie Animator -> stan panelu
+     // Prywatne statyczne pole przechowujące instancję
+    private static AnimationManager instance;
 
- public void TogglePanel(Animator panelAnimator)
+    // Publiczny dostęp do instancji
+    public static AnimationManager Instance
+    {
+        get { return instance; }
+    }
+
+    void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else if (instance != this)
+        {
+            // Jeśli instancja już istnieje, a próbujemy utworzyć kolejną, niszczymy nadmiarową
+            Destroy(gameObject);
+        }
+    }
+    
+    public Dictionary<Animator, bool> PanelStates = new Dictionary<Animator, bool>(); // Mapowanie Animator -> stan panelu
+
+    public void TogglePanel(Animator panelAnimator)
     {
         // Sprawdza, czy animator ma już zapisany stan; jeśli nie, ustaw domyślny na "schowany"
-        if (!_panelStates.ContainsKey(panelAnimator))
+        if (!PanelStates.ContainsKey(panelAnimator))
         {
-            _panelStates[panelAnimator] = false; // Domyślnie panel jest schowany
+            PanelStates[panelAnimator] = false; // Domyślnie panel jest schowany
         }
 
         // Zmiana stanu panelu
-        bool isPanelOpen = _panelStates[panelAnimator];
+        bool isPanelOpen = PanelStates[panelAnimator];
         isPanelOpen = !isPanelOpen;
-        _panelStates[panelAnimator] = isPanelOpen;
+        PanelStates[panelAnimator] = isPanelOpen;
 
         // Sprawdza, czy animator ma parametr "IsExpanded"
         if (HasParameter(panelAnimator, "IsExpanded"))
