@@ -461,7 +461,7 @@ public class CombatManager : MonoBehaviour
 
             ExecuteAttack(attacker, target, attackerWeapon);
 
-            StartCoroutine(PlayAnimation("attack", attacker.gameObject, target.gameObject));
+            StartCoroutine(AnimationManager.Instance.PlayAnimation("attack", attacker.gameObject, target.gameObject));
         }
         else if (attacker.GetComponent<Unit>().IsCharging)
         {
@@ -635,7 +635,7 @@ public class CombatManager : MonoBehaviour
                 targetUnit.HideUnitHealthPoints();
             }
 
-            StartCoroutine(PlayAnimation("damage", null, targetUnit.gameObject, damage - (targetStats.Wt + armor)));
+            StartCoroutine(AnimationManager.Instance.PlayAnimation("damage", null, targetUnit.gameObject, damage - (targetStats.Wt + armor)));
         }
         else
         {
@@ -1063,6 +1063,8 @@ public class CombatManager : MonoBehaviour
             unit.AimingBonus += unit.GetComponent<Stats>().Sharpshooter && attackerWeapon.Type.Contains("ranged") ? 20 : 10; 
 
             Debug.Log($"{unit.GetComponent<Stats>().Name} przycelowuje.");
+
+            StartCoroutine(AnimationManager.Instance.PlayAnimation("aim", Unit.SelectedUnit));
         }
 
         UpdateAimButtonColor();
@@ -1266,6 +1268,10 @@ public class CombatManager : MonoBehaviour
                 return false;
             }
 
+            if(targetIsDefended)
+            {
+                StartCoroutine(AnimationManager.Instance.PlayAnimation("parry", null, targetUnit.gameObject));
+            }
             return !targetIsDefended;
         }
 
@@ -1291,6 +1297,10 @@ public class CombatManager : MonoBehaviour
             targetIsDefended = Dodge(targetStats, dodgeModifier);
         }
 
+        if(targetIsDefended)
+        {
+            StartCoroutine(AnimationManager.Instance.PlayAnimation("parry", null, targetUnit.gameObject));
+        }
         return !targetIsDefended; //Zwracana wartość definiuje, czy atak się powiódł. Zwracamy odwrotność, bo gdy obrona się powiodła, oznacza to, że atak nie.
     }
             
@@ -1407,7 +1417,9 @@ public class CombatManager : MonoBehaviour
             canDoAction = RoundsManager.Instance.DoHalfAction(Unit.SelectedUnit.GetComponent<Unit>());
             if(!canDoAction) return;  
 
-            weapon.ReloadLeft --;       
+            weapon.ReloadLeft --;
+
+            StartCoroutine(AnimationManager.Instance.PlayAnimation("reload", Unit.SelectedUnit));       
         }
         
         if(weapon.ReloadLeft == 0)
@@ -1566,55 +1578,6 @@ public class CombatManager : MonoBehaviour
         else
         {
             Debug.Log($"Rozbrajanie nie powiodło się.");
-        }
-    }
-    #endregion
-
-    #region Animations
-    IEnumerator PlayAnimation(String animationName, GameObject attacker = null, GameObject target = null, int damage = 0)
-    {   
-        Animator animator;
-
-        if(animationName == "attack")
-        {
-            if(target == null) yield break;
-            attacker.transform.Find("Canvas/Attack_animation").gameObject.SetActive(true);
-            animator = attacker.transform.Find("Canvas/Attack_animation").GetComponent<Animator>();
-        
-            // Porównanie współrzędnych X
-            if (target.transform.position.x < attacker.transform.position.x)
-            {
-                animator.Play("RightAttackAnimation");
-            }
-            else
-            {
-                animator.Play("LeftAttackAnimation");  
-            }
-
-            yield return new WaitForSeconds(1f);
-            if(attacker != null)
-            {
-                attacker.transform.Find("Canvas/Attack_animation").gameObject.SetActive(false);
-            }
-        }
-        else if (animationName == "damage" && damage > 0 && target.GetComponent<Stats>().TempHealth >= 0)
-        {
-            target.transform.Find("Canvas/Damage_animation").gameObject.SetActive(true);
-            animator = target.transform.Find("Canvas/Damage_animation").GetComponent<Animator>();
-
-            target.transform.Find("Canvas/Damage_animation").GetComponent<TMP_Text>().text = "-" + damage.ToString();
-
-            animator.Play("DamageAnimation");
-
-            yield return new WaitForSeconds(1f);
-            if(target != null)
-            {
-                target.transform.Find("Canvas/Damage_animation").gameObject.SetActive(false);
-            }
-        }
-        else
-        {
-            //Kolejne animacje
         }
     }
     #endregion

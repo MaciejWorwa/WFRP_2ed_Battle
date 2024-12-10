@@ -42,10 +42,7 @@ public class TooltipManager : MonoBehaviour
             float tooltipHeight = _tooltipTransform.rect.height * (Screen.height / 1920f); // Skalowanie wysokości tooltipa w zależności od rozdzielczości ekranu
             float tooltipWidth = _tooltipTransform.rect.width * (Screen.width / 1920f); // Skalowanie szerokości tooltipa w zależności od rozdzielczości ekranu
 
-            if (newPosition.y - (tooltipHeight / 2) < mousePosition.y)
-            {
-                newPosition.y = mousePosition.y + (tooltipHeight / 2) + (0.025f * Screen.height);
-            }
+            newPosition.y = mousePosition.y + (tooltipHeight / 2) + (0.025f * Screen.height);
 
             // Zapobieganie wychodzeniu tooltipa poza krawędzie ekranu
             float screenWidth = Screen.width;

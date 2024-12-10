@@ -693,6 +693,9 @@ public class MapElementsContainer
     public float BackgroundPositionX;
     public float BackgroundPositionY;
     public float BackgroundScale;
+    public float BackgroundColorR;
+    public float BackgroundColorG;
+    public float BackgroundColorB;
 }
 
 [System.Serializable]
@@ -708,6 +711,9 @@ public class GameSettings
     public bool IsStatsHidingMode;
     public bool IsNamesHidingMode;
     public bool IsHealthPointsHidingMode;
+    public float BackgroundColorR;
+    public float BackgroundColorG;
+    public float BackgroundColorB;
 }
 
 #endregion

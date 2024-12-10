@@ -62,7 +62,7 @@ public class Unit : MonoBehaviour
     }
     private void OnMouseUp()
     { 
-        if(GameManager.Instance.IsPointerOverUI() || GameManager.IsMapHidingMode || UnitsManager.IsMultipleUnitsSelecting) return;
+        if(GameManager.Instance.IsPointerOverUI() || GameManager.IsMapHidingMode || UnitsManager.IsMultipleUnitsSelecting || MovementManager.Instance.IsMoving) return;
 
         SelectUnit();
     }

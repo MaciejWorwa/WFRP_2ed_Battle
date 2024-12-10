@@ -15,7 +15,7 @@ public class DraggableObject : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if(GameManager.IsMapHidingMode || MapEditor.IsElementRemoving || UnitsManager.IsMultipleUnitsSelecting) return;
+        if(GameManager.IsMapHidingMode || MapEditor.IsElementRemoving || UnitsManager.IsMultipleUnitsSelecting ||  MovementManager.Instance.IsMoving) return;
         
         IsDragging = true;
 
@@ -39,7 +39,7 @@ public class DraggableObject : MonoBehaviour
 
     private void OnMouseUp()
     {
-        if(GameManager.IsMapHidingMode || MapEditor.IsElementRemoving || UnitsManager.IsMultipleUnitsSelecting) return;
+        if(GameManager.IsMapHidingMode || MapEditor.IsElementRemoving || UnitsManager.IsMultipleUnitsSelecting ||  MovementManager.Instance.IsMoving) return;
 
         //Sprawdza, czy obiekt został przesunięty
         if(transform.position != _startPosition)

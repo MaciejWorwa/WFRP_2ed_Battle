@@ -9,6 +9,15 @@ using static UnityEngine.Mathf;
 [ExecuteInEditMode, RequireComponent(typeof(Image))]
 public class ColorPicker : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
+    // Prywatne statyczne pole przechowujące instancję
+    private static ColorPicker instance;
+
+    // Publiczny dostęp do instancji
+    public static ColorPicker Instance
+    {
+        get { return instance; }
+    }
+
     [SerializeField] private Camera _mainCamera;
     [SerializeField] private Camera _playersCamera;
 
@@ -44,6 +53,16 @@ public class ColorPicker : MonoBehaviour, IPointerDownHandler, IDragHandler, IPo
 
     private void Awake()
     {
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else if (instance != this)
+        {
+            // Jeśli instancja już istnieje, a próbujemy utworzyć kolejną, niszczymy nadmiarową
+            Destroy(gameObject);
+        }
+
         rectTransform = transform as RectTransform;
         image = GetComponent<Image>();
 
@@ -76,6 +95,11 @@ public class ColorPicker : MonoBehaviour, IPointerDownHandler, IDragHandler, IPo
         }
 
         ApplyColor();
+    }
+
+    public void SetColor(Color newColor)
+    {
+        color = newColor; // To automatycznie zaktualizuje HSV i wywoła ApplyColor
     }
 
     private void Reset()
@@ -159,8 +183,15 @@ public class ColorPicker : MonoBehaviour, IPointerDownHandler, IDragHandler, IPo
 
         onColorChanged?.Invoke(color);
 
-        _mainCamera.GetComponent<CameraManager>().ChangeBackgroundColor(color);
-        _playersCamera.GetComponent<CameraManager>().ChangeBackgroundColor(color);
+        if(_mainCamera != null)
+        {
+            _mainCamera.GetComponent<CameraManager>().ChangeBackgroundColor(color);
+        }
+
+        if(_playersCamera != null)
+        {
+            _playersCamera.GetComponent<CameraManager>().ChangeBackgroundColor(color);
+        }
     }
 
     private void OnDestroy()

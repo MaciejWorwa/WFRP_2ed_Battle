@@ -405,6 +405,8 @@ public class MapEditor : MonoBehaviour
             StartCoroutine(LoadBackgroundImage(BackgroundImagePath, false));
         }
 
+        LoadBackgroundColor(data);
+
         if (data.Elements.Count > 0)
         {
             foreach (var mapElement in data.Elements)
@@ -456,6 +458,33 @@ public class MapEditor : MonoBehaviour
         }
 
         GridManager.Instance.CheckTileOccupancy();
+    }
+
+    public void LoadBackgroundColor(MapElementsContainer data)
+    {
+        // Wczytanie koloru tła
+        Color backgroundColor = new Color(data.BackgroundColorR, data.BackgroundColorG, data.BackgroundColorB);
+
+        // Ustawienie koloru tła
+        if (ColorPicker.Instance != null)
+        {
+            ColorPicker.Instance.SetColor(backgroundColor);
+        }
+        else
+        {
+            GameObject mainCamera = GameObject.Find("Main Camera");
+            GameObject playersCamera = GameObject.Find("Players Camera");
+
+            if(mainCamera != null)
+            {
+                mainCamera.GetComponent<CameraManager>().ChangeBackgroundColor(backgroundColor);
+            }
+
+            if (playersCamera != null)
+            {
+                GameObject.Find("Players Camera").GetComponent<CameraManager>().ChangeBackgroundColor(backgroundColor);
+            }   
+        }
     }
 
     #region Background managing

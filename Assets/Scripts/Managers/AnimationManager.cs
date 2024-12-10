@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System;
+using System.Collections;
+using TMPro;
 
 public class AnimationManager : MonoBehaviour
 {
@@ -113,4 +116,97 @@ public class AnimationManager : MonoBehaviour
         panelAnimator.Play("CollapsePanel");
         panelAnimator.SetBool("IsExpanded", false);
     }
+
+    #region Unit actions animations
+    public IEnumerator PlayAnimation(String animationName, GameObject attacker = null, GameObject target = null, int damage = 0)
+    {   
+        Animator animator;
+        GameObject animationObject;
+
+        if(animationName == "attack" && target != null && attacker != null)
+        {
+            if(target == null) yield break;
+            animationObject = attacker.transform.Find("AttackAnimation/Attack_animation").gameObject;
+            animationObject.SetActive(true);
+            animator = animationObject.GetComponent<Animator>();
+
+            animationObject.transform.parent.position = new Vector3(target.transform.position.x, target.transform.position.y, -2f);
+
+            // Porównanie współrzędnych X
+            if (target.transform.position.x > attacker.transform.position.x)
+            {
+                animator.Play("RightAttackAnimation");
+            }
+            else
+            {
+                animator.Play("LeftAttackAnimation");  
+            }
+
+            yield return new WaitForSeconds(1f);
+            if(attacker != null)
+            {
+                animationObject.transform.parent.position = new Vector3(attacker.transform.position.x, attacker.transform.position.y, -2f);
+                animationObject.SetActive(false);
+            }
+        }
+        else if (animationName == "damage" && damage > 0 && target != null && target.GetComponent<Stats>().TempHealth >= 0)
+        {
+            animationObject = target.transform.Find("Animations/Damage_animation").gameObject;
+            animationObject.SetActive(true);
+            animator = animationObject.GetComponent<Animator>();
+
+            animationObject.GetComponent<TMP_Text>().text = "-" + damage.ToString();
+
+            animator.Play("DamageAnimation");
+
+            yield return new WaitForSeconds(1f);
+            if(target != null)
+            {
+                animationObject.SetActive(false);
+            }
+        }
+        else if (animationName == "parry" && target != null)
+        {
+            animationObject = target.transform.Find("Animations/Parry_animation").gameObject;
+            animationObject.SetActive(true);
+            animator = animationObject.GetComponent<Animator>();
+
+            animator.Play("ParryAnimation");
+
+            yield return new WaitForSeconds(1f);
+            if(target != null)
+            {
+                animationObject.SetActive(false);
+            }
+        }
+        else if (animationName == "aim" && attacker != null)
+        {
+            animationObject = attacker.transform.Find("Animations/Aim_animation").gameObject;
+            animationObject.SetActive(true);
+            animator = animationObject.GetComponent<Animator>();
+
+            animator.Play("AimAnimation");
+
+            yield return new WaitForSeconds(1f);
+            if(attacker != null)
+            {
+                animationObject.SetActive(false);
+            }
+        }
+        else if (animationName == "reload" && attacker != null)
+        {
+            animationObject = attacker.transform.Find("Animations/Reload_animation").gameObject;
+            animationObject.SetActive(true);
+            animator = animationObject.GetComponent<Animator>();
+
+            animator.Play("ReloadAnimation");
+
+            yield return new WaitForSeconds(1f);
+            if(attacker != null)
+            {
+                animationObject.SetActive(false);
+            }
+        }
+    }
+    #endregion
 }

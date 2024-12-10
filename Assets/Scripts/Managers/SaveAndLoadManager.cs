@@ -67,7 +67,10 @@ public class SaveAndLoadManager : MonoBehaviour
             IsAutoCombatMode = GameManager.IsAutoCombatMode,
             IsStatsHidingMode = GameManager.IsStatsHidingMode,
             IsNamesHidingMode = GameManager.IsNamesHidingMode,
-            IsHealthPointsHidingMode = GameManager.IsHealthPointsHidingMode
+            IsHealthPointsHidingMode = GameManager.IsHealthPointsHidingMode,
+            BackgroundColorR = CameraManager.BackgroundColor.r,
+            BackgroundColorG = CameraManager.BackgroundColor.g,
+            BackgroundColorB = CameraManager.BackgroundColor.b
         };
 
         // Serializacja do JSON
@@ -98,7 +101,35 @@ public class SaveAndLoadManager : MonoBehaviour
             GameManager.IsStatsHidingMode = settings.IsStatsHidingMode;
             GameManager.IsNamesHidingMode = settings.IsNamesHidingMode;
             GameManager.IsHealthPointsHidingMode = settings.IsHealthPointsHidingMode;
-        }
+
+            // Wczytuje kolor tła
+            Color loadedColor = new Color(
+                settings.BackgroundColorR,
+                settings.BackgroundColorG,
+                settings.BackgroundColorB
+            );
+
+            // Ustawienie koloru tła
+            if (ColorPicker.Instance != null)
+            {
+                ColorPicker.Instance.SetColor(loadedColor);
+            }
+            else
+            {
+                GameObject mainCamera = GameObject.Find("Main Camera");
+                GameObject playersCamera = GameObject.Find("Players Camera");
+
+                if(mainCamera != null)
+                {
+                    mainCamera.GetComponent<CameraManager>().ChangeBackgroundColor(loadedColor);
+                }
+
+                if (playersCamera != null)
+                {
+                    GameObject.Find("Players Camera").GetComponent<CameraManager>().ChangeBackgroundColor(loadedColor);
+                }   
+            }
+        }      
     }
 
     public void SaveAllUnits(GameObject saveGamePanel)
@@ -285,6 +316,12 @@ public class SaveAndLoadManager : MonoBehaviour
         container.BackgroundPositionX = MapEditor.BackgroundPositionX;
         container.BackgroundPositionY = MapEditor.BackgroundPositionY;
         container.BackgroundScale = MapEditor.BackgroundScale;
+
+        // Zapis koloru tła
+        Color backgroundColor = CameraManager.BackgroundColor;
+        container.BackgroundColorR = backgroundColor.r;
+        container.BackgroundColorG = backgroundColor.g;
+        container.BackgroundColorB = backgroundColor.b;
 
         // Ścieżka do pliku JSON
         string mapElementsPath = Path.Combine(Application.persistentDataPath, savesFolderName, "MapElements.json");
