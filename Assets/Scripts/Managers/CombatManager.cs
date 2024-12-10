@@ -10,6 +10,7 @@ using static SimpleFileBrowser.FileBrowser;
 using UnityEditor;
 using System.Drawing;
 using TMPro;
+using System;
 
 public class CombatManager : MonoBehaviour
 {
@@ -319,7 +320,7 @@ public class CombatManager : MonoBehaviour
             _attackModifier += attacker.AimingBonus;
 
             //Rzut na trafienie
-            int rollResult = Random.Range(1, 101);
+            int rollResult = UnityEngine.Random.Range(1, 101);
 
             //W przypadku, gdy atak następuje po udanym rzucie na trafienie rzeczywistymi kośćmi to nie sprawdzamy rzutu na trafienie. W przeciwnym razie sprawdzamy
             if(IsManualPlayerAttack)
@@ -459,6 +460,8 @@ public class CombatManager : MonoBehaviour
             attacker.Feinted = false;
 
             ExecuteAttack(attacker, target, attackerWeapon);
+
+            StartCoroutine(PlayAnimation("attack", attacker.gameObject, target.gameObject));
         }
         else if (attacker.GetComponent<Unit>().IsCharging)
         {
@@ -567,7 +570,7 @@ public class CombatManager : MonoBehaviour
                 //Bonus do obrażeń w przypadku atakowania postaci bezbronnej
                 if (target.HelplessDuration > 0)
                 {
-                    int extraRoll = Random.Range(1, 11);
+                    int extraRoll = UnityEngine.Random.Range(1, 11);
                     damage += extraRoll;
                     Debug.Log($"Rzut na dodatkowe obrażenia z powodu atakowania bezbronnej jednostki: {extraRoll}");
                 }
@@ -631,6 +634,8 @@ public class CombatManager : MonoBehaviour
             {
                 targetUnit.HideUnitHealthPoints();
             }
+
+            StartCoroutine(PlayAnimation("damage", null, targetUnit.gameObject, damage - (targetStats.Wt + armor)));
         }
         else
         {
@@ -902,8 +907,8 @@ public class CombatManager : MonoBehaviour
         //Uwzględnienie broni druzgoczącej
         if (attackerWeapon.Impact == true)
         {
-            int roll1 = Random.Range(1, 11);
-            int roll2 = Random.Range(1, 11);
+            int roll1 = UnityEngine.Random.Range(1, 11);
+            int roll2 = UnityEngine.Random.Range(1, 11);
             damageRollResult = roll1 >= roll2 ? roll1 : roll2;
             Debug.Log($"Atak druzgoczącą bronią. Rzut na obrażenia nr 1: {roll1} Rzut nr 2: {roll2}");
 
@@ -912,21 +917,21 @@ public class CombatManager : MonoBehaviour
         }
         else
         {
-            damageRollResult = Random.Range(1, 11);
+            damageRollResult = UnityEngine.Random.Range(1, 11);
             Debug.Log($"Rzut na obrażenia: {damageRollResult}");
         }
 
         // Mechanika Furii Ulryka
         if (damageRollResult == 10)
         {
-            int confirmRoll = Random.Range(1, 101); //rzut na potwierdzenie Furii
+            int confirmRoll = UnityEngine.Random.Range(1, 101); //rzut na potwierdzenie Furii
             int additionalDamage = 0; //obrażenia, które dodajemy do wyniku rzutu
 
             if (_attackDistance <= 1.5f)
             {
                 if (attackerStats.WW >= confirmRoll)
                 {
-                    additionalDamage = Random.Range(1, 11);
+                    additionalDamage = UnityEngine.Random.Range(1, 11);
                     damageRollResult += additionalDamage;
                     Debug.Log($"Rzut na potwierdzenie {confirmRoll}. FURIA ULRYKA!");
                 }
@@ -939,7 +944,7 @@ public class CombatManager : MonoBehaviour
             {
                 if (attackerStats.US >= confirmRoll)
                 {
-                    additionalDamage = Random.Range(1, 11);
+                    additionalDamage = UnityEngine.Random.Range(1, 11);
                     damageRollResult += additionalDamage;
                     Debug.Log($"Rzut na potwierdzenie {confirmRoll}. FURIA ULRYKA!");
                 }
@@ -951,7 +956,7 @@ public class CombatManager : MonoBehaviour
 
             while (additionalDamage == 10)
             {
-                additionalDamage = Random.Range(1, 11);
+                additionalDamage = UnityEngine.Random.Range(1, 11);
                 damageRollResult += additionalDamage;
                 Debug.Log($"KOLEJNA FURIA ULRYKA!");
             }
@@ -985,7 +990,7 @@ public class CombatManager : MonoBehaviour
     #region Check for attack localization and return armor value
     private int CalculateArmor(Stats targetStats, Weapon attackerWeapon)
     {
-        int attackLocalization = Random.Range(1, 101);
+        int attackLocalization = UnityEngine.Random.Range(1, 101);
         int armor = 0;
 
         switch (attackLocalization)
@@ -1309,7 +1314,7 @@ public class CombatManager : MonoBehaviour
         //Sprawia, że atakowany nie będzie mógł więcej parować w tej rundzie
         targetStats.GetComponent<Unit>().CanParry = false;
 
-        int rollResult = Random.Range(1, 101);
+        int rollResult = UnityEngine.Random.Range(1, 101);
 
         if (parryModifier != 0)
         {
@@ -1345,7 +1350,7 @@ public class CombatManager : MonoBehaviour
         //Sprawia, że atakowany nie będzie mógł więcej unikać w tej rundzie   
         targetStats.GetComponent<Unit>().CanDodge = false;
         
-        int rollResult = Random.Range(1, 101);
+        int rollResult = UnityEngine.Random.Range(1, 101);
 
         if (modifier != 0)
         {
@@ -1445,7 +1450,7 @@ public class CombatManager : MonoBehaviour
     private bool Feint(int rollResult, Stats attackerStats, Stats targetStats)
     {
         //Przeciwstawny rzut na WW
-        int targetRollResult = Random.Range(1, 101);
+        int targetRollResult = UnityEngine.Random.Range(1, 101);
 
         int attackerSuccessLevel = attackerStats.WW - rollResult;
         int targetSuccessLevel = targetStats.WW - targetRollResult;
@@ -1464,9 +1469,9 @@ public class CombatManager : MonoBehaviour
     public void Stun(Weapon attackerWeapon, Stats attackerStats, Stats targetStats)
     {
         //Przeciwstawny rzut na Krzepę
-        int attackerRollResult = Random.Range(1, 101);
+        int attackerRollResult = UnityEngine.Random.Range(1, 101);
         int modifier = attackerWeapon.Pummelling ? 10 : 0; // bonus za broń z cechą "ogłuszający"
-        int targetRollResult = Random.Range(1, 101);
+        int targetRollResult = UnityEngine.Random.Range(1, 101);
 
         int attackerSuccessLevel = attackerStats.K - attackerRollResult + modifier;
         int targetSuccessLevel = targetStats.K - targetRollResult;
@@ -1476,14 +1481,14 @@ public class CombatManager : MonoBehaviour
         if (attackerSuccessLevel > targetSuccessLevel)
         {
             // Rzut na odporność
-            int odpRoll = Random.Range(1, 101);
+            int odpRoll = UnityEngine.Random.Range(1, 101);
             int armorModifier = targetStats.Armor_head * 10; //Mofydikator do rzutu na odporność za zbroję na głowie
 
             Debug.Log($"Rzut na odporność {targetStats.Name}. Wynik rzutu: {odpRoll} Wartość cechy: {targetStats.Odp}. Modyfikator za hełm: {armorModifier}");
 
             if (odpRoll > (targetStats.Odp + modifier))
             {
-                int roundsNumber = Random.Range(1, 11);
+                int roundsNumber = UnityEngine.Random.Range(1, 11);
 
                 targetStats.GetComponent<Unit>().StunDuration = roundsNumber;
                 RoundsManager.Instance.UnitsWithActionsLeft[targetStats.GetComponent<Unit>()] = 0;
@@ -1508,7 +1513,7 @@ public class CombatManager : MonoBehaviour
     {
         Stats unitStats = unit.GetComponent<Stats>();
 
-        int rollResult = Random.Range(1, 101);
+        int rollResult = UnityEngine.Random.Range(1, 101);
 
         string attributeName = unitStats.K > unitStats.Zr ? "Krzepę" : "Zręczność";
         int attributeValue = unitStats.K > unitStats.Zr ? unitStats.K : unitStats.Zr;
@@ -1537,8 +1542,8 @@ public class CombatManager : MonoBehaviour
         }
 
         //Przeciwstawny rzut na Zręczność
-        int attackerRollResult = Random.Range(1, 101);
-        int targetRollResult = Random.Range(1, 101);
+        int attackerRollResult = UnityEngine.Random.Range(1, 101);
+        int targetRollResult = UnityEngine.Random.Range(1, 101);
 
         int attackerSuccessLevel = attackerStats.Zr - attackerRollResult;
         int targetSuccessLevel = targetStats.Zr - targetRollResult;
@@ -1561,6 +1566,55 @@ public class CombatManager : MonoBehaviour
         else
         {
             Debug.Log($"Rozbrajanie nie powiodło się.");
+        }
+    }
+    #endregion
+
+    #region Animations
+    IEnumerator PlayAnimation(String animationName, GameObject attacker = null, GameObject target = null, int damage = 0)
+    {   
+        Animator animator;
+
+        if(animationName == "attack")
+        {
+            if(target == null) yield break;
+            attacker.transform.Find("Canvas/Attack_animation").gameObject.SetActive(true);
+            animator = attacker.transform.Find("Canvas/Attack_animation").GetComponent<Animator>();
+        
+            // Porównanie współrzędnych X
+            if (target.transform.position.x < attacker.transform.position.x)
+            {
+                animator.Play("RightAttackAnimation");
+            }
+            else
+            {
+                animator.Play("LeftAttackAnimation");  
+            }
+
+            yield return new WaitForSeconds(1f);
+            if(attacker != null)
+            {
+                attacker.transform.Find("Canvas/Attack_animation").gameObject.SetActive(false);
+            }
+        }
+        else if (animationName == "damage" && damage > 0 && target.GetComponent<Stats>().TempHealth >= 0)
+        {
+            target.transform.Find("Canvas/Damage_animation").gameObject.SetActive(true);
+            animator = target.transform.Find("Canvas/Damage_animation").GetComponent<Animator>();
+
+            target.transform.Find("Canvas/Damage_animation").GetComponent<TMP_Text>().text = "-" + damage.ToString();
+
+            animator.Play("DamageAnimation");
+
+            yield return new WaitForSeconds(1f);
+            if(target != null)
+            {
+                target.transform.Find("Canvas/Damage_animation").gameObject.SetActive(false);
+            }
+        }
+        else
+        {
+            //Kolejne animacje
         }
     }
     #endregion

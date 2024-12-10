@@ -56,7 +56,7 @@ public class MovementManager : MonoBehaviour
         List<Vector2> path = FindPath(startCharPos, selectedTilePos, movementRange);
 
         // Sprawdza czy wybrane pole jest w zasięgu ruchu postaci. W przypadku automatycznej walki ten warunek nie jest wymagany.
-        if (path.Count > 0 && path.Count <= movementRange || GameManager.IsAutoCombatMode)
+        if (path.Count > 0 && (path.Count <= movementRange || GameManager.IsAutoCombatMode))
         {
             //Wykonuje akcję
             bool canDoAction = true;

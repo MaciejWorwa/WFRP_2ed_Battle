@@ -48,6 +48,7 @@ public class UnitsManager : MonoBehaviour
     public Transform UnitsScrollViewContent;
     [SerializeField] private TMP_InputField _unitNameInputField;
     [SerializeField] private UnityEngine.UI.Slider _modifierAttributeSlider;
+    [SerializeField] private UnityEngine.UI.Toggle _rollForHalfValueToggle; // Rzut na połowę cechy (gdy jednostka nie posiada umiejętności)
     [SerializeField] private UnityEngine.UI.Toggle _unitTagToggle;
     [SerializeField] private UnityEngine.UI.Toggle _unitSizeToggle;
     [SerializeField] private UnityEngine.UI.Button _createUnitButton; // Przycisk do tworzenia jednostek na losowych pozycjach
@@ -815,6 +816,10 @@ public class UnitsManager : MonoBehaviour
         int value = (int)field.GetValue(stats);
         int modifier = (int)_modifierAttributeSlider.value * 10;
         int rollResult = UnityEngine.Random.Range(1, 101);
+        if(_rollForHalfValueToggle.isOn)
+        {
+            value = value / 2;
+        }
         int successLevel = Math.Abs(value + modifier - rollResult) / 10;
 
         //Uwzględnienie kary do Zręczności za pancerz

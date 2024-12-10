@@ -159,25 +159,23 @@ public class RoundsManager : MonoBehaviour
         NextRoundButton.gameObject.SetActive(false);
         _useFortunePointsButton.SetActive(false);
 
-        // Posortowanie wszystkich jednostek wg inicjatywy
-        List<Unit> AllUnitsSorted = UnitsManager.Instance.AllUnits
-            .OrderByDescending(unit => unit.GetComponent<Stats>().Initiative)
-            .ToList();
+        // // Posortowanie wszystkich jednostek wg inicjatywy
+        // List<Unit> allUnitsSorted = UnitsManager.Instance.AllUnits
+        //     .OrderByDescending(unit => unit.GetComponent<Stats>().Initiative)
+        //     .ToList();
 
-        foreach (Unit unit in AllUnitsSorted)
+        for(int i=0; i < UnitsManager.Instance.AllUnits.Count; i++)
         {
             InitiativeQueueManager.Instance.SelectUnitByQueue();
-
-            if(unit.IsTurnFinished) continue;
 
             yield return new WaitForSeconds(0.1f);
 
             AutoCombatManager.Instance.Act(Unit.SelectedUnit.GetComponent<Unit>());
 
-            //Sortuje jeszcze raz, bo któraś jednostka mogła zginąć
-            AllUnitsSorted = UnitsManager.Instance.AllUnits
-                .OrderByDescending(unit => unit.GetComponent<Stats>().Initiative)
-                .ToList();
+            // //Sortuje jeszcze raz, bo któraś jednostka mogła zginąć
+            // allUnitsSorted = UnitsManager.Instance.AllUnits
+            //     .OrderByDescending(unit => unit.GetComponent<Stats>().Initiative)
+            //     .ToList();
 
             // Czeka, aż postać skończy ruch, zanim wybierze kolejną postać
             yield return new WaitUntil(() => MovementManager.Instance.IsMoving == false);

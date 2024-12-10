@@ -166,56 +166,63 @@ public class GridManager : MonoBehaviour
     {
         ResetColorOfTilesInMovementRange();
 
-        List <GameObject> objectsInMovementRange = new List<GameObject>();
-
-        // Sprawdza zasieg ruchu postaci
+        // Sprawdzenie zasięgu ruchu
         int movementRange = unitStats.TempSz;
-
         if (movementRange == 0) return;
-            
-        // Wrzucajac do listy postac, dodajemy punkt początkowy, który jest potrzebny do późniejszej petli wyszukującej dostępne pozycje
+
+        // Zestaw do przechowywania pól w zasięgu ruchu (unikamy duplikatów)
+        HashSet<GameObject> objectsInMovementRange = new HashSet<GameObject>();
+
+        // Dodaje pole startowe
         objectsInMovementRange.Add(unitStats.gameObject);
 
-        // wektor w prawo, lewo, góra, dół
+        // Lista do przeszukiwania kolejnych warstw
+        Queue<GameObject> tilesToProcess = new Queue<GameObject>();
+        tilesToProcess.Enqueue(unitStats.gameObject);
+
+        // Wektory w prawo, lewo, góra, dół
         Vector2[] directions = { Vector2.right, Vector2.left, Vector2.up, Vector2.down };
 
-        // Wykonuje pojedynczy ruch tyle razy ile wynosi zasieg ruchu postaci
-        for (int i = 0; i < movementRange; i++)
+        // Algorytm BFS (Breadth-First Search) do przeszukiwania pól w zasięgu
+        for (int step = 0; step < movementRange; step++)
         {
-            // Lista pol, ktore bedziemy dodawac do listy wszystkich pol w zasiegu ruchu
-            List<GameObject> tilesToAdd = new List<GameObject>();
+            int currentQueueSize = tilesToProcess.Count;
 
-            foreach (var obj in objectsInMovementRange)
+            // Przetwarza wszystkie pola z bieżącego poziomu BFS
+            for (int i = 0; i < currentQueueSize; i++)
             {
-                // Szuka pol w każdym kierunku
+                GameObject currentTile = tilesToProcess.Dequeue();
+
                 foreach (Vector2 direction in directions)
                 {
-                    // Szuka colliderów w czterech kierunkach
-                    Collider2D collider = Physics2D.OverlapPoint((Vector2)obj.transform.position + direction);
+                    // Znajduje sąsiadujące pole
+                    Vector2 targetPosition = (Vector2)currentTile.transform.position + direction;
+                    Collider2D collider = Physics2D.OverlapPoint(targetPosition);
 
-                    // Jeżeli collider to 'Tile' to dodajemy go do listy
                     if (collider != null && collider.gameObject.CompareTag("Tile"))
                     {
-                        tilesToAdd.Add(collider.gameObject);
+                        GameObject neighborTile = collider.gameObject;
+
+                        // Dodaje pole do zestawu, jeśli jeszcze nie został odwiedzony
+                        if (objectsInMovementRange.Add(neighborTile))
+                        {
+                            tilesToProcess.Enqueue(neighborTile);
+                        }
                     }
                 }
             }
-            // Dodajemy do listy wszystkie pola, ktorych tam jeszcze nie ma
-            foreach (var tile in tilesToAdd)
-            {
-                if(!objectsInMovementRange.Contains(tile))
-                    objectsInMovementRange.Add(tile);
-            }
-
-            // Usuwamy postac z listy, bo nie jest ona 'Tile' :)
-            objectsInMovementRange.Remove(unitStats.gameObject);
         }
 
+        // Wyróżnia wszystkie pola w zasięgu ruchu
         foreach (var tile in objectsInMovementRange)
         {
-            tile.GetComponent<Tile>().SetRangeColor();
+            if (tile.CompareTag("Tile")) // Dodatkowe sprawdzenie, aby uniknąć błędów
+            {
+                tile.GetComponent<Tile>().SetRangeColor();
+            }
         }
     }
+
 
     public void ResetColorOfTilesInMovementRange()
     {

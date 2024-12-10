@@ -99,8 +99,6 @@ public class SaveAndLoadManager : MonoBehaviour
             GameManager.IsNamesHidingMode = settings.IsNamesHidingMode;
             GameManager.IsHealthPointsHidingMode = settings.IsHealthPointsHidingMode;
         }
-
-        Debug.Log("zapisano");
     }
 
     public void SaveAllUnits(GameObject saveGamePanel)
