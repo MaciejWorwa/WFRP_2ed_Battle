@@ -285,6 +285,8 @@ public class GridManager : MonoBehaviour
             Color newColor = GridColor == "white" ? Color.white : Color.black;
             _gridColorbutton.GetComponent<Image>().color = newColor;
         }
+
+        CameraManager.ChangeCameraRange(Width, Height);
     }
 
     #region Uncovering map and removing MapEditor (this methods are useful only in BattleScene)

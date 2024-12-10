@@ -10,8 +10,8 @@ public class CameraManager : MonoBehaviour
     [SerializeField] private float _moveSpeed = 5f;
     public static float MinZoom = 4f;
     public static float MaxZoom = 30f;
-    public static Vector2 MaxXRange = new Vector2(-40f, 40f);
-    public static Vector2 MaxYRange = new Vector2(-20f, 20f);
+    public static Vector2 MaxXRange;
+    public static Vector2 MaxYRange;
     public static Color BackgroundColor;
 
     private Vector3 _dragOrigin;
@@ -35,13 +35,16 @@ public class CameraManager : MonoBehaviour
         float scrollInput = Input.GetAxis("Mouse ScrollWheel");
 
         // Oblicza nowy rozmiar pola widzenia kamery
-        float zoomSize = _camera.orthographicSize - scrollInput * _moveSpeed;
+        float zoomSize = _camera.orthographicSize - scrollInput * 5f;
 
         // Ogranicza rozmiar pola widzenia kamery do ustalonych granic
         zoomSize = Mathf.Clamp(zoomSize, MinZoom, MaxZoom);
 
         // Aktualizuje rozmiar pola widzenia kamery
         _camera.orthographicSize = zoomSize;
+
+        // Dynamicznie dostosowuje prędkość ruchu w zależności od zoomu
+        _moveSpeed = _camera.orthographicSize / MinZoom;
 
         float horizontalInput = 0f;
         float verticalInput = 0f;
@@ -90,8 +93,8 @@ public class CameraManager : MonoBehaviour
     public static void ChangeCameraRange(int width, int height)
     {
         MaxZoom = Math.Max(width, height) / 1.7f;
-        MaxXRange = new Vector2(-width * 1.2f, width * 1.2f);
-        MaxYRange = new Vector2(-height / 1.2f, height / 1.2f);
+        MaxXRange = new Vector2(-width * 1.25f, width * 1.25f);
+        MaxYRange = new Vector2(-height * 0.85f, height * 0.85f);
     }
 
     public void ChangeBackgroundColor(Color color)
