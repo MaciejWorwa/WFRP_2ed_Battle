@@ -48,6 +48,7 @@ public class SaveAndLoadManager : MonoBehaviour
 
     public bool IsLoading;
     public bool IsOnlyUnitsLoading;
+    public string CurrentGameName;
 
     #region Saving methods
     public void SaveSettings()
@@ -132,8 +133,13 @@ public class SaveAndLoadManager : MonoBehaviour
         }      
     }
 
-    public void SaveAllUnits(GameObject saveGamePanel)
+    public void SaveGame(string saveName = "")
     {
+        if(saveName != null && saveName.Length > 0)
+        {
+            _saveNameInput.text = saveName;
+        }
+
         if (_saveNameInput.text.Length < 1 || _saveNameInput.text == "autosave")
         {
             Debug.Log($"<color=red>Zapis nieudany. Niepoprawna nazwa pliku.</color>");
@@ -147,15 +153,17 @@ public class SaveAndLoadManager : MonoBehaviour
             Debug.Log($"<color=red>Zapis nieudany. Aby zapisać grę, musisz stworzyć chociaż jedną postać.</color>");
             return;
         }
-
+        
         SaveUnits(allUnits);
 
         //Zapisanie wszystkich elementów mapy
         SaveMap();
 
-        //Resetuje inpu fielda i zamyka panel
+        //Przechowanie nazwy aktualnej gry (potrzebne do wykonywania automatycznego zapisu)
+        CurrentGameName = _saveNameInput.text;
+
+        //Resetuje input fielda i zamyka panel
         _saveNameInput.text = "";
-        saveGamePanel.SetActive(false);
 
         Debug.Log($"<color=green>Zapisano stan gry.</color>");
     }
@@ -347,7 +355,7 @@ public class SaveAndLoadManager : MonoBehaviour
     {
         IsOnlyUnitsLoading = value;
     }
-    public void LoadAllUnits(string saveName = "")
+    public void LoadGame(string saveName = "")
     {
         CustomDropdown dropdown = _savesScrollViewContent.GetComponent<CustomDropdown>();
         if(dropdown == null || (saveName == "" && dropdown.SelectedButton == null))
@@ -368,6 +376,15 @@ public class SaveAndLoadManager : MonoBehaviour
             Debug.Log("Nie znaleziono pliku o podanej nazwie.");
             return;
         }
+
+        //Automatycznie zapisuje aktualną grę przed wczytaniem innej
+        if(GameManager.IsAutosaveMode && CurrentGameName != null && CurrentGameName.Length > 0)
+        {
+            SaveGame(CurrentGameName);
+        }
+
+        //Przechowanie nazwy aktualnej gry (potrzebne do wykonywania automatycznego zapisu)
+        CurrentGameName = saveName;
 
         IsLoading = true;
 
@@ -692,7 +709,7 @@ public class SaveAndLoadManager : MonoBehaviour
             string folderName = new DirectoryInfo(folderPath).Name;
 
             // Sprawdź, czy jest to folder tymczasowy ze skopiowanymi jednostkami
-            if (folderName == "temp") continue;
+            if (folderName == "temp" || folderName == "autosave") continue;
 
             //Dodaje nazwę pliku do ScrollViewContent w postaci buttona
             GameObject buttonObj = Instantiate(_buttonPrefab, _savesScrollViewContent);

@@ -254,8 +254,6 @@ public class MapEditor : MonoBehaviour
             newElement.GetComponent<MapElement>().IsHighObstacle = _highObstacleToggle.isOn;
             newElement.GetComponent<MapElement>().IsLowObstacle = _lowObstacleToggle.isOn;
             newElement.GetComponent<MapElement>().IsCollider = _isColliderToggle.isOn;
-
-            collider.GetComponent<Tile>().IsOccupied = true;
         }
     }
 

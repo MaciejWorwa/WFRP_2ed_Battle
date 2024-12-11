@@ -120,6 +120,8 @@ public class AnimationManager : MonoBehaviour
     #region Unit actions animations
     public IEnumerator PlayAnimation(String animationName, GameObject attacker = null, GameObject target = null, int damage = 0)
     {   
+        if(GameManager.IsShowAnimationsMode == false) yield break;
+
         Animator animator;
         GameObject animationObject;
 

@@ -58,6 +58,10 @@ public class GameManager : MonoBehaviour
     public static bool IsHealthPointsHidingMode = true;
     [SerializeField] private Button _namesHidingButton;
     private Dictionary<Button, bool> allModes;
+    [SerializeField] private Button _autosaveButton;
+    public static bool IsAutosaveMode = false;
+    [SerializeField] private Button _showAnimationsButton;
+    public static bool IsShowAnimationsMode = true;
     public static bool IsGamePaused;
 
     [Header("Edytor map")]
@@ -91,7 +95,9 @@ public class GameManager : MonoBehaviour
             {_mapUncoverButton, TileCoveringState == "uncovering"},
             {_namesHidingButton, IsNamesHidingMode},
             {_statsHidingButton, IsStatsHidingMode},
-            {_healthPointsHidingButton, IsHealthPointsHidingMode}
+            {_healthPointsHidingButton, IsHealthPointsHidingMode},
+            {_autosaveButton, IsAutosaveMode},
+            {_showAnimationsButton, IsShowAnimationsMode}
         };
 
         // Ustawia kolory przycisków na podstawie początkowych wartości trybów
@@ -601,6 +607,38 @@ public class GameManager : MonoBehaviour
             UnitsManager.Instance.UpdateUnitPanel(Unit.SelectedUnit);
         }
     }
+
+    public void SetAnimationsMode()
+    {
+        IsShowAnimationsMode = !IsShowAnimationsMode;
+
+        UpdateButtonColor(_showAnimationsButton, IsShowAnimationsMode);
+
+        if (IsShowAnimationsMode)
+        {
+            Debug.Log("Animacje akcji jednostek zostały włączone.");
+        }
+        else
+        {
+            Debug.Log("Animacje akcji jednostek zostały wyłączone.");
+        }
+    }
+
+    public void SetAutosaveMode()
+    {
+        IsAutosaveMode = !IsAutosaveMode;
+
+        UpdateButtonColor(_autosaveButton, IsAutosaveMode);
+
+        if (IsAutosaveMode)
+        {
+            Debug.Log("Autozapis został włączony.");
+        }
+        else
+        {
+            Debug.Log("Autozapis został wyłączony.");
+        }
+    }
     #endregion
 
     private void UpdateButtonColor(Button button, bool condition)
@@ -633,6 +671,12 @@ public class GameManager : MonoBehaviour
 
     public void QuitGame()
     {
+        //Automatycznie zapisuje aktualną grę
+        if(IsAutosaveMode && SaveAndLoadManager.Instance.CurrentGameName != null)
+        {
+            SaveAndLoadManager.Instance.SaveGame(SaveAndLoadManager.Instance.CurrentGameName);
+        }
+
         SaveAndLoadManager.Instance.SaveSettings();
         Application.Quit();
     }
