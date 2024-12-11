@@ -122,7 +122,7 @@ public class InventoryManager : MonoBehaviour
         }
 
         // Sprawdzenie, czy przedmiot o takiej samej nazwie już istnieje w ekwipunku
-        if (unit.GetComponent<Inventory>().AllWeapons.Any(w => w.Name == newWeapon.Name))
+        if (unit.GetComponent<Inventory>().AllWeapons.Any(w => w.Name == newWeapon.Name) && !SaveAndLoadManager.Instance.IsLoading)
         {
             Debug.Log($"Przedmiot {newWeapon.Name} już znajduje się w ekwipunku {unit.GetComponent<Stats>().Name}.");
             return;
@@ -278,6 +278,18 @@ public class InventoryManager : MonoBehaviour
             Debug.Log($"{unit.GetComponent<Stats>().Name} dobył {selectedWeapon.Name}.");
         }
     }
+
+    public void GrabPrimaryWeapon()
+    {
+        WeaponsDropdown.SetSelectedIndex(Unit.SelectedUnit.GetComponent<Stats>().PrimaryWeaponId);
+        LoadWeapons(false);
+        InventoryScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(1);
+        GrabWeapon();
+
+        SaveAndLoadManager.Instance.IsLoading = false;
+        Unit.SelectedUnit = Unit.LastSelectedUnit != null ? Unit.LastSelectedUnit : null;
+    }
+
     public void SelectHand(bool rightHand)
     {
         SelectedHand = rightHand ? 0 : 1;
@@ -491,16 +503,12 @@ public class InventoryManager : MonoBehaviour
     public void UpdateInventoryDropdown(List<Weapon> weapons, bool reloadEditWeaponPanel)
     {
         //Ustala wyświetlaną nazwę właściciela ekwipunku
-        _inventoryPanel.transform.Find("inventory_name").GetComponent<TMP_Text>().text = "Ekwipunek " + Unit.SelectedUnit.GetComponent<Stats>().Name;
-
-        // Resetowanie wyświetlanego ekwipunku poprzez usunięcie wszystkich przycisków
-        var buttons = InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons;
-        for (int i = buttons.Count - 1; i >= 0; i--)
+        if(Unit.SelectedUnit != null)
         {
-            UnityEngine.UI.Button button = buttons[i];
-            buttons.Remove(button);
-            Destroy(button.gameObject);
+            _inventoryPanel.transform.Find("inventory_name").GetComponent<TMP_Text>().text = "Ekwipunek " + Unit.SelectedUnit.GetComponent<Stats>().Name;
         }
+
+        ResetInventoryDropdown();
 
         // Ustala wyświetlany ekwipunek postaci
         foreach (var weapon in weapons)
@@ -543,6 +551,18 @@ public class InventoryManager : MonoBehaviour
         InventoryScrollViewContent.GetComponent<CustomDropdown>().InitializeButtons();
 
         CheckForEquippedWeapons();
+    }
+
+    private void ResetInventoryDropdown()
+    {
+        // Resetowanie wyświetlanego ekwipunku poprzez usunięcie wszystkich przycisków
+        var buttons = InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons;
+        for (int i = buttons.Count - 1; i >= 0; i--)
+        {
+            UnityEngine.UI.Button button = buttons[i];
+            buttons.Remove(button);
+            Destroy(button.gameObject);
+        }
     }
 
     public void CheckForEquippedWeapons()

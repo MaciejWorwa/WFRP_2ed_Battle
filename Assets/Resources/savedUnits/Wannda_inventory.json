@@ -1,0 +1,128 @@
+{
+    "AllWeapons": [
+        {
+            "Id": 5,
+            "Name": "Broń jednoręczna",
+            "Type": [
+                "melee"
+            ],
+            "Quality": "",
+            "TwoHanded": false,
+            "NaturalWeapon": false,
+            "AttackRange": 1.5,
+            "S": 0,
+            "ReloadTime": 0,
+            "ReloadLeft": 0,
+            "ArmourIgnoring": false,
+            "ArmourPiercing": false,
+            "Balanced": false,
+            "Defensive": false,
+            "Fast": false,
+            "Impact": false,
+            "Pummelling": false,
+            "Slow": false,
+            "Snare": false,
+            "Tiring": false
+        },
+        {
+            "Id": 19,
+            "Name": "Gwiazdki do rzucania",
+            "Type": [
+                "ranged"
+            ],
+            "Quality": "Zwykła",
+            "TwoHanded": false,
+            "NaturalWeapon": false,
+            "AttackRange": 3.0,
+            "S": -3,
+            "ReloadTime": 0,
+            "ReloadLeft": 0,
+            "ArmourIgnoring": false,
+            "ArmourPiercing": false,
+            "Balanced": false,
+            "Defensive": false,
+            "Fast": false,
+            "Impact": false,
+            "Pummelling": false,
+            "Slow": false,
+            "Snare": false,
+            "Tiring": false
+        },
+        {
+            "Id": 15,
+            "Name": "Kusza skrytobójcy",
+            "Type": [
+                "ranged"
+            ],
+            "Quality": "Zwykła",
+            "TwoHanded": false,
+            "NaturalWeapon": false,
+            "AttackRange": 4.0,
+            "S": 4,
+            "ReloadTime": 2,
+            "ReloadLeft": 0,
+            "ArmourIgnoring": false,
+            "ArmourPiercing": true,
+            "Balanced": false,
+            "Defensive": false,
+            "Fast": false,
+            "Impact": false,
+            "Pummelling": false,
+            "Slow": false,
+            "Snare": false,
+            "Tiring": false
+        },
+        {
+            "Id": 23,
+            "Name": "Proca",
+            "Type": [
+                "ranged"
+            ],
+            "Quality": "Zwykła",
+            "TwoHanded": false,
+            "NaturalWeapon": false,
+            "AttackRange": 8.0,
+            "S": 3,
+            "ReloadTime": 1,
+            "ReloadLeft": 0,
+            "ArmourIgnoring": false,
+            "ArmourPiercing": false,
+            "Balanced": false,
+            "Defensive": false,
+            "Fast": false,
+            "Impact": false,
+            "Pummelling": false,
+            "Slow": false,
+            "Snare": false,
+            "Tiring": false
+        },
+        {
+            "Id": 31,
+            "Name": "Sztylet",
+            "Type": [
+                "melee"
+            ],
+            "Quality": "Zwykła",
+            "TwoHanded": false,
+            "NaturalWeapon": false,
+            "AttackRange": 1.5,
+            "S": -3,
+            "ReloadTime": 0,
+            "ReloadLeft": 0,
+            "ArmourIgnoring": false,
+            "ArmourPiercing": false,
+            "Balanced": false,
+            "Defensive": false,
+            "Fast": false,
+            "Impact": false,
+            "Pummelling": false,
+            "Slow": false,
+            "Snare": false,
+            "Tiring": false
+        }
+    ],
+    "EquippedWeaponsId": [
+        23,
+        0
+    ]
+}

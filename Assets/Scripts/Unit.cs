@@ -51,7 +51,11 @@ public class Unit : MonoBehaviour
 
         if(Stats.Dodge > 0) CanDodge = true;
         Stats.TempSz = Stats.Sz;
-        Stats.TempHealth = Stats.MaxHealth;
+
+        if(Stats.Name.Contains(Stats.Race)) // DO POKMINIENIA, JAKI INNY WARUNEK DAĆ, BO TEN NIE JEST IDEALNY, BO KTOŚ MOŻE NAZWAĆ ZAPISANEGO GOBLINA NP. "FAJNY GOBLIN"
+        {
+            Stats.TempHealth = Stats.MaxHealth;
+        }
 
         CalculateStrengthAndToughness(); // Liczy siłę i wytrzymałość
 

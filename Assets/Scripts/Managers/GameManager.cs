@@ -75,7 +75,16 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject _tileCoveringPanel; //Panel z informacją o trybie ukrywania mapy
 
     private void Start()
-    {
+    {    
+        if (Display.displays.Length > 1)
+        {
+            IsStatsHidingMode = false;
+        }
+        else
+        {
+            IsStatsHidingMode = true;
+        }
+
         if (SceneManager.GetActiveScene().buildIndex == 0)
         {
             SaveAndLoadManager.Instance.LoadSettings();
@@ -104,15 +113,6 @@ public class GameManager : MonoBehaviour
         foreach (var pair in allModes)
         {
             UpdateButtonColor(pair.Key, pair.Value);
-        }
-
-        if (Display.displays.Length > 1)
-        {
-            IsStatsHidingMode = false;
-        }
-        else
-        {
-            IsStatsHidingMode = true;
         }
     }
 

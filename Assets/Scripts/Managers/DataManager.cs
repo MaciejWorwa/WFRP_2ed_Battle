@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using Unity.VisualScripting;
 using System;
+using System.IO;
 
 public class DataManager : MonoBehaviour
 { 
@@ -45,90 +46,193 @@ public class DataManager : MonoBehaviour
     public List<string> TokensPaths = new List<string>();
 
     #region Loading units stats
+    public void ChangeUnitListByToggle()
+    {
+        foreach (Transform child in _unitScrollViewContent)
+        {
+            child.gameObject.SetActive(false);
+        }
+
+        _unitScrollViewContent.GetComponent<CustomDropdown>().ClearButtons();
+
+        LoadAndUpdateStats();
+    }
     public void LoadAndUpdateStats(GameObject unitObject = null)
     {
-        // Ładowanie danych JSON
-        TextAsset jsonFile = Resources.Load<TextAsset>("units");
-        if (jsonFile == null)
-        {
-            Debug.LogError("Nie znaleziono pliku JSON.");
-            return;
-        }
-
-        // Deserializacja danych JSON
-        StatsData[] statsArray = JsonHelper.FromJson<StatsData>(jsonFile.text);
-        if (statsArray == null)
-        {
-            Debug.LogError("Deserializacja JSON nie powiodła się. Sprawdź strukturę JSON.");
-            return;
-        }
-
-        //Jeśli w argumencie została przekazana jakaś jednostka to pobieramy jej statystyki, które później będziemy aktualizować
-        Unit unit = null;
         Stats statsToUpdate = null;
+        Unit unit = null;
+
         if (unitObject != null)
         {
-            unit = unitObject.GetComponent<Unit>();
-            //Odniesienie do statystyk postaci
             statsToUpdate = unitObject.GetComponent<Stats>();
+            unit = unitObject.GetComponent<Unit>();
         }
 
-        foreach (var stats in statsArray)
+        if (UnitsManager.Instance.IsSavedUnitsManaging) //Obsługa listy zapisanych jednostek
         {
-            //Aktualizuje statystyki jednostki, o ile jakaś jednostka jest wybrana
-            if (statsToUpdate != null)
-            {
-                if (stats.Id == statsToUpdate.Id)
-                {
-                    // Używanie refleksji do aktualizacji wartości wszystkich pól w klasie Stats
-                    FieldInfo[] fields = typeof(StatsData).GetFields(BindingFlags.Instance | BindingFlags.Public);
-                    foreach (var field in fields)
-                    {
-                        var targetField = typeof(Stats).GetField(field.Name, BindingFlags.Instance | BindingFlags.Public);
-                        if (targetField != null)
-                        {
-                            targetField.SetValue(statsToUpdate, field.GetValue(stats));
-                        }
-                    }
+            string savedUnitsFolder = Path.Combine(Application.dataPath, "Resources", "savedUnits");
 
-                    // Aktualizuje wyświetlaną nazwę postaci i jej punkty żywotności, jeśli ta postać jest aktualizowana, a nie tworzona po raz pierwszy
-                    if (unit.Stats != null)
-                    {
-                        unit.Stats.TempHealth = unit.Stats.MaxHealth;
-                        unit.Stats.TempSz = unit.Stats.Sz;
-                        unit.DisplayUnitName();
-                        unit.DisplayUnitHealthPoints();
-                    }
-                }
+            if (!Directory.Exists(savedUnitsFolder))
+            {
+                Debug.LogError("Folder savedUnits nie istnieje.");
+                return;
             }
 
-            bool buttonExists = _unitScrollViewContent.GetComponentsInChildren<TextMeshProUGUI>().Any(t => t.text == stats.Race);
-
-            if (buttonExists == false)
+            string[] statsFiles = Directory.GetFiles(savedUnitsFolder, "*_stats.json");
+            foreach (string statsFile in statsFiles)
             {
-                //Dodaje jednostkę do ScrollViewContent w postaci buttona
-                GameObject buttonObj = Instantiate(_buttonPrefab, _unitScrollViewContent);
-                TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
-                //Ustala text buttona
-                buttonText.text = stats.Race;
+                string jsonContent = File.ReadAllText(statsFile);
+                StatsData statsData = JsonUtility.FromJson<StatsData>(jsonContent);
 
-                //Dodaje skrypt, który będzie wykrywał kliknięcie przycisku przy tworzeniu jednostek
-                buttonObj.AddComponent<CreateUnitButton>();
-
-                UnityEngine.UI.Button button = buttonObj.GetComponent<UnityEngine.UI.Button>();
-
-                //Dodaje opcję do CustomDropdowna ze wszystkimi jednostkami
-                _unitScrollViewContent.GetComponent<CustomDropdown>().Buttons.Add(button);
-
-                int currentIndex = _unitScrollViewContent.GetComponent<CustomDropdown>().Buttons.Count; // Pobiera indeks nowego przycisku
-
-                // Zdarzenie po kliknięciu na konkretny item z listy
-                button.onClick.AddListener(() =>
+                if (statsData == null)
                 {
-                    _unitScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(currentIndex); // Wybiera element i aktualizuje jego wygląd
-                });
+                    Debug.LogError($"Nie udało się załadować statystyk z pliku {statsFile}.");
+                    continue;
+                }
+
+                UpdateUnitStatsAndButtons(statsData, statsToUpdate, unit);
             }
         }
+        else // Obsługa standardowej listy jednostek
+        {
+            TextAsset jsonFile = Resources.Load<TextAsset>("units");
+
+            if (jsonFile == null)
+            {
+                Debug.LogError("Nie znaleziono pliku JSON units.");
+                return;
+            }
+
+            StatsData[] statsArray = JsonHelper.FromJson<StatsData>(jsonFile.text);
+            if (statsArray == null || statsArray.Length == 0)
+            {
+                Debug.LogError("Deserializacja JSON nie powiodła się lub lista jest pusta.");
+                return;
+            }
+
+            foreach (var stats in statsArray)
+            {
+                UpdateUnitStatsAndButtons(stats, statsToUpdate, unit);
+            }
+        }
+    }
+
+    private void UpdateUnitStatsAndButtons(StatsData statsData, Stats statsToUpdate, Unit unit)
+    {
+        if (statsToUpdate != null && ((statsData.Id == statsToUpdate.Id && UnitsManager.Instance.IsSavedUnitsManaging == false) || (UnitsManager.Instance.IsSavedUnitsManaging == true && statsData.Name == statsToUpdate.Name)))
+        {
+            FieldInfo[] fields = typeof(StatsData).GetFields(BindingFlags.Instance | BindingFlags.Public);
+            foreach (var field in fields)
+            {
+                if(field.Name == "Name") continue; //NIE WIEM, CZY TO MA SENS
+                var targetField = typeof(Stats).GetField(field.Name, BindingFlags.Instance | BindingFlags.Public);
+                targetField?.SetValue(statsToUpdate, field.GetValue(statsData));
+            }
+
+            //UnitsManager.Instance.LoadAttributes(unit.gameObject);
+        }
+
+        bool buttonExists;
+
+        if(UnitsManager.Instance.IsSavedUnitsManaging)
+        {
+            buttonExists = _unitScrollViewContent.GetComponentsInChildren<TextMeshProUGUI>().Any(t => t.text == statsData.Name);
+        }
+        else
+        {
+            buttonExists = _unitScrollViewContent.GetComponentsInChildren<TextMeshProUGUI>().Any(t => t.text == statsData.Race);
+        }
+    
+        if (!buttonExists)
+        {
+            GameObject buttonObj = Instantiate(_buttonPrefab, _unitScrollViewContent);
+            TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
+
+            if(UnitsManager.Instance.IsSavedUnitsManaging)
+            {
+                buttonText.text = statsData.Name;
+            }
+            else
+            {
+                buttonText.text = statsData.Race;
+            }
+
+            buttonObj.AddComponent<CreateUnitButton>();
+
+            UnityEngine.UI.Button button = buttonObj.GetComponent<UnityEngine.UI.Button>();
+            _unitScrollViewContent.GetComponent<CustomDropdown>().Buttons.Add(button);
+
+            int currentIndex = _unitScrollViewContent.GetComponent<CustomDropdown>().Buttons.Count;
+            button.onClick.AddListener(() =>
+            {
+                _unitScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(currentIndex);
+            });
+        }
+    }
+
+    public void DeleteSavedUnit()
+    {
+        // Pobierz wybrany indeks z CustomDropdown
+        int selectedIndex = _unitScrollViewContent.GetComponent<CustomDropdown>().GetSelectedIndex();
+
+        // Sprawdzenie, czy indeks jest prawidłowy
+        if (selectedIndex < 1 || selectedIndex > _unitScrollViewContent.childCount)
+        {
+            Debug.LogError("Nieprawidłowy indeks przycisku.");
+            return;
+        }
+
+        // Korekta indeksu, ponieważ w CustomDropdown indeksy zaczynają się od 1
+        int adjustedIndex = selectedIndex - 1;
+
+        // Pobierz Transform i Button dla wybranego przycisku
+        Transform buttonTransform = _unitScrollViewContent.GetChild(adjustedIndex);
+        UnityEngine.UI.Button buttonToDelete = buttonTransform.GetComponent<UnityEngine.UI.Button>();
+        if (buttonToDelete == null)
+        {
+            Debug.LogError("Nie znaleziono przycisku w podanym indeksie.");
+            return;
+        }
+
+        // Pobierz nazwę przycisku (tekst) do zidentyfikowania plików w Resources
+        string buttonName = buttonToDelete.GetComponentInChildren<TextMeshProUGUI>().text;
+        if (string.IsNullOrEmpty(buttonName))
+        {
+            Debug.LogError("Nie można znaleźć nazwy przycisku.");
+            return;
+        }
+
+        // Ścieżka do katalogu Resources/savedUnits
+        string resourcesPath = Path.Combine(Application.dataPath, "Resources", "savedUnits");
+
+        // Usuwanie plików powiązanych z przyciskiem
+        string[] relatedFiles = {
+            Path.Combine(resourcesPath, buttonName + "_unit.json"),
+            Path.Combine(resourcesPath, buttonName + "_stats.json"),
+            Path.Combine(resourcesPath, buttonName + "_weapon.json"),
+            Path.Combine(resourcesPath, buttonName + "_inventory.json"),
+            Path.Combine(resourcesPath, buttonName + "_token.json")
+        };
+
+        foreach (string filePath in relatedFiles)
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+
+        // Usuń przycisk z listy CustomDropdown i widoku
+        CustomDropdown dropdown = _unitScrollViewContent.GetComponent<CustomDropdown>();
+        dropdown.Buttons.RemoveAt(adjustedIndex);
+        Destroy(buttonToDelete.gameObject);
+
+        // Zaktualizuj indeksy przycisków w CustomDropdown
+        dropdown.SelectedIndex = dropdown.Buttons.Count > 0 ? 1 : 0; // Resetuj indeks do pierwszego lub 0 jeśli brak przycisków
+        dropdown.SelectedButton = null;
+        UnitsManager.IsTileSelecting = false;
+
+        Debug.Log($"Jednostka '{buttonName}' została usunięta z listy zapisanych jednostek.");
     }
     #endregion
 
@@ -711,6 +815,8 @@ public class GameSettings
     public bool IsStatsHidingMode;
     public bool IsNamesHidingMode;
     public bool IsHealthPointsHidingMode;
+    public bool IsAutosaveMode;
+    public bool IsShowAnimationsMode;
     public float BackgroundColorR;
     public float BackgroundColorG;
     public float BackgroundColorB;

@@ -1,0 +1,24 @@
+{
+    "Id": 6,
+    "Name": "Broń naturalna",
+    "Type": [
+        "melee"
+    ],
+    "Quality": "",
+    "TwoHanded": false,
+    "NaturalWeapon": true,
+    "AttackRange": 1.5,
+    "S": 0,
+    "ReloadTime": 0,
+    "ReloadLeft": 0,
+    "ArmourIgnoring": false,
+    "ArmourPiercing": false,
+    "Balanced": false,
+    "Defensive": false,
+    "Fast": false,
+    "Impact": false,
+    "Pummelling": false,
+    "Slow": false,
+    "Snare": false,
+    "Tiring": false
+}

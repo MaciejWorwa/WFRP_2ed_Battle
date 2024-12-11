@@ -56,23 +56,26 @@ public class SaveAndLoadManager : MonoBehaviour
         // Ścieżka do pliku ustawień
         string settingsFilePath = Path.Combine(Application.persistentDataPath, "GameSettings.json");
 
-        // Tworzenie obiektu ustawień na podstawie aktualnych wartości
-        GameSettings settings = new GameSettings
+        // Tworzenie obiektu ustawień
+        GameSettings settings = new GameSettings();
+
+        // Pobieranie wszystkich pól typu bool z GameManager i przypisywanie ich do settings
+        foreach (var field in typeof(GameManager).GetFields(BindingFlags.Static | BindingFlags.Public))
         {
-            IsAutoDiceRollingMode = GameManager.IsAutoDiceRollingMode,
-            IsAutoDefenseMode = GameManager.IsAutoDefenseMode,
-            IsAutoKillMode = GameManager.IsAutoKillMode,
-            IsAutoSelectUnitMode = GameManager.IsAutoSelectUnitMode,
-            IsFriendlyFire = GameManager.IsFriendlyFire,
-            IsFearIncluded = GameManager.IsFearIncluded,
-            IsAutoCombatMode = GameManager.IsAutoCombatMode,
-            IsStatsHidingMode = GameManager.IsStatsHidingMode,
-            IsNamesHidingMode = GameManager.IsNamesHidingMode,
-            IsHealthPointsHidingMode = GameManager.IsHealthPointsHidingMode,
-            BackgroundColorR = CameraManager.BackgroundColor.r,
-            BackgroundColorG = CameraManager.BackgroundColor.g,
-            BackgroundColorB = CameraManager.BackgroundColor.b
-        };
+            if (field.FieldType == typeof(bool))
+            {
+                var settingField = typeof(GameSettings).GetField(field.Name, BindingFlags.Instance | BindingFlags.Public);
+                if (settingField != null && settingField.FieldType == typeof(bool))
+                {
+                    settingField.SetValue(settings, field.GetValue(null));
+                }
+            }
+        }
+
+        // Ustawienia dla kolorów tła
+        settings.BackgroundColorR = CameraManager.BackgroundColor.r;
+        settings.BackgroundColorG = CameraManager.BackgroundColor.g;
+        settings.BackgroundColorB = CameraManager.BackgroundColor.b;
 
         // Serializacja do JSON
         string json = JsonUtility.ToJson(settings, true);
@@ -91,17 +94,18 @@ public class SaveAndLoadManager : MonoBehaviour
             string json = File.ReadAllText(settingsFilePath);
             GameSettings settings = JsonUtility.FromJson<GameSettings>(json);
 
-            // Ustawianie wartości na podstawie załadowanych danych
-            GameManager.IsAutoDiceRollingMode = settings.IsAutoDiceRollingMode;
-            GameManager.IsAutoDefenseMode = settings.IsAutoDefenseMode;
-            GameManager.IsAutoKillMode = settings.IsAutoKillMode;
-            GameManager.IsAutoSelectUnitMode = settings.IsAutoSelectUnitMode;
-            GameManager.IsFriendlyFire = settings.IsFriendlyFire;
-            GameManager.IsFearIncluded = settings.IsFearIncluded;
-            GameManager.IsAutoCombatMode = settings.IsAutoCombatMode;
-            GameManager.IsStatsHidingMode = settings.IsStatsHidingMode;
-            GameManager.IsNamesHidingMode = settings.IsNamesHidingMode;
-            GameManager.IsHealthPointsHidingMode = settings.IsHealthPointsHidingMode;
+            // Ustawianie wartości pól typu bool w GameManager na podstawie załadowanych danych
+            foreach (var field in typeof(GameManager).GetFields(BindingFlags.Static | BindingFlags.Public))
+            {
+                if (field.FieldType == typeof(bool))
+                {
+                    var settingField = typeof(GameSettings).GetField(field.Name, BindingFlags.Instance | BindingFlags.Public);
+                    if (settingField != null && settingField.FieldType == typeof(bool))
+                    {
+                        field.SetValue(null, settingField.GetValue(settings));
+                    }
+                }
+            }
 
             // Wczytuje kolor tła
             Color loadedColor = new Color(
@@ -168,45 +172,64 @@ public class SaveAndLoadManager : MonoBehaviour
         Debug.Log($"<color=green>Zapisano stan gry.</color>");
     }
 
+    public void SaveUnitToUnitsList()
+    {
+        List<Unit> selectedUnit = new List<Unit>();
+        selectedUnit.Add(Unit.SelectedUnit.GetComponent<Unit>());
+
+        SaveUnits(selectedUnit, "unitList");
+    }
+
     public void SaveUnits(List<Unit> allUnits, string savesFolderName = "")
     {
-        //BinaryFormatter formatter = new BinaryFormatter(); // ZAKOMENTOWANY KOD TO SPOSÓB SZYFROWANIA DANYCH. W PRZYPADKU KORZYSTANIA Z NIEGO ZMIENIC FORMAT PLIKÓW Z .JSON NA .FUN
-
-        // Utworzenie listy nazw wszystkich jednostek
-        List<string> unitNames = new List<string>();
-        foreach (var unit in allUnits)
+        if (savesFolderName == "unitList")
         {
-            unitNames.Add(unit.GetComponent<Stats>().Name);
+            string savedUnitsFolder = Path.Combine(Application.dataPath, "Resources", "savedUnits");
+
+            if (!Directory.Exists(savedUnitsFolder))
+            {
+                Directory.CreateDirectory(savedUnitsFolder);
+            }
+
+            foreach (var unit in allUnits)
+            {
+                string unitName = unit.GetComponent<Stats>().Name;
+
+                //string unitPath = Path.Combine(savedUnitsFolder, unitName + "_unit.json");
+                string statsPath = Path.Combine(savedUnitsFolder, unitName + "_stats.json");
+                string weaponPath = Path.Combine(savedUnitsFolder, unitName + "_weapon.json");
+                string inventoryPath = Path.Combine(savedUnitsFolder, unitName + "_inventory.json");
+                string tokenJsonPath = Path.Combine(savedUnitsFolder, unitName + "_token.json");
+
+                UnitData unitData = new UnitData(unit);
+                StatsData statsData = new StatsData(unit.GetComponent<Stats>());
+                WeaponData weaponData = new WeaponData(unit.GetComponent<Weapon>());
+                InventoryData inventoryData = new InventoryData(unit.GetComponent<Inventory>());
+                TokenData tokenData = new TokenData { filePath = unit.TokenFilePath };
+
+                string unitJsonData = JsonUtility.ToJson(unitData, true);
+                string statsJsonData = JsonUtility.ToJson(statsData, true);
+                string weaponJsonData = JsonUtility.ToJson(weaponData, true);
+                string inventoryJsonData = JsonUtility.ToJson(inventoryData, true);
+                string tokenJsonData = JsonUtility.ToJson(tokenData, true);
+
+                //File.WriteAllText(unitPath, unitJsonData);
+                File.WriteAllText(statsPath, statsJsonData);
+                File.WriteAllText(weaponPath, weaponJsonData);
+                File.WriteAllText(inventoryPath, inventoryJsonData);
+                File.WriteAllText(tokenJsonPath, tokenJsonData);
+            }
+
+            Debug.Log("Jednostka została zapisana.");
+            return;
         }
 
-        // Stworzenie folderu dla zapisów
         if (savesFolderName.Length < 1)
         {
             savesFolderName = _saveNameInput.text;
         }
         Directory.CreateDirectory(Application.persistentDataPath + "/" + savesFolderName);
 
-        // Pobranie listy zapisanych plików
-        string[] files = Directory.GetFiles(Application.persistentDataPath + "/" + savesFolderName, "*.json");
-
-        // Sprawdzenie, czy w liście znajdują się pliki, których nazwa nie pasuje do nazw postaci w 'unitNames' i usunięcie ich
-        foreach (string file in files)
-        {
-            string fileName = Path.GetFileNameWithoutExtension(file);
-
-            if (!unitNames.Contains(fileName))
-            {
-                File.Delete(file);
-            }
-        }
-
-        //Zapisuje numer rundy i dostępne akcje wszystkich jednostek
-        SaveRoundsManager(savesFolderName, allUnits);
-
-        //Zapisuje wymiary siatki
-        SaveGridManager(savesFolderName);
-
-        //Zapis statystyk wszystkich postaci
         foreach (var unit in allUnits)
         {
             string unitName = unit.GetComponent<Stats>().Name;
@@ -221,16 +244,14 @@ public class SaveAndLoadManager : MonoBehaviour
             StatsData statsData = new StatsData(unit.GetComponent<Stats>());
             WeaponData weaponData = new WeaponData(unit.GetComponent<Weapon>());
             InventoryData inventoryData = new InventoryData(unit.GetComponent<Inventory>());
-            TokenData tokenData = new TokenData { filePath = unit.TokenFilePath};
+            TokenData tokenData = new TokenData { filePath = unit.TokenFilePath };
 
-            // Serializacja danych do JSON
             string unitJsonData = JsonUtility.ToJson(unitData, true);
             string statsJsonData = JsonUtility.ToJson(statsData, true);
             string weaponJsonData = JsonUtility.ToJson(weaponData, true);
             string inventoryJsonData = JsonUtility.ToJson(inventoryData, true);
             string tokenJsonData = JsonUtility.ToJson(tokenData, true);
 
-            // Zapisanie danych do pliku
             File.WriteAllText(unitPath, unitJsonData);
             File.WriteAllText(statsPath, statsJsonData);
             File.WriteAllText(weaponPath, weaponJsonData);
@@ -580,7 +601,7 @@ public class SaveAndLoadManager : MonoBehaviour
         }
     }
 
-    private void LoadComponentDataWithReflection<TData, TComponent>(GameObject gameObject, string filePath)
+    public void LoadComponentDataWithReflection<TData, TComponent>(GameObject gameObject, string filePath)
         where TData : class
         where TComponent : Component
     {
@@ -608,7 +629,10 @@ public class SaveAndLoadManager : MonoBehaviour
             }
         }
 
-        gameObject.GetComponent<Unit>().DisplayUnitHealthPoints();
+        if (typeof(TComponent) != typeof(Weapon))
+        {
+            gameObject.GetComponent<Unit>().DisplayUnitHealthPoints();
+        }
     }
  
     private void LoadRoundsManager(string savesFolderPath)
