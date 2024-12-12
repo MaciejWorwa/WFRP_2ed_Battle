@@ -128,8 +128,6 @@ public class DataManager : MonoBehaviour
                 var targetField = typeof(Stats).GetField(field.Name, BindingFlags.Instance | BindingFlags.Public);
                 targetField?.SetValue(statsToUpdate, field.GetValue(statsData));
             }
-
-            //UnitsManager.Instance.LoadAttributes(unit.gameObject);
         }
 
         bool buttonExists;
@@ -222,14 +220,33 @@ public class DataManager : MonoBehaviour
             }
         }
 
-        // Usuń przycisk z listy CustomDropdown i widoku
+        // Usuwa przycisk z listy CustomDropdown i widoku
         CustomDropdown dropdown = _unitScrollViewContent.GetComponent<CustomDropdown>();
         dropdown.Buttons.RemoveAt(adjustedIndex);
         Destroy(buttonToDelete.gameObject);
 
-        // Zaktualizuj indeksy przycisków w CustomDropdown
-        dropdown.SelectedIndex = dropdown.Buttons.Count > 0 ? 1 : 0; // Resetuj indeks do pierwszego lub 0 jeśli brak przycisków
-        dropdown.SelectedButton = null;
+        // Synchronizacja listy Buttons z aktualnym stanem _unitScrollViewContent
+        dropdown.Buttons.Clear();
+        for (int i = 0; i < _unitScrollViewContent.childCount; i++)
+        {
+            UnityEngine.UI.Button button = _unitScrollViewContent.GetChild(i).GetComponent<UnityEngine.UI.Button>();
+            if (button != null)
+            {
+                dropdown.Buttons.Add(button);
+            }
+        }
+
+        // Aktualizuje SelectedIndex i zaznaczenie przycisku
+        if (dropdown.Buttons.Count > 0)
+        {
+            dropdown.SetSelectedIndex(1); // Zaznacza pierwszy przycisk na liście
+        }
+        else
+        {
+            dropdown.SelectedIndex = 0;
+            dropdown.SelectedButton = null;
+        }
+
         UnitsManager.IsTileSelecting = false;
 
         Debug.Log($"Jednostka '{buttonName}' została usunięta z listy zapisanych jednostek.");

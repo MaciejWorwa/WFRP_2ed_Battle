@@ -167,6 +167,22 @@ public class AnimationManager : MonoBehaviour
                 animationObject.SetActive(false);
             }
         }
+        else if (animationName == "miss" && target != null)
+        {
+            animationObject = target.transform.Find("Animations/Miss_animation").gameObject;
+            animationObject.SetActive(true);
+            animator = animationObject.GetComponent<Animator>();
+
+            animationObject.GetComponent<TMP_Text>().text = "Pudło!";
+
+            animator.Play("MissAnimation");
+
+            yield return new WaitForSeconds(1f);
+            if(target != null)
+            {
+                animationObject.SetActive(false);
+            }
+        }
         else if (animationName == "parry" && target != null)
         {
             animationObject = target.transform.Find("Animations/Parry_animation").gameObject;
@@ -206,6 +222,24 @@ public class AnimationManager : MonoBehaviour
             yield return new WaitForSeconds(1f);
             if(attacker != null)
             {
+                animationObject.SetActive(false);
+            }
+        }
+
+        if (animationName == "kill" && target != null && attacker != null)
+        {
+            animationObject = attacker.transform.Find("AttackAnimation/Kill_animation").gameObject;
+            animationObject.SetActive(true);
+            animator = animationObject.GetComponent<Animator>();
+
+            animationObject.transform.parent.position = new Vector3(target.transform.position.x, target.transform.position.y, -2f);
+
+            animator.Play("KillAnimation");
+
+            yield return new WaitForSeconds(1f);
+            if(attacker != null)
+            {
+                animationObject.transform.parent.position = new Vector3(attacker.transform.position.x, attacker.transform.position.y, -2f);
                 animationObject.SetActive(false);
             }
         }

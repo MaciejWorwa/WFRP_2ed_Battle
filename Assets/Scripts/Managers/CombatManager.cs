@@ -593,6 +593,7 @@ public class CombatManager : MonoBehaviour
         else
         {
             Debug.Log($"Atak {attackerStats.Name} chybił.");
+            StartCoroutine(AnimationManager.Instance.PlayAnimation("miss", null, target.gameObject));
         }
     }
 
@@ -650,6 +651,8 @@ public class CombatManager : MonoBehaviour
         {
             return;
         }
+
+        StartCoroutine(AnimationManager.Instance.PlayAnimation("kill", attackerStats.gameObject, target));
 
         // Usuwanie jednostki
         UnitsManager.Instance.DestroyUnit(target);
