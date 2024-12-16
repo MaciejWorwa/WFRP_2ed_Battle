@@ -40,6 +40,12 @@ public class CustomDropdown : MonoBehaviour
 
     void SelectOption(int index)
     {
+        if (index < 1 || index > Buttons.Count)
+        {
+            Debug.LogError($"Nieprawidłowy indeks: {index}");
+            return;
+        }
+
         if (SelectedIndex >= 1 && SelectedIndex <= Buttons.Count && Buttons[SelectedIndex - 1].GetComponent<Image>().color != _activeColor)
         {
             ResetColor(SelectedIndex);
@@ -82,6 +88,10 @@ public class CustomDropdown : MonoBehaviour
         if (index >= 0 && index <= Buttons.Count)
         {
             SelectOption(index);
+        }
+        else
+        {
+            Debug.LogError($"Nieprawidłowy indeks: {index}. Lista Buttons ma {Buttons.Count} elementów.");
         }
     }
 }

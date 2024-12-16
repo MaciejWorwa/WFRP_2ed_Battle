@@ -34,8 +34,7 @@ public class InventoryManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
-    [SerializeField] private UnityEngine.UI.Button _inventoryButton;
+    
     [SerializeField] private GameObject _buttonPrefab; // Przycisk odpowiadający każdej z broni
     public Transform InventoryScrollViewContent; // Lista ekwipunku postaci
     public CustomDropdown WeaponsDropdown;
@@ -618,8 +617,6 @@ public class InventoryManager : MonoBehaviour
         if(Unit.SelectedUnit == null) return;
 
         Weapon[] equippedWeapons = Unit.SelectedUnit.GetComponent<Inventory>().EquippedWeapons;
-
-        Debug.Log(Unit.SelectedUnit.name);
 
         //Wyświetla informacje o dobytej broni
         if (equippedWeapons[0] != null && equippedWeapons[1] != null)

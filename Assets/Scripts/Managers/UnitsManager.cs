@@ -270,7 +270,7 @@ public class UnitsManager : MonoBehaviour
         {
             SaveAndLoadManager.Instance.IsLoading = true;
         
-            string savedUnitsFolder = Path.Combine(Application.dataPath, "Resources", "savedUnits");
+            string savedUnitsFolder = Path.Combine(Application.persistentDataPath, "savedUnitsList");
             string baseFileName = newUnit.GetComponent<Stats>().Name;
 
             //string unitFilePath = Path.Combine(savedUnitsFolder, baseFileName + "_unit.json");

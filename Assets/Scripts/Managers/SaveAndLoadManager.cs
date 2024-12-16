@@ -144,7 +144,7 @@ public class SaveAndLoadManager : MonoBehaviour
             _saveNameInput.text = saveName;
         }
 
-        if (_saveNameInput.text.Length < 1 || _saveNameInput.text == "autosave")
+        if (_saveNameInput.text.Length < 1 || _saveNameInput.text == "autosave" || _saveNameInput.text == "temp" || _saveNameInput.text == "savedUnitsList")
         {
             Debug.Log($"<color=red>Zapis nieudany. Niepoprawna nazwa pliku.</color>");
             return;
@@ -177,58 +177,26 @@ public class SaveAndLoadManager : MonoBehaviour
         List<Unit> selectedUnit = new List<Unit>();
         selectedUnit.Add(Unit.SelectedUnit.GetComponent<Unit>());
 
-        SaveUnits(selectedUnit, "unitList");
+        SaveUnits(selectedUnit, "savedUnitsList");
     }
 
     public void SaveUnits(List<Unit> allUnits, string savesFolderName = "")
     {
-        if (savesFolderName == "unitList")
-        {
-            string savedUnitsFolder = Path.Combine(Application.dataPath, "Resources", "savedUnits");
-
-            if (!Directory.Exists(savedUnitsFolder))
-            {
-                Directory.CreateDirectory(savedUnitsFolder);
-            }
-
-            foreach (var unit in allUnits)
-            {
-                string unitName = unit.GetComponent<Stats>().Name;
-
-                //string unitPath = Path.Combine(savedUnitsFolder, unitName + "_unit.json");
-                string statsPath = Path.Combine(savedUnitsFolder, unitName + "_stats.json");
-                string weaponPath = Path.Combine(savedUnitsFolder, unitName + "_weapon.json");
-                string inventoryPath = Path.Combine(savedUnitsFolder, unitName + "_inventory.json");
-                string tokenJsonPath = Path.Combine(savedUnitsFolder, unitName + "_token.json");
-
-                UnitData unitData = new UnitData(unit);
-                StatsData statsData = new StatsData(unit.GetComponent<Stats>());
-                WeaponData weaponData = new WeaponData(unit.GetComponent<Weapon>());
-                InventoryData inventoryData = new InventoryData(unit.GetComponent<Inventory>());
-                TokenData tokenData = new TokenData { filePath = unit.TokenFilePath };
-
-                string unitJsonData = JsonUtility.ToJson(unitData, true);
-                string statsJsonData = JsonUtility.ToJson(statsData, true);
-                string weaponJsonData = JsonUtility.ToJson(weaponData, true);
-                string inventoryJsonData = JsonUtility.ToJson(inventoryData, true);
-                string tokenJsonData = JsonUtility.ToJson(tokenData, true);
-
-                //File.WriteAllText(unitPath, unitJsonData);
-                File.WriteAllText(statsPath, statsJsonData);
-                File.WriteAllText(weaponPath, weaponJsonData);
-                File.WriteAllText(inventoryPath, inventoryJsonData);
-                File.WriteAllText(tokenJsonPath, tokenJsonData);
-            }
-
-            Debug.Log("Jednostka została zapisana.");
-            return;
-        }
-
-        if (savesFolderName.Length < 1)
+        // Jeśli nazwa folderu nie została podana, użyj nazwy z pola wejściowego
+        if (string.IsNullOrEmpty(savesFolderName))
         {
             savesFolderName = _saveNameInput.text;
         }
-        Directory.CreateDirectory(Application.persistentDataPath + "/" + savesFolderName);
+
+        String filePath = Application.persistentDataPath + "/" + savesFolderName;
+
+        //Jeśli kopiujemy jednostki do schowka, to czyścimy schowek
+        if (savesFolderName == "temp" && Directory.Exists(filePath))
+        {
+            Directory.Delete(filePath, true); // Usuwa katalog wraz z zawartością
+        }
+
+        Directory.CreateDirectory(filePath);
 
         foreach (var unit in allUnits)
         {
@@ -257,6 +225,11 @@ public class SaveAndLoadManager : MonoBehaviour
             File.WriteAllText(weaponPath, weaponJsonData);
             File.WriteAllText(inventoryPath, inventoryJsonData);
             File.WriteAllText(tokenJsonPath, tokenJsonData);
+        }
+
+        if(savesFolderName == "savedUnitsList")
+        {
+            Debug.Log("Jednostka została zapisana.");
         }
     }
 
@@ -588,7 +561,10 @@ public class SaveAndLoadManager : MonoBehaviour
             }
         }
 
-        LoadRoundsManager(saveFolderPath);
+        if(saveFolderPath != Path.Combine(Application.persistentDataPath, "temp"))
+        {
+            LoadRoundsManager(saveFolderPath);
+        }
 
         Unit.SelectedUnit = null;
         InitiativeQueueManager.Instance.UpdateInitiativeQueue();
@@ -733,7 +709,7 @@ public class SaveAndLoadManager : MonoBehaviour
             string folderName = new DirectoryInfo(folderPath).Name;
 
             // Sprawdź, czy jest to folder tymczasowy ze skopiowanymi jednostkami
-            if (folderName == "temp" || folderName == "autosave") continue;
+            if (folderName == "temp" || folderName == "autosave" || folderName == "savedUnitsList") continue;
 
             //Dodaje nazwę pliku do ScrollViewContent w postaci buttona
             GameObject buttonObj = Instantiate(_buttonPrefab, _savesScrollViewContent);

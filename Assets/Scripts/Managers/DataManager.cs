@@ -70,11 +70,10 @@ public class DataManager : MonoBehaviour
 
         if (UnitsManager.Instance.IsSavedUnitsManaging) //Obsługa listy zapisanych jednostek
         {
-            string savedUnitsFolder = Path.Combine(Application.dataPath, "Resources", "savedUnits");
+            string savedUnitsFolder = Path.Combine(Application.persistentDataPath, "savedUnitsList");
 
             if (!Directory.Exists(savedUnitsFolder))
             {
-                Debug.LogError("Folder savedUnits nie istnieje.");
                 return;
             }
 
@@ -201,15 +200,15 @@ public class DataManager : MonoBehaviour
         }
 
         // Ścieżka do katalogu Resources/savedUnits
-        string resourcesPath = Path.Combine(Application.dataPath, "Resources", "savedUnits");
+        string savedUnitsFolder = Path.Combine(Application.persistentDataPath, "savedUnitsList");
 
         // Usuwanie plików powiązanych z przyciskiem
         string[] relatedFiles = {
-            Path.Combine(resourcesPath, buttonName + "_unit.json"),
-            Path.Combine(resourcesPath, buttonName + "_stats.json"),
-            Path.Combine(resourcesPath, buttonName + "_weapon.json"),
-            Path.Combine(resourcesPath, buttonName + "_inventory.json"),
-            Path.Combine(resourcesPath, buttonName + "_token.json")
+            Path.Combine(savedUnitsFolder, buttonName + "_unit.json"),
+            Path.Combine(savedUnitsFolder, buttonName + "_stats.json"),
+            Path.Combine(savedUnitsFolder, buttonName + "_weapon.json"),
+            Path.Combine(savedUnitsFolder, buttonName + "_inventory.json"),
+            Path.Combine(savedUnitsFolder, buttonName + "_token.json")
         };
 
         foreach (string filePath in relatedFiles)
@@ -222,34 +221,24 @@ public class DataManager : MonoBehaviour
 
         // Usuwa przycisk z listy CustomDropdown i widoku
         CustomDropdown dropdown = _unitScrollViewContent.GetComponent<CustomDropdown>();
-        dropdown.Buttons.RemoveAt(adjustedIndex);
-        Destroy(buttonToDelete.gameObject);
 
-        // Synchronizacja listy Buttons z aktualnym stanem _unitScrollViewContent
-        dropdown.Buttons.Clear();
-        for (int i = 0; i < _unitScrollViewContent.childCount; i++)
-        {
-            UnityEngine.UI.Button button = _unitScrollViewContent.GetChild(i).GetComponent<UnityEngine.UI.Button>();
-            if (button != null)
-            {
-                dropdown.Buttons.Add(button);
-            }
-        }
+        // Usunięcie przycisku z UI
+        int indexToRemove = dropdown.Buttons.IndexOf(dropdown.SelectedButton);
 
-        // Aktualizuje SelectedIndex i zaznaczenie przycisku
-        if (dropdown.Buttons.Count > 0)
-        {
-            dropdown.SetSelectedIndex(1); // Zaznacza pierwszy przycisk na liście
-        }
-        else
-        {
-            dropdown.SelectedIndex = 0;
-            dropdown.SelectedButton = null;
-        }
+        Destroy(dropdown.Buttons[indexToRemove].gameObject);
+        dropdown.Buttons.RemoveAt(indexToRemove);
+        
+        // Aktualizuje SelectedIndex i zaznaczenie
+        dropdown.SelectedIndex = 0;
+        dropdown.SelectedButton = null;
+        dropdown.InitializeButtons();
 
         UnitsManager.IsTileSelecting = false;
 
         Debug.Log($"Jednostka '{buttonName}' została usunięta z listy zapisanych jednostek.");
+
+        Debug.Log($"Liczba dzieci w _unitScrollViewContent: {_unitScrollViewContent.childCount}");
+        Debug.Log($"Liczba przycisków w Buttons: {dropdown.Buttons.Count}");
     }
     #endregion
 
