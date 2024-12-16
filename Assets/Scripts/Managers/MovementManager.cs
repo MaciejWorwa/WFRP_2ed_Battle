@@ -142,7 +142,10 @@ public class MovementManager : MonoBehaviour
             IsMoving = false;
             Retreat(false);
             
-            GridManager.Instance.HighlightTilesInMovementRange(Unit.SelectedUnit.GetComponent<Stats>());
+            if(Unit.SelectedUnit != null)
+            {
+                GridManager.Instance.HighlightTilesInMovementRange(Unit.SelectedUnit.GetComponent<Stats>());
+            }
         }
 
         //Zaznacza jako zajęte faktyczne pole, na którym jednostka zakończy ruch, a nie pole do którego próbowała dojść

@@ -44,6 +44,7 @@ public class SaveAndLoadManager : MonoBehaviour
     [SerializeField] private Transform _savesScrollViewContent;
     [SerializeField] private GameObject _buttonPrefab; // Przycisk odpowiadający każdemu zapisowi na liście
     [SerializeField] private GameObject _loadGamePanel; 
+    [SerializeField] private GameObject _saveGamePanel;
     [SerializeField] private UnityEngine.UI.Toggle _sortByDateToggle;
 
     public bool IsLoading;
@@ -82,61 +83,6 @@ public class SaveAndLoadManager : MonoBehaviour
         File.WriteAllText(settingsFilePath, json);
     }
 
-    public void LoadSettings()
-    {
-        // Ścieżka do pliku ustawień
-        string settingsFilePath = Path.Combine(Application.persistentDataPath, "GameSettings.json");
-
-        // Sprawdzanie, czy plik istnieje
-        if (File.Exists(settingsFilePath))
-        {
-            // Deserializacja z JSON
-            string json = File.ReadAllText(settingsFilePath);
-            GameSettings settings = JsonUtility.FromJson<GameSettings>(json);
-
-            // Ustawianie wartości pól typu bool w GameManager na podstawie załadowanych danych
-            foreach (var field in typeof(GameManager).GetFields(BindingFlags.Static | BindingFlags.Public))
-            {
-                if (field.FieldType == typeof(bool))
-                {
-                    var settingField = typeof(GameSettings).GetField(field.Name, BindingFlags.Instance | BindingFlags.Public);
-                    if (settingField != null && settingField.FieldType == typeof(bool))
-                    {
-                        field.SetValue(null, settingField.GetValue(settings));
-                    }
-                }
-            }
-
-            // Wczytuje kolor tła
-            Color loadedColor = new Color(
-                settings.BackgroundColorR,
-                settings.BackgroundColorG,
-                settings.BackgroundColorB
-            );
-
-            // Ustawienie koloru tła
-            if (ColorPicker.Instance != null)
-            {
-                ColorPicker.Instance.SetColor(loadedColor);
-            }
-            else
-            {
-                GameObject mainCamera = GameObject.Find("Main Camera");
-                GameObject playersCamera = GameObject.Find("Players Camera");
-
-                if(mainCamera != null)
-                {
-                    mainCamera.GetComponent<CameraManager>().ChangeBackgroundColor(loadedColor);
-                }
-
-                if (playersCamera != null)
-                {
-                    GameObject.Find("Players Camera").GetComponent<CameraManager>().ChangeBackgroundColor(loadedColor);
-                }   
-            }
-        }      
-    }
-
     public void SaveGame(string saveName = "")
     {
         if(saveName != null && saveName.Length > 0)
@@ -159,6 +105,8 @@ public class SaveAndLoadManager : MonoBehaviour
         }
         
         SaveUnits(allUnits);
+
+        SaveRoundsManager( _saveNameInput.text, allUnits);
 
         //Zapisanie wszystkich elementów mapy
         SaveMap();
@@ -191,12 +139,15 @@ public class SaveAndLoadManager : MonoBehaviour
         String filePath = Application.persistentDataPath + "/" + savesFolderName;
 
         //Jeśli kopiujemy jednostki do schowka, to czyścimy schowek
-        if (savesFolderName == "temp" && Directory.Exists(filePath))
+        if (Directory.Exists(filePath))
         {
             Directory.Delete(filePath, true); // Usuwa katalog wraz z zawartością
         }
 
-        Directory.CreateDirectory(filePath);
+        if(!Directory.Exists(filePath))
+        {
+            Directory.CreateDirectory(filePath);
+        }
 
         foreach (var unit in allUnits)
         {
@@ -339,7 +290,6 @@ public class SaveAndLoadManager : MonoBehaviour
 
         Debug.Log($"<color=green>Zapisano mapę.</color>");
     }
-
     #endregion
 
     #region Loading methods
@@ -349,6 +299,61 @@ public class SaveAndLoadManager : MonoBehaviour
     {
         IsOnlyUnitsLoading = value;
     }
+     public void LoadSettings()
+    {
+        // Ścieżka do pliku ustawień
+        string settingsFilePath = Path.Combine(Application.persistentDataPath, "GameSettings.json");
+
+        // Sprawdzanie, czy plik istnieje
+        if (File.Exists(settingsFilePath))
+        {
+            // Deserializacja z JSON
+            string json = File.ReadAllText(settingsFilePath);
+            GameSettings settings = JsonUtility.FromJson<GameSettings>(json);
+
+            // Ustawianie wartości pól typu bool w GameManager na podstawie załadowanych danych
+            foreach (var field in typeof(GameManager).GetFields(BindingFlags.Static | BindingFlags.Public))
+            {
+                if (field.FieldType == typeof(bool))
+                {
+                    var settingField = typeof(GameSettings).GetField(field.Name, BindingFlags.Instance | BindingFlags.Public);
+                    if (settingField != null && settingField.FieldType == typeof(bool))
+                    {
+                        field.SetValue(null, settingField.GetValue(settings));
+                    }
+                }
+            }
+
+            // Wczytuje kolor tła
+            Color loadedColor = new Color(
+                settings.BackgroundColorR,
+                settings.BackgroundColorG,
+                settings.BackgroundColorB
+            );
+
+            // Ustawienie koloru tła
+            if (ColorPicker.Instance != null)
+            {
+                ColorPicker.Instance.SetColor(loadedColor);
+            }
+            else
+            {
+                GameObject mainCamera = GameObject.Find("Main Camera");
+                GameObject playersCamera = GameObject.Find("Players Camera");
+
+                if(mainCamera != null)
+                {
+                    mainCamera.GetComponent<CameraManager>().ChangeBackgroundColor(loadedColor);
+                }
+
+                if (playersCamera != null)
+                {
+                    GameObject.Find("Players Camera").GetComponent<CameraManager>().ChangeBackgroundColor(loadedColor);
+                }   
+            }
+        }      
+    }
+
     public void LoadGame(string saveName = "")
     {
         CustomDropdown dropdown = _savesScrollViewContent.GetComponent<CustomDropdown>();
@@ -437,12 +442,18 @@ public class SaveAndLoadManager : MonoBehaviour
             //Pobieramy nazwę jednostki, usuwając końcówkę nazwy pliku
             string baseFileName = Path.GetFileNameWithoutExtension(unitFile).Replace("_unit", "");
 
+            // Sprawdzamy, czy istnieje już jednostka o tej nazwie
+            bool unitExist = UnitsManager.Instance.AllUnits.Any(
+                unit => unit.GetComponent<Stats>().Name == baseFileName
+            );
+
             // Sprawdzenie, czy istnieje już jednostka będąca kopią
-            bool hasCopy = UnitsManager.Instance.AllUnits.Any(
+            bool copyExist = UnitsManager.Instance.AllUnits.Any(
                 unit => unit.GetComponent<Stats>().Name == baseFileName + " (kopia)"
             );
+
             // Jeśli istnieje kopia, pomijamy tworzenie nowej jednostki
-            if (hasCopy)
+            if ((unitExist && copyExist) || baseFileName.Contains("(kopia)"))
             {
                 Debug.Log($"Istnieje już kopia {baseFileName}.");
                 continue;
@@ -552,9 +563,10 @@ public class SaveAndLoadManager : MonoBehaviour
                 for (int i = 0; i < UnitsManager.Instance.AllUnits.Count; i++)
                 {
                     Unit unit = UnitsManager.Instance.AllUnits[i];
-                    if (unit.gameObject.name == baseFileName && unit.gameObject != unitGameObject)
+                    if (unitExist && unit.gameObject != unitGameObject)
                     {
                         unitGameObject.GetComponent<Stats>().Name += " (kopia)";
+                        unitGameObject.name += " (kopia)";
                         unitGameObject.GetComponent<Unit>().DisplayUnitName();
                     }
                 }
@@ -679,6 +691,12 @@ public class SaveAndLoadManager : MonoBehaviour
     #endregion
 
     #region Managing saves dropdown
+    public void OpenSaveGamePanel()
+    {
+        GameManager.Instance.HideActivePanels();
+        _saveGamePanel.SetActive(true);
+    }
+
     public void LoadSavesDropdown()
     {
         CustomDropdown dropdown = _savesScrollViewContent.GetComponent<CustomDropdown>();

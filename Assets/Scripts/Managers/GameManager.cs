@@ -154,7 +154,7 @@ public class GameManager : MonoBehaviour
         // Sprawdzenie, czy wciśnięto Ctrl lub Command (dla macOS)
         if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand)) && !IsAnyInputFieldFocused())
         {
-            if (Input.GetKeyDown(KeyCode.Q))
+            if (Input.GetKeyDown(KeyCode.W))
             {
                 if(TileCoveringState != "uncovering")
                 {
@@ -179,7 +179,7 @@ public class GameManager : MonoBehaviour
             {
                 SetAutoRollingDiceMode();
             }
-            else if(Input.GetKeyDown(KeyCode.S))
+            else if(Input.GetKeyDown(KeyCode.Q))
             {
                 SetAutoSelectUnitMode();
             }
@@ -225,6 +225,18 @@ public class GameManager : MonoBehaviour
                 if(!Directory.Exists(saveFolderPath)) return;
 
                 StartCoroutine(SaveAndLoadManager.Instance.LoadAllUnitsWithDelay(saveFolderPath));
+            }
+            else if(Input.GetKeyDown(KeyCode.S))
+            {
+                //Automatycznie zapisuje aktualną grę
+                if(SaveAndLoadManager.Instance.CurrentGameName != null)
+                {
+                    SaveAndLoadManager.Instance.SaveGame(SaveAndLoadManager.Instance.CurrentGameName);
+                }
+                else
+                {
+                    SaveAndLoadManager.Instance.OpenSaveGamePanel();
+                }
             }
 
         }
