@@ -1432,7 +1432,9 @@ public class CombatManager : MonoBehaviour
         else
         {
             Debug.Log($"Ładowanie broni {Unit.SelectedUnit.GetComponent<Stats>().Name}. Pozostała/y {weapon.ReloadLeft} akcja/e do końca.");
-        }      
+        }  
+
+        InventoryManager.Instance.DisplayReloadTime();    
     }
 
     private void ResetWeaponLoad(Weapon attackerWeapon, Stats attackerStats)
@@ -1458,6 +1460,8 @@ public class CombatManager : MonoBehaviour
         {
             attackerWeapon.ReloadLeft = 0;
         }
+
+        InventoryManager.Instance.DisplayReloadTime();
     }
     #endregion
 

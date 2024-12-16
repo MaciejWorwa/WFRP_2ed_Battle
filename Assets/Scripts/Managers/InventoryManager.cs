@@ -45,6 +45,8 @@ public class InventoryManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button _leftHandButtonLowerBar;
     [SerializeField] private UnityEngine.UI.Button _rightHandButtonInventory;
     [SerializeField] private UnityEngine.UI.Button _rightHandButtonLowerBar;
+    [SerializeField] private TMP_Text _equippedWeaponsDisplay; // Wyświetlenie nazw dobytych broni w panelu jednostki
+    [SerializeField] private UnityEngine.UI.Slider _reloadBar; // Pasek pokazujący stan naładowania broni dystansowej
 
     void Start()
     {
@@ -415,6 +417,8 @@ public class InventoryManager : MonoBehaviour
 
         //Odświeża listę ekwipunku
         UpdateInventoryDropdown(Unit.SelectedUnit.GetComponent<Inventory>().AllWeapons, false);
+
+        DisplayEquippedWeaponsName();
     }
 
     public void LoadWeaponAttributes()
@@ -607,5 +611,79 @@ public class InventoryManager : MonoBehaviour
         }
 
         return weapon;
+    }
+
+    public void DisplayEquippedWeaponsName()
+    {
+        if(Unit.SelectedUnit == null) return;
+
+        Weapon[] equippedWeapons = Unit.SelectedUnit.GetComponent<Inventory>().EquippedWeapons;
+
+        Debug.Log(Unit.SelectedUnit.name);
+
+        //Wyświetla informacje o dobytej broni
+        if (equippedWeapons[0] != null && equippedWeapons[1] != null)
+        {
+            if (equippedWeapons[0].Name == equippedWeapons[1].Name)
+            {
+                _equippedWeaponsDisplay.text = $"Broń: {equippedWeapons[0].Name}";
+            }
+            else
+            {
+                _equippedWeaponsDisplay.text = $"Broń: {equippedWeapons[0].Name}, {equippedWeapons[1].Name}";
+            }
+        }
+        else if (equippedWeapons[0] != null)
+        {
+            _equippedWeaponsDisplay.text = $"Broń: {equippedWeapons[0].Name}";
+        }
+        else if (equippedWeapons[1] != null)
+        {
+            _equippedWeaponsDisplay.text = $"Broń: {equippedWeapons[1].Name}";
+        }
+        else
+        {
+            _equippedWeaponsDisplay.text = "Broń: brak";
+        }
+
+        DisplayReloadTime();
+    }
+
+    public void DisplayReloadTime()
+    {
+        if(Unit.SelectedUnit == null) return;
+
+        Weapon[] equippedWeapons = Unit.SelectedUnit.GetComponent<Inventory>().EquippedWeapons;
+
+        bool reloadBarActive = false;
+
+        foreach (Weapon weapon in equippedWeapons)
+        {
+            if (weapon != null && weapon.ReloadTime > 0)
+            {
+                // Ustawia slider jako aktywny
+                _reloadBar.gameObject.SetActive(true);
+
+                // Ustawia wartości slidera
+                _reloadBar.maxValue = weapon.ReloadTime;
+                _reloadBar.value = weapon.ReloadTime - weapon.ReloadLeft;
+
+                // Znajduje komponent TextMeshProUGUI w obiekcie ReloadBar i ustawia tekst
+                TextMeshProUGUI reloadTimeText = _reloadBar.GetComponentInChildren<TextMeshProUGUI>();
+                if (reloadTimeText != null)
+                {
+                    reloadTimeText.text = $"{weapon.ReloadTime - weapon.ReloadLeft}/{weapon.ReloadTime}";
+                }
+
+                reloadBarActive = true;
+                break; // Zatrzymuje pętlę, ponieważ znaleźliśmy broń wymagającą przeładowania
+            }
+        }
+
+        // Jeśli żadna broń nie wymaga przeładowania, ukrywa slider
+        if (!reloadBarActive)
+        {
+            _reloadBar.gameObject.SetActive(false);
+        }
     }
 }

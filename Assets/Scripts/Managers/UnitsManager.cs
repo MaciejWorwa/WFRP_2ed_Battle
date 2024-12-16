@@ -852,6 +852,8 @@ public class UnitsManager : MonoBehaviour
 
         _tokenDisplay.sprite = unit.transform.Find("Token").GetComponent<SpriteRenderer>().sprite;
 
+        InventoryManager.Instance.DisplayEquippedWeaponsName();
+
         LoadAttributes(unit);
     }
 
