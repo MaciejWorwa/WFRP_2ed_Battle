@@ -7,6 +7,7 @@ using TMPro;
 using SimpleFileBrowser;
 using UnityEngine.SceneManagement;
 using System.IO;
+using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
@@ -205,12 +206,27 @@ public class GameManager : MonoBehaviour
             }  
             else if(Input.GetKeyDown(KeyCode.C)) //Kopiuje jednostki do schowka
             {  
+                bool hasCopyInSelectedUnits = AreaSelector.Instance.SelectedUnits
+                    .Any(unit => unit.GetComponent<Stats>().Name.Contains("(kopia)"));
+
+                if(hasCopyInSelectedUnits)
+                {
+                    Debug.Log("Nie możesz kopiować jednostek, które już są kopiami.");
+                    return;
+                }
+
                 if(AreaSelector.Instance.SelectedUnits.Count > 1) //Kopiuje wszystkie zaznaczone jednostki
                 {
                     SaveAndLoadManager.Instance.SaveUnits(AreaSelector.Instance.SelectedUnits, "temp");
                 }
                 else if(Unit.SelectedUnit != null) //Gdy jest zaznaczona tylko jedna jednostka, to kopiuje tylko ją
                 {
+                    if(Unit.SelectedUnit.GetComponent<Stats>().Name.Contains("(kopia)"))
+                    {
+                        Debug.Log("Nie możesz kopiować jednostek, które już są kopiami.");
+                        return;
+                    }
+
                     List <Unit> selectedUnit = new List <Unit>();
                     selectedUnit.Add(Unit.SelectedUnit.GetComponent<Unit>());
 

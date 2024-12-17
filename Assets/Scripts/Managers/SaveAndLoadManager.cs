@@ -117,7 +117,7 @@ public class SaveAndLoadManager : MonoBehaviour
         //Resetuje input fielda i zamyka panel
         _saveNameInput.text = "";
 
-        Debug.Log($"<color=green>Zapisano stan gry.</color>");
+        Debug.Log($"<color=green>Zapisano stan gry: {CurrentGameName}</color>");
     }
 
     public void SaveUnitToUnitsList()
@@ -439,25 +439,7 @@ public class SaveAndLoadManager : MonoBehaviour
 
         foreach (string unitFile in unitFiles)
         {
-            //Pobieramy nazwę jednostki, usuwając końcówkę nazwy pliku
             string baseFileName = Path.GetFileNameWithoutExtension(unitFile).Replace("_unit", "");
-
-            // Sprawdzamy, czy istnieje już jednostka o tej nazwie
-            bool unitExist = UnitsManager.Instance.AllUnits.Any(
-                unit => unit.GetComponent<Stats>().Name == baseFileName
-            );
-
-            // Sprawdzenie, czy istnieje już jednostka będąca kopią
-            bool copyExist = UnitsManager.Instance.AllUnits.Any(
-                unit => unit.GetComponent<Stats>().Name == baseFileName + " (kopia)"
-            );
-
-            // Jeśli istnieje kopia, pomijamy tworzenie nowej jednostki
-            if ((unitExist && copyExist) || baseFileName.Contains("(kopia)"))
-            {
-                Debug.Log($"Istnieje już kopia {baseFileName}.");
-                continue;
-            }
 
             //Ścieżki do konkretnych plików z danymi
             string unitFilePath = Path.Combine(saveFolderPath, baseFileName + "_unit.json");
@@ -469,6 +451,23 @@ public class SaveAndLoadManager : MonoBehaviour
             // Wczytanie i deserializacja StatsData
             StatsData statsData = JsonUtility.FromJson<StatsData>(File.ReadAllText(statsFilePath));
 
+            // Sprawdzamy, czy istnieje już jednostka o tej nazwie
+            bool unitExist = UnitsManager.Instance.AllUnits.Any(
+                unit => unit.GetComponent<Stats>().Name == statsData.Name
+            );
+
+            // Sprawdzenie, czy istnieje już jednostka będąca kopią
+            bool copyExist = UnitsManager.Instance.AllUnits.Any(
+                unit => unit.GetComponent<Stats>().Name == statsData.Name + " (kopia)"
+            );
+
+            // Jeśli istnieje kopia, pomijamy tworzenie nowej jednostki
+            if ((unitExist && copyExist) || statsData.Name.Contains("(kopia)"))
+            {
+                Debug.Log($"Istnieje już kopia {statsData.Name}.");
+                continue;
+            }
+
             // Wczytanie i deserializacja UnitData
             UnitData unitData = JsonUtility.FromJson<UnitData>(File.ReadAllText(unitFilePath));
 
@@ -476,7 +475,7 @@ public class SaveAndLoadManager : MonoBehaviour
             Vector3 position = new Vector3(unitData.position[0], unitData.position[1], unitData.position[2]);
 
             //Stworzenie jednostki o konkretnym Id, nazwie i na ustalonej pozycji
-            GameObject unitGameObject = UnitsManager.Instance.CreateUnit(statsData.Id, baseFileName, position);
+            GameObject unitGameObject = UnitsManager.Instance.CreateUnit(statsData.Id, statsData.Name, position);
 
             if(unitGameObject == null) yield break;
 
@@ -557,17 +556,21 @@ public class SaveAndLoadManager : MonoBehaviour
 
             if (unitGameObject.GetComponent<Unit>().IsSelected) unitGameObject.GetComponent<Unit>().SelectUnit();
 
-            //Jeżeli wklejamy jednostki, a istnieją już jednostki o tej nazwie to zmieniamy im nazwę
-            if(saveFolderPath == Path.Combine(Application.persistentDataPath, "temp"))
+            // Jeżeli wklejamy jednostki, a istnieją już jednostki o tej nazwie, to zmieniamy im nazwę
+            if (saveFolderPath == Path.Combine(Application.persistentDataPath, "temp"))
             {
                 for (int i = 0; i < UnitsManager.Instance.AllUnits.Count; i++)
                 {
                     Unit unit = UnitsManager.Instance.AllUnits[i];
                     if (unitExist && unit.gameObject != unitGameObject)
                     {
-                        unitGameObject.GetComponent<Stats>().Name += " (kopia)";
-                        unitGameObject.name += " (kopia)";
-                        unitGameObject.GetComponent<Unit>().DisplayUnitName();
+                        // Sprawdzamy, czy nazwa już zawiera "(kopia)"
+                        if (!unitGameObject.GetComponent<Stats>().Name.Contains("(kopia)"))
+                        {
+                            unitGameObject.GetComponent<Stats>().Name += " (kopia)";
+                            unitGameObject.name += " (kopia)";
+                            unitGameObject.GetComponent<Unit>().DisplayUnitName();
+                        }
                     }
                 }
             }
@@ -585,7 +588,7 @@ public class SaveAndLoadManager : MonoBehaviour
 
         if(saveFolderPath != Path.Combine(Application.persistentDataPath, "temp"))
         {
-            Debug.Log($"<color=green>Wczytano stan gry.</color>");
+            Debug.Log($"<color=green>Wczytano stan gry: {CurrentGameName}</color>");
         }
     }
 
@@ -685,7 +688,7 @@ public class SaveAndLoadManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Pliku nie znaleziono.");
+            Debug.LogError("Pliku z mapą nie znaleziono.");
         }
     }
     #endregion
