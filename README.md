@@ -25,7 +25,7 @@ At the moment only Polish language is supported.
 - 20 different races or monsters to choose,
 - 33 different weapons (with quality to choose),
 - 16 different spells,
-- 7 different game modes (including automatic combat mode),
+- 10 different game modes (including automatic combat mode),
 - Save and load system,
 - Covering map areas,
 - Customizable backgrounds,
@@ -64,7 +64,7 @@ In Battle Mode, manage and control units with these actions:
 
 - **Adding Units:** Open the Unit Management Panel, click on the name of a unit, and then click on the desired location on the grid to place it. Alternatively, use the button to add a unit at a random position on the battlefield.
 - **Selecting Units:** Left-click a unit to select it. To select multiple units, enable the appropriate mode in the Unit Management Panel and drag the mouse over the desired units. You can copy selected units with `Ctrl + C` and paste them using `Ctrl + V`.
-- **Moving Units:** Click on an empty tile within the unit's movement range to move the selected unit. Movement range is visually highlighted.
+- **Moving Units:** Left-click on an empty tile within the unit's movement range to move the selected unit. Movement range is visually highlighted.
 - **Attacking:** Right-click on an enemy unit to initiate an attack.
 - **Editing Units:** After selecting a unit, you can edit its attributes in the panel located on the left side of the screen.
 - **Deleting Units:** Press `Delete` to remove selected units or use the "Delete" button in the Unit Management Panel.
@@ -94,3 +94,14 @@ Press **Esc** to open the main menu, where you can access **Settings**. By defau
 8. **Enemy Stats Hiding Mode** (Ctrl+I): Hides the statistics panel of enemy units when they are selected.
 9. **Unit Name Hiding Mode** (Ctrl+N): Hides the names of units on their tokens.
 10. **Health Points Hiding Mode** (Ctrl+H): Hides the health points of units on their tokens.
+
+## Hotkeys  
+
+Here are the available hotkeys to streamline gameplay:  
+
+- **Ctrl + S**: Save the current game state.  
+- **Ctrl + W**: Toggle **Covering Areas** mode.  
+- **Ctrl + C**: Copy selected units.  
+- **Ctrl + V**: Paste copied units.  
+- **Delete**: Remove selected units.  
+- **I**: Open the inventory.  

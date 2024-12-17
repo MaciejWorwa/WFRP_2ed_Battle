@@ -228,14 +228,14 @@ public class GameManager : MonoBehaviour
             }
             else if(Input.GetKeyDown(KeyCode.S))
             {
-                //Automatycznie zapisuje aktualną grę
-                if(SaveAndLoadManager.Instance.CurrentGameName != null)
+                //Automatycznie nadpisuje aktualną grę lub otwiera panel zapisu gry, jeśli nie była ona wcześniej zapisywana
+                if(string.IsNullOrEmpty(SaveAndLoadManager.Instance.CurrentGameName))
                 {
-                    SaveAndLoadManager.Instance.SaveGame(SaveAndLoadManager.Instance.CurrentGameName);
+                    SaveAndLoadManager.Instance.OpenSaveGamePanel();
                 }
                 else
                 {
-                    SaveAndLoadManager.Instance.OpenSaveGamePanel();
+                    SaveAndLoadManager.Instance.SaveGame(SaveAndLoadManager.Instance.CurrentGameName);  
                 }
             }
 
