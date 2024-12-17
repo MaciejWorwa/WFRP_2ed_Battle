@@ -1104,7 +1104,7 @@ public class CombatManager : MonoBehaviour
         }
 
         //Ścieżka ruchu szarżującego
-        List<Vector2> path = MovementManager.Instance.FindPath(attacker.transform.position, targetTilePosition, attacker.GetComponent<Stats>().TempSz);
+        List<Vector2> path = MovementManager.Instance.FindPath(attacker.transform.position, targetTilePosition);
 
         //Sprawdza, czy postać jest wystarczająco daleko do wykonania szarży
         if (path.Count >= 3 && path.Count <= attacker.GetComponent<Stats>().TempSz)
@@ -1168,7 +1168,7 @@ public class CombatManager : MonoBehaviour
             //Jeżeli pole jest zajęte to szukamy innego
             if (tile == null || tile.GetComponent<Tile>().IsOccupied) continue;
 
-            path = MovementManager.Instance.FindPath(attacker.transform.position, pos, attacker.GetComponent<Stats>().TempSz);
+            path = MovementManager.Instance.FindPath(attacker.transform.position, pos);
 
             if(path.Count == 0) continue;
 
@@ -1180,7 +1180,7 @@ public class CombatManager : MonoBehaviour
             }  
         }
 
-        if(shortestPathLength > attacker.GetComponent<Stats>().TempSz)
+        if(shortestPathLength > attacker.GetComponent<Stats>().TempSz && !GameManager.IsAutoCombatMode)
         {
             return null;
         }
@@ -1220,10 +1220,16 @@ public class CombatManager : MonoBehaviour
         if(Unit.SelectedUnit.GetComponent<Unit>().DefensiveBonus > 0)
         {
             _defensiveStanceButton.GetComponent<UnityEngine.UI.Image>().color = UnityEngine.Color.green;
+
+            //Wyświetla ikonkę pozycji obronnej przy tokenie jednostki
+            Unit.SelectedUnit.transform.Find("Canvas/Defensive_stance_image").gameObject.SetActive(true);
         }
         else
         {
             _defensiveStanceButton.GetComponent<UnityEngine.UI.Image>().color = UnityEngine.Color.white;
+
+            //Ukrywa ikonkę pozycji obronnej przy tokenie jednostki
+            Unit.SelectedUnit.transform.Find("Canvas/Defensive_stance_image").gameObject.SetActive(false);
         }
     }
     #endregion

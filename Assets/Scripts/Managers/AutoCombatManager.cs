@@ -190,9 +190,6 @@ public class AutoCombatManager : MonoBehaviour
 
     private void AttemptToChangeDistanceAndAttack(Unit unit, GameObject closestOpponent, Weapon weapon)
     {
-        //Ustawia aktualną szybkość postaci na wysoką wartość, żeby ruch nie był ograniczony dystansem
-        MovementManager.Instance.UpdateMovementRange(20);
-
         // Szuka wolnej pozycji obok celu, do której droga postaci jest najkrótsza
         GameObject targetTile = CombatManager.Instance.GetTileAdjacentToTarget(unit.gameObject, closestOpponent);
         Vector2 targetTilePosition = Vector2.zero;
@@ -210,8 +207,8 @@ public class AutoCombatManager : MonoBehaviour
         }
 
         //Ścieżka ruchu atakującego
-        List<Vector2> path = MovementManager.Instance.FindPath(unit.transform.position, targetTilePosition, unit.GetComponent<Stats>().TempSz); 
-        
+        List<Vector2> path = MovementManager.Instance.FindPath(unit.transform.position, targetTilePosition); 
+
         if ((!weapon.Type.Contains("ranged")) && unit.CanAttack == true && path.Count <= unit.GetComponent<Stats>().Sz * 2 && path.Count >= 3 && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) // Jeśli rywal jest w zasięgu szarży to wykonuje szarżę
         {
             Debug.Log($"{unit.GetComponent<Stats>().Name} szarżuje na {closestOpponent.GetComponent<Stats>().Name}.");
@@ -308,7 +305,7 @@ public class AutoCombatManager : MonoBehaviour
             {
                 TargetTile.IsOccupied = false;
 
-                // Ignoruje warstwę "Unit" podczas wykrywania kolizji, skupiając się tylko na warstiwe 0 (default)
+                // Ignoruje warstwę "Unit" podczas wykrywania kolizji, skupiając się tylko na warstwie 0 (default)
                 Collider2D collider = Physics2D.OverlapPoint(unitPos, 0);
                 if(collider != null && collider.GetComponent<Tile>() != null)
                 {

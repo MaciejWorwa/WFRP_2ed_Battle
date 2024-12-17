@@ -30,7 +30,6 @@ public class MovementManager : MonoBehaviour
         }
     }
     [HideInInspector] public bool IsMoving;
-    [SerializeField] private Button _chargeButton;
     [SerializeField] private Button _runButton;
     [SerializeField] private Button _retreatButton;
 
@@ -53,7 +52,7 @@ public class MovementManager : MonoBehaviour
         Vector2 selectedTilePos = new Vector2(selectedTile.transform.position.x, selectedTile.transform.position.y);
 
         // Znajdź najkrótszą ścieżkę do celu
-        List<Vector2> path = FindPath(startCharPos, selectedTilePos, movementRange);
+        List<Vector2> path = FindPath(startCharPos, selectedTilePos);
 
         // Sprawdza czy wybrane pole jest w zasięgu ruchu postaci. W przypadku automatycznej walki ten warunek nie jest wymagany.
         if (path.Count > 0 && (path.Count <= movementRange || GameManager.IsAutoCombatMode))
@@ -102,7 +101,7 @@ public class MovementManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("Wybrane pole jest poza zasięgiem ruchu postaci lub jest zajęte.");
+            Debug.Log("Wybrane pole jest poza zasięgiem ruchu lub jest zajęte.");
         }
     }
 
@@ -155,7 +154,7 @@ public class MovementManager : MonoBehaviour
         }
     }
 
-    public List<Vector2> FindPath(Vector2 start, Vector2 goal, int movementRange)
+    public List<Vector2> FindPath(Vector2 start, Vector2 goal)
     {
         // Tworzy listę otwartych węzłów
         List<Node> openNodes = new List<Node>();
@@ -212,10 +211,10 @@ public class MovementManager : MonoBehaviour
             // Przetwarza każdego sąsiada
             foreach (Node neighbor in neighbors)
             {
-                // Sprawdza, czy sąsiad jest w liście zamkniętych węzłów lub poza zasięgiem ruchu postaci
-                if (closedNodes.Contains(neighbor.Position) || CalculateDistance(current.Position, neighbor.Position) > movementRange)
+                // Sprawdza, czy sąsiad jest w liście zamkniętych węzłów
+                if (closedNodes.Contains(neighbor.Position))
                 {
-                    continue; // przerywa tą iterację i przechodzi do kolejnej bez wykonywania w obecnej iteracji kodu, który jest poniżej. Natomiast 'break' przerywa całą pętle i kolejne iteracje nie wystąpią
+                    continue;
                 }
 
                 // Sprawdza, czy na miejscu sąsiada występuje inny collider niż tile
@@ -419,7 +418,7 @@ public class MovementManager : MonoBehaviour
     #region Highlight path
     public void HighlightPath(GameObject unit, GameObject tile)
     {
-        var path = FindPath(unit.transform.position, new Vector2 (tile.transform.position.x, tile.transform.position.y), unit.GetComponent<Stats>().TempSz);
+        var path = FindPath(unit.transform.position, new Vector2 (tile.transform.position.x, tile.transform.position.y));
 
         if(path.Count <= unit.GetComponent<Stats>().TempSz)
         {

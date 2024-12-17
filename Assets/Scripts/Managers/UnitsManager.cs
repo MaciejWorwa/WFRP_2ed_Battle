@@ -328,7 +328,7 @@ public class UnitsManager : MonoBehaviour
             else
             {
                 newUnit.tag = "EnemyUnit";
-                newUnit.GetComponent<Unit>().DefaultColor = new Color(0.72f, 0.15f, 0.17f, 1.0f);
+                newUnit.GetComponent<Unit>().DefaultColor = new Color(0.59f, 0.1f, 0.19f, 1.0f);
             }
             newUnit.GetComponent<Unit>().ChangeUnitColor(newUnit);
 
@@ -566,7 +566,7 @@ public class UnitsManager : MonoBehaviour
         else
         {
             unit.tag = "EnemyUnit";
-            unit.GetComponent<Unit>().DefaultColor = new Color(0.72f, 0.15f, 0.17f, 1.0f);
+            unit.GetComponent<Unit>().DefaultColor = new Color(0.59f, 0.1f, 0.19f, 1.0f);;
         }
         unit.GetComponent<Unit>().ChangeUnitColor(unit);
 

@@ -24877,7 +24877,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1526582158}
   m_HandleRect: {fileID: 1526582157}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -66389,6 +66389,7 @@ MonoBehaviour:
   _savesScrollViewContent: {fileID: 1969017564}
   _buttonPrefab: {fileID: 1192054422147782566, guid: 499c7d0701b6e7741a127a17f0f1b483, type: 3}
   _loadGamePanel: {fileID: 260774175}
+  _saveGamePanel: {fileID: 0}
   _sortByDateToggle: {fileID: 1425611467}
   IsLoading: 0
   IsOnlyUnitsLoading: 0
@@ -74138,7 +74139,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 200, y: -810.26434}
+  m_AnchoredPosition: {x: 200, y: -809.9428}
   m_SizeDelta: {x: 400, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1847806983
@@ -80747,7 +80748,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 481666393}
   m_Direction: 2
   m_Value: 1
-  m_Size: 1
+  m_Size: 0.99999994
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:

@@ -487,7 +487,7 @@ public class SaveAndLoadManager : MonoBehaviour
             }
             else if (unitData.Tag == "EnemyUnit")
             {
-                unitGameObject.GetComponent<Unit>().DefaultColor = new Color(0.72f, 0.15f, 0.17f, 1.0f);
+                unitGameObject.GetComponent<Unit>().DefaultColor = new Color(0.59f, 0.1f, 0.19f, 1.0f);
             }
             unitGameObject.tag = unitData.Tag;
             unitGameObject.GetComponent<Unit>().ChangeUnitColor(unitGameObject);

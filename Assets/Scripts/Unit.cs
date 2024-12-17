@@ -106,11 +106,11 @@ public class Unit : MonoBehaviour
             MovementManager.Instance.UpdateMovementRange(1); //Resetuje szarżę lub bieg, jeśli były aktywne
             MovementManager.Instance.Retreat(false); //Resetuje bezpieczny odwrót
 
-            //Resetuje przycisk celowania i pozycji obronne jeśli były aktywne
-            AimingBonus = 0;
-            CombatManager.Instance.UpdateAimButtonColor(); 
-            DefensiveBonus = 0;
-            CombatManager.Instance.UpdateDefensiveStanceButtonColor(); 
+            // //Resetuje przycisk celowania i pozycji obronne jeśli były aktywne
+            // AimingBonus = 0;
+            // CombatManager.Instance.UpdateAimButtonColor(); 
+            // DefensiveBonus = 0;
+            // CombatManager.Instance.UpdateDefensiveStanceButtonColor(); 
 
             //Zamyka aktywne panele
             GameManager.Instance.HideActivePanels(); 
@@ -132,8 +132,8 @@ public class Unit : MonoBehaviour
             LastSelectedUnit = SelectedUnit;
             SelectedUnit = this.gameObject;
 
-            CombatManager.Instance.UpdateAimButtonColor(); //Resetuje przycisk celowania jeśli był aktywny
-            CombatManager.Instance.UpdateDefensiveStanceButtonColor(); //Resetuje przycisk pozycji obronnej jeśli był aktywny
+            CombatManager.Instance.UpdateAimButtonColor();
+            CombatManager.Instance.UpdateDefensiveStanceButtonColor();
 
             //Odświeża listę ekwipunku
             InventoryManager.Instance.InventoryScrollViewContent.GetComponent<CustomDropdown>().SelectedIndex = 0;

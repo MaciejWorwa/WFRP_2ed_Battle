@@ -333,7 +333,6 @@ public class MagicManager : MonoBehaviour
 
         // Lista i słownik wszystkich wyników rzutów, potrzebne do sprawdzenia wystąpienia manifestacji chaosu
         List<int> allRollResults = new List<int>();
-        Dictionary<int, int> doubletCount = new Dictionary<int, int>();
 
         string resultString = "Wynik rzutu na poziom mocy - ";
 
@@ -393,46 +392,29 @@ public class MagicManager : MonoBehaviour
             Debug.Log($"Uzyskany poziom mocy na kościach: {castingNumber - modifier}.{modifierString} Wymagany poziom mocy: <color=green>{spellCastingNumber}</color>");
         }
 
-        // Liczenie dubletów
-        foreach (int rollResult in allRollResults)
-        {
-            if (!doubletCount.ContainsKey(rollResult))
-            {
-                doubletCount.Add(rollResult, 1); // jeśli wartość nie istnieje w słowniku, dodajemy ją i ustawiamy licznik na 1
-            }
-            else
-            {
-                doubletCount[rollResult] += 1; // jeśli wartość istnieje w słowniku, zwiększamy jej licznik
-            }
-                
-        }
-
-        // Rzuty na manifestację w zależności od ilości wyników, które się powtórzyły
-        foreach (KeyValuePair<int, int> kvp in doubletCount)
-        {
-            int count = kvp.Value;
-            if (count == 1) continue;
-
-            int value = kvp.Key;
-            int rollResult = UnityEngine.Random.Range(1, 101);
-
-            if (count == 2)
-            {  
-                Debug.Log($"Wartość {value} wypadła {count} razy. Występuje pomniejsza manifestacja Chaosu! Wynik rzutu na manifestację: {rollResult}");
-            }
-            else if (count == 3)
-            {
-                Debug.Log($"Wartość {value} wypadła {count} razy. Występuje poważna manifestacja Chaosu! Wynik rzutu na manifestację: {rollResult}");
-            }
-            else if (count > 3)
-            {
-                Debug.Log($"Wartość {value} wypadła {count} razy. Występuje katastrofalna manifestacja Chaosu! Wynik rzutu na manifestację: {rollResult}");
-            }
-        }
+        CheckForChaosManifestation(allRollResults);
 
         stats.GetComponent<Unit>().CanCastSpell = false;
 
         return castingNumber+ Unit.SelectedUnit.GetComponent<Unit>().CastingNumberBonus;
+    }
+
+    private void CheckForChaosManifestation(List<int> allRollResults)
+    {
+        var groupedResults = allRollResults.GroupBy(x => x).Where(g => g.Count() > 1);
+
+        foreach (var group in groupedResults)
+        {
+            string type = group.Count() switch
+            {
+                2 => "pomniejsza",
+                3 => "poważna",
+                _ => "katastrofalna"
+            };
+
+            int roll = UnityEngine.Random.Range(1, 101);
+            Debug.Log($"Wartość {group.Key} wypadła {group.Count()} razy. <color=red>Występuje {type} manifestacja Chaosu!</color> Wynik rzutu na manifestację: {roll}.");
+        }
     }
 
     private void HandleSpellEffect(Stats spellcasterStats, Stats targetStats, Spell spell)

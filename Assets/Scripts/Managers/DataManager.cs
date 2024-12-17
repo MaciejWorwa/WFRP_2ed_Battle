@@ -236,9 +236,6 @@ public class DataManager : MonoBehaviour
         UnitsManager.IsTileSelecting = false;
 
         Debug.Log($"Jednostka '{buttonName}' została usunięta z listy zapisanych jednostek.");
-
-        Debug.Log($"Liczba dzieci w _unitScrollViewContent: {_unitScrollViewContent.childCount}");
-        Debug.Log($"Liczba przycisków w Buttons: {dropdown.Buttons.Count}");
     }
     #endregion
 
@@ -370,13 +367,15 @@ public class DataManager : MonoBehaviour
             spellToUpdate = Unit.SelectedUnit.GetComponent<Spell>();
         }
 
+        //Filtrowanie listy zaklęć wg wybranej tradycji
+        string selectedLore = _spellLoresDropdown.options[_spellLoresDropdown.value].text;
+
         // Czyści obecną listę
         _spellbookScrollViewContent.GetComponent<CustomDropdown>().ClearButtons();
 
         foreach (var spell in spellsList)
         {
             //Filtrowanie listy zaklęć wg wybranej tradycji
-            string selectedLore = _spellLoresDropdown.options[_spellLoresDropdown.value].text;
             if (spell.Lore != selectedLore && selectedLore != "Wszystkie zaklęcia") continue;
 
             //Dodaje zaklęcie do ScrollViewContent w postaci buttona
@@ -403,10 +402,8 @@ public class DataManager : MonoBehaviour
                 _spellbookScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(currentIndex); // Wybiera element i aktualizuje jego wygląd
             });
 
-            if (spellToUpdate != null && spell.Name == spellName)
+            if (spellToUpdate != null && spell.Name == spellName && spellToUpdate.Name != spell.Name)
             {
-                if (spellToUpdate.Name == spell.Name) return;
-
                 // Używanie refleksji do aktualizacji wartości wszystkich pól w klasie Spell
                 FieldInfo[] fields = typeof(SpellData).GetFields(BindingFlags.Instance | BindingFlags.Public);
                 foreach (var field in fields)
