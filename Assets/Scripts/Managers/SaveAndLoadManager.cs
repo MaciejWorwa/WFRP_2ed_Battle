@@ -139,7 +139,7 @@ public class SaveAndLoadManager : MonoBehaviour
         String filePath = Application.persistentDataPath + "/" + savesFolderName;
 
         //Jeśli kopiujemy jednostki do schowka, to czyścimy schowek
-        if (Directory.Exists(filePath))
+        if (Directory.Exists(filePath) && savesFolderName != "savedUnitsList")
         {
             Directory.Delete(filePath, true); // Usuwa katalog wraz z zawartością
         }
@@ -180,7 +180,8 @@ public class SaveAndLoadManager : MonoBehaviour
 
         if(savesFolderName == "savedUnitsList")
         {
-            Debug.Log("Jednostka została zapisana.");
+            Debug.Log($"Jednostka '{Unit.SelectedUnit.GetComponent<Stats>().Name}' została zapisana.");
+            DataManager.Instance.LoadAndUpdateStats();
         }
     }
 
@@ -260,7 +261,7 @@ public class SaveAndLoadManager : MonoBehaviour
         // Zbieranie danych TileCover
         foreach (var tileCover in MapEditor.Instance.AllTileCovers)
         {
-            if(tileCover == null) continue;   
+            if(tileCover == null) continue;
             TileCoverData data = new TileCoverData(tileCover.transform.position, tileCover.GetComponent<TileCover>().Number);
             container.TileCovers.Add(data);
         }
@@ -503,6 +504,9 @@ public class SaveAndLoadManager : MonoBehaviour
             LoadComponentDataWithReflection<StatsData, Stats>(unitGameObject, statsFilePath);
             LoadComponentDataWithReflection<UnitData, Unit>(unitGameObject, unitFilePath);
             LoadComponentDataWithReflection<WeaponData, Weapon>(unitGameObject, weaponFilePath);
+   
+            //Dodaje jednostkę do kolejki inicjatywy
+            InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(unitGameObject.GetComponent<Unit>());
 
             //Wczytanie ekwipunku jednostki
             InventoryData inventoryData = JsonUtility.FromJson<InventoryData>(File.ReadAllText(inventoryFilePath));
@@ -550,9 +554,6 @@ public class SaveAndLoadManager : MonoBehaviour
                 TokenData tokenData = JsonUtility.FromJson<TokenData>(tokenJson);
                 StartCoroutine(TokensManager.Instance.LoadTokenImage(tokenData.filePath, Unit.SelectedUnit));
             }
-
-            //Dodaje jednostkę do kolejki inicjatywy
-            InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(unitGameObject.GetComponent<Unit>());
 
             if (unitGameObject.GetComponent<Unit>().IsSelected) unitGameObject.GetComponent<Unit>().SelectUnit();
 

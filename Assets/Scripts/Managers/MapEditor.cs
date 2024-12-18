@@ -625,16 +625,19 @@ public class MapEditor : MonoBehaviour
     #endregion
 
     #region Covering map
-    private void RefreshTileCoversList()
+    public void RefreshTileCoversList()
     {
         // Usuwamy brakujące referencje
         AllTileCovers.RemoveAll(element => element == null);
 
         // Dodajemy nowe elementy (jeśli istnieją) do listy AllTileCovers
-        foreach (var element in GameObject.FindGameObjectsWithTag("TileCover"))
+        foreach (var element in FindObjectsByType<TileCover>(FindObjectsSortMode.None))
         {
+            Debug.Log("dodajemy " + element.name);
+
             if (!AllTileCovers.Contains(element.gameObject))
             {
+                Debug.Log("naprawde dodajemy " + element.name);
                 AllTileCovers.Add(element.gameObject);
             }
         }

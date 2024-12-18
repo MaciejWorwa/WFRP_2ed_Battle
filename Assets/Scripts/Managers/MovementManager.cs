@@ -313,13 +313,27 @@ public class MovementManager : MonoBehaviour
         {
             CombatManager.Instance.ChangeAttackType("StandardAttack"); //Resetuje szarże jako obecny typ ataku i ustawia standardowy atak
         }
-
-        //Oblicza obecną szybkość
+        
+        //Sprawdza, czy zbroja nie jest wynikiem zaklęcia Pancerz Eteru
+        bool etherArmor = false;
+        if(MagicManager.Instance.UnitsStatsAffectedBySpell != null && MagicManager.Instance.UnitsStatsAffectedBySpell.Count > 0)
+        {
+            //Przeszukanie statystyk jednostek, na które działają zaklęcia czasowe
+            for (int i = 0; i < MagicManager.Instance.UnitsStatsAffectedBySpell.Count; i++)
+            {
+                //Jeżeli wcześniejsza wartość zbroi (w tym przypadku na głowie, ale to może być dowolna lokalizacja) jest inna niż obecna, świadczy to o użyciu Pancerzu Eteru
+                if (MagicManager.Instance.UnitsStatsAffectedBySpell[i].Name == stats.Name && MagicManager.Instance.UnitsStatsAffectedBySpell[i].Armor_head != stats.Armor_head)
+                {
+                    etherArmor = true;
+                }
+            }
+        }
         //Uwzględnia karę do Szybkości za zbroję płytową
         bool has_plate_armor = (stats.Armor_head >= 5 || stats.Armor_torso >= 5 || stats.Armor_arms >= 5 || stats.Armor_legs >= 5);
         bool is_sturdy = stats.Sturdy;
-        int movement_armor_penalty = (has_plate_armor && !is_sturdy) ? 1 : 0;
+        int movement_armor_penalty = (has_plate_armor && !is_sturdy && !etherArmor) ? 1 : 0;
 
+        //Oblicza obecną szybkość
         stats.TempSz = (stats.Sz - movement_armor_penalty) * modifier;
 
         // Aktualizuje podświetlenie pól w zasięgu ruchu

@@ -397,9 +397,8 @@ public class CombatManager : MonoBehaviour
                     Debug.Log($"{attackerStats.Name} wyrzucił <color=red>PECHA</color> na trafienie!");
                     _isSuccessful = false;
                 }
-                else if(rollResult <= 5)
+                else if(rollResult <= 5 && !(attackerWeapon.Quality != "Magiczna" && targetStats.Ethereal))
                 {
-                    Debug.Log($"{attackerStats.Name} wyrzucił <color=green>SZCZĘŚCIE</color> na trafienie!</color>");
                     _isSuccessful = true;
                 }
             }         
@@ -1254,8 +1253,22 @@ public class CombatManager : MonoBehaviour
         }
 
         //Uwzględnia karę do uników za ciężką zbroję
+        //Sprawdza, czy zbroja nie jest wynikiem zaklęcia Pancerz Eteru
+        bool etherArmor = false;
+        if(MagicManager.Instance.UnitsStatsAffectedBySpell != null && MagicManager.Instance.UnitsStatsAffectedBySpell.Count > 0)
+        {
+            //Przeszukanie statystyk jednostek, na które działają zaklęcia czasowe
+            for (int i = 0; i < MagicManager.Instance.UnitsStatsAffectedBySpell.Count; i++)
+            {
+                //Jeżeli wcześniejsza wartość zbroi (w tym przypadku na głowie, ale to może być dowolna lokalizacja) jest inna niż obecna, świadczy to o użyciu Pancerzu Eteru
+                if (MagicManager.Instance.UnitsStatsAffectedBySpell[i].Name == targetStats.Name && MagicManager.Instance.UnitsStatsAffectedBySpell[i].Armor_head != targetStats.Armor_head)
+                {
+                    etherArmor = true;
+                }
+            }
+        }
         int dodgeModifier = 0;
-        if(targetStats.Armor_head >= 3 || targetStats.Armor_torso >= 3 || targetStats.Armor_arms >= 3 || targetStats.Armor_legs >= 3)
+        if((targetStats.Armor_head >= 3 || targetStats.Armor_torso >= 3 || targetStats.Armor_arms >= 3 || targetStats.Armor_legs >= 3) && !etherArmor)
         {
             dodgeModifier = -10;
         }
@@ -1548,6 +1561,15 @@ public class CombatManager : MonoBehaviour
         if (rollResult < attributeValue)
         {
             unit.Trapped = false;
+
+            foreach (var u in UnitsManager.Instance.AllUnits)
+            {
+                if(unit.UnitId == u.TrappedUnitId)
+                {
+                    u.TrappedUnitId = 0;
+                }
+            }
+
             Debug.Log($"{unitStats.Name} uwolnił/a się.");
         }
         else

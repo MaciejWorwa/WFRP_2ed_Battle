@@ -24780,7 +24780,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1526582158}
   m_HandleRect: {fileID: 1526582157}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -34542,6 +34542,7 @@ MonoBehaviour:
   _spellbookDropdown: {fileID: 748286882}
   _castSpellButton: {fileID: 346346628}
   SpellBook: []
+  UnitsStatsAffectedBySpell: []
 --- !u!4 &869639095
 Transform:
   m_ObjectHideFlags: 0
@@ -80415,8 +80416,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 481666394}
   m_HandleRect: {fileID: 481666393}
   m_Direction: 2
-  m_Value: 1
-  m_Size: 0.99999994
+  m_Value: 0
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:

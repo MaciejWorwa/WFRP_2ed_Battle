@@ -41,7 +41,7 @@ public class MagicManager : MonoBehaviour
     private float _spellDistance;
 
     private List<Stats> _targetsStats; // Lista jednostek, które są wybierane jako cele zaklęcia, które pozwala wybrać więcej niż jeden cel
-    private List<Stats> _unitsStatsAffectedBySpell; // Lista jednostek, na które w danym momencie wpływa jakieś zaklęcie z czasem trwania, np. Pancerz Eteru
+    public List<Stats> UnitsStatsAffectedBySpell; // Lista jednostek, na które w danym momencie wpływa jakieś zaklęcie z czasem trwania, np. Pancerz Eteru
 
     void Start()
     {
@@ -49,7 +49,7 @@ public class MagicManager : MonoBehaviour
         DataManager.Instance.LoadAndUpdateSpells();
 
         _targetsStats = new List<Stats>();
-        _unitsStatsAffectedBySpell = new List<Stats>();
+        UnitsStatsAffectedBySpell = new List<Stats>();
     }
 
     public void ChannelingMagic()
@@ -299,9 +299,9 @@ public class MagicManager : MonoBehaviour
 
     public void ResetSpellEffect(Unit unit)
     {
-        for (int i = 0; i < _unitsStatsAffectedBySpell.Count; i++)
+        for (int i = 0; i < UnitsStatsAffectedBySpell.Count; i++)
         {
-            if (unit.UnitId == _unitsStatsAffectedBySpell[i].GetComponent<Unit>().UnitId)
+            if (unit.UnitId == UnitsStatsAffectedBySpell[i].GetComponent<Unit>().UnitId)
             {
                 // Przywraca pierwotne wartości (sprzed działania zaklęcia) dla wszystkich cech. Celowo pomija obecne punkty żywotności, bo mogły ulec zmianie w trakcie działania zaklęcia.
                 FieldInfo[] fields = typeof(Stats).GetFields(BindingFlags.Public | BindingFlags.Instance);
@@ -310,7 +310,7 @@ public class MagicManager : MonoBehaviour
                     if (field.FieldType == typeof(int) && field.Name != "TempHealth")
                     {
                         int currentValue = (int)field.GetValue(unit.GetComponent<Stats>());
-                        int otherValue = (int)field.GetValue(_unitsStatsAffectedBySpell[i]);
+                        int otherValue = (int)field.GetValue(UnitsStatsAffectedBySpell[i]);
 
                         if (currentValue != otherValue)
                         {
@@ -319,7 +319,7 @@ public class MagicManager : MonoBehaviour
                     }
                 }
 
-                _unitsStatsAffectedBySpell.RemoveAt(i);
+                UnitsStatsAffectedBySpell.RemoveAt(i);
             }
         }
 
@@ -354,13 +354,13 @@ public class MagicManager : MonoBehaviour
 
         bool etherArmor = false;
 
-        if(_unitsStatsAffectedBySpell != null && _unitsStatsAffectedBySpell.Count > 0)
+        if(UnitsStatsAffectedBySpell != null && UnitsStatsAffectedBySpell.Count > 0)
         {
             //Przeszukanie statystyk jednostek, na które działają zaklęcia czasowe
-            for (int i = 0; i < _unitsStatsAffectedBySpell.Count; i++)
+            for (int i = 0; i < UnitsStatsAffectedBySpell.Count; i++)
             {
                 //Jeżeli wcześniejsza wartość zbroi (w tym przypadku na głowie, ale to może być dowolna lokalizacja) jest inna niż obecna, świadczy to o użyciu Pancerzu Eteru
-                if (_unitsStatsAffectedBySpell[i].Name == stats.Name && _unitsStatsAffectedBySpell[i].Armor_head != stats.Armor_head)
+                if (UnitsStatsAffectedBySpell[i].Name == stats.Name && UnitsStatsAffectedBySpell[i].Armor_head != stats.Armor_head)
                 {
                     etherArmor = true;
                 }
@@ -425,7 +425,7 @@ public class MagicManager : MonoBehaviour
         if(spell.Duration != 0 && spell.Type.Contains("buff"))
         {
             //Zakończenie wpływu poprzedniego zaklęcia, jeżeli na wybraną jednostkę już jakieś działało. JEST TO ZROBIONE TYMCZASOWO. TEN LIMIT ZOSTAŁ WPROWADZONY DLA UPROSZCZENIA KODU.
-            if(_unitsStatsAffectedBySpell != null && _unitsStatsAffectedBySpell.Any(stat => stat.GetComponent<Unit>().UnitId == targetUnit.UnitId))
+            if(UnitsStatsAffectedBySpell != null && UnitsStatsAffectedBySpell.Any(stat => stat.GetComponent<Unit>().UnitId == targetUnit.UnitId))
             {
                 ResetSpellEffect(targetUnit);
                 Debug.Log($"Poprzednie zaklęcie wpływające na {targetStats.Name} zostało zresetowane. W obecnej wersji symulatora nie ma możliwości kumulowania efektów wielu zaklęć.");
@@ -441,7 +441,7 @@ public class MagicManager : MonoBehaviour
 
 
 
-            if (_unitsStatsAffectedBySpell == null) Debug.Log("_unitsStatsAffectedBySpell== null");
+            if (UnitsStatsAffectedBySpell == null) Debug.Log("UnitsStatsAffectedBySpell== null");
             if (targetStats == null) Debug.Log("targetStats == null");
 
 
@@ -453,7 +453,7 @@ public class MagicManager : MonoBehaviour
 
 
 
-            _unitsStatsAffectedBySpell.Add(targetStats.Clone());
+            UnitsStatsAffectedBySpell.Add(targetStats.Clone());
         }
 
         //Uwzględnienie testu obronnego

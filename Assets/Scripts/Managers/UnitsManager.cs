@@ -268,7 +268,13 @@ public class UnitsManager : MonoBehaviour
         // Wczytuje dane zapisanej jednostki
         if (IsSavedUnitsManaging)
         {
-            SaveAndLoadManager.Instance.IsLoading = true;
+            //Jeżeli gra już jest w trakcie wczytywania to nie powielamy tego. Jest to istotne, żeby nie wystąpiły błędy przy wczytywaniu gry, jeśli na mapie są zapisane jednostki
+            bool wasLoadingInitially = SaveAndLoadManager.Instance.IsLoading;
+
+            if (!wasLoadingInitially)
+            {
+                SaveAndLoadManager.Instance.IsLoading = true;
+            }
         
             string savedUnitsFolder = Path.Combine(Application.persistentDataPath, "savedUnitsList");
             string baseFileName = newUnit.GetComponent<Stats>().Name;
@@ -313,7 +319,10 @@ public class UnitsManager : MonoBehaviour
                 StartCoroutine(TokensManager.Instance.LoadTokenImage(tokenData.filePath, newUnit));
             }
 
-            SaveAndLoadManager.Instance.IsLoading = false;
+            if (!wasLoadingInitially)
+            {
+                SaveAndLoadManager.Instance.IsLoading = false;
+            }
         }
 
         if (SaveAndLoadManager.Instance.IsLoading != true)
@@ -488,10 +497,22 @@ public class UnitsManager : MonoBehaviour
 
         unit.StunDuration = 0; 
         unit.HelplessDuration = 0;
-        unit.Trapped = false;
         unit.TrappedUnitId = 0;
         unit.IsScared = false;
         unit.IsFearTestPassed = true;
+
+        if(unit.Trapped == true)
+        {
+            unit.Trapped = false;
+
+            foreach (var u in AllUnits)
+            {
+                if(unit.UnitId == u.TrappedUnitId)
+                {
+                    u.TrappedUnitId = 0;
+                }
+            }
+        } 
 
         RoundsManager.Instance.UnitsWithActionsLeft[unit] = 2;
 
@@ -509,6 +530,11 @@ public class UnitsManager : MonoBehaviour
         _selectUnitsButton.gameObject.SetActive(false);
         _updateUnitButton.gameObject.SetActive(true);
         _removeSavedUnitFromListButton.gameObject.SetActive(false);
+
+        if (!AnimationManager.Instance.PanelStates.ContainsKey(panelAnimator))
+        {
+            AnimationManager.Instance.PanelStates[panelAnimator] = false; // Domyślny stan panelu
+        }
 
         //Jeśli panel edycji jednostek jest schowany to wysuwamy go
         if(AnimationManager.Instance.PanelStates[panelAnimator] == false)

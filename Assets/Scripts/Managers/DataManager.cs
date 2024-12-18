@@ -312,6 +312,9 @@ public class DataManager : MonoBehaviour
                 }
             }
 
+            //Gdy wczytujemy ekwipunek postaci to przerywamy funkcję, żeby na liście dostępnych broni nie pojawiały się customowe przedmioty
+            if(weaponData != null) return;
+
             bool buttonExists = _weaponScrollViewContent.GetComponentsInChildren<TextMeshProUGUI>().Any(t => t.text == weapon.Name);
 
             if(buttonExists == false)
