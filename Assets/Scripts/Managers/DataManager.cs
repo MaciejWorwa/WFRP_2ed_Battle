@@ -587,6 +587,16 @@ public class StatsData
     public bool QuickDraw; // Szybkie wyciągnięcie
     public int Channeling; // Splatanie magii
     public int Dodge; // Unik
+    public int HighestDamageDealt; // Największe zadane obrażenia
+    public int TotalDamageDealt; // Suma zadanych obrażeń
+    public int HighestDamageTaken; // Największe otrzymane obrażenia
+    public int TotalDamageTaken; // Suma otrzymanych obrażeń
+    public int OpponentsKilled; // Zabici przeciwnicy
+    public string StrongestDefeatedOpponent; // Najsilniejszy pokonany przeciwnik
+    public int StrongestDefeatedOpponentOverall; // Overall najsilniejszego pokonanego przeciwnika
+    public int RoundsPlayed; // Suma rozegranych rund
+    public int FortunateEvents; // Ilość "Szczęść"
+    public int UnfortunateEvents; // Ilość "Pechów"
 
     public StatsData(Stats stats)
     {
@@ -696,6 +706,9 @@ public class InventoryData
 {
     public List<WeaponData> AllWeapons = new List<WeaponData>(); //Wszystkie posiadane przez postać przedmioty
     public int[] EquippedWeaponsId = new int[2]; // Tablica identyfikatorów broni trzymanych w rękach
+    public int CopperCoins;
+    public int SilverCoins;
+    public int GoldCoins;
 
     public InventoryData(Inventory inventory)
     {
@@ -713,6 +726,10 @@ public class InventoryData
                 EquippedWeaponsId[i] = inventory.EquippedWeapons[i].Id;
             }
         }
+
+        CopperCoins = inventory.CopperCoins;
+        SilverCoins = inventory.SilverCoins;
+        GoldCoins = inventory.GoldCoins;
     }
 }
 

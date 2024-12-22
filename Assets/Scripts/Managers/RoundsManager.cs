@@ -122,6 +122,9 @@ public class RoundsManager : MonoBehaviour
                     key.TrappedUnitId = 0;
                 }
             }
+
+            //Aktualizuje osiągnięcia
+            key.GetComponent<Stats>().RoundsPlayed ++;
         }
 
         //Wykonuje testy grozy i strachu jeśli na polu bitwy są jednostki straszne lub przerażające

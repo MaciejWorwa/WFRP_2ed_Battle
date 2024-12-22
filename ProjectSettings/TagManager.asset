@@ -13,6 +13,7 @@ TagManager:
   - MapElement
   - WeaponAttribute
   - TileCover
+  - Achievement
   layers:
   - Default
   - TransparentFX

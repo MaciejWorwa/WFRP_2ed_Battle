@@ -59,6 +59,8 @@ public class Unit : MonoBehaviour
 
         CalculateStrengthAndToughness(); // Liczy siłę i wytrzymałość
 
+        Stats.CalculateOverall();
+
         DisplayUnitHealthPoints();
 
         //Aktualizuje kolejkę inicjatywy
@@ -143,7 +145,10 @@ public class Unit : MonoBehaviour
         ChangeUnitColor(this.gameObject);
         GridManager.Instance.HighlightTilesInMovementRange(Stats);
 
-        //Aktualizuje panel ze statystykami postaci na górze ekranu
+        //Wczytuje osiągnięcia jednostki
+        UnitsManager.Instance.LoadAchievements(SelectedUnit);
+
+        //Aktualizuje panel ze statystykami jednostki
         UnitsManager.Instance.UpdateUnitPanel(SelectedUnit);
 
         //Zaznacza lub odznacza jednostkę na kolejce inicjatywy

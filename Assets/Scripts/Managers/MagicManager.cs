@@ -579,6 +579,19 @@ public class MagicManager : MonoBehaviour
 
         Debug.Log($"{spellcasterStats.Name} wyrzucił {rollResult} i zadał {damage} obrażeń.");
 
+        //Aktualizuje osiągnięcia
+        spellcasterStats.TotalDamageDealt += damage;
+        if(damage > spellcasterStats.HighestDamageDealt)
+        {
+            spellcasterStats.HighestDamageDealt = damage;
+        }
+
+        targetStats.TotalDamageTaken += damage;
+        if(damage > targetStats.HighestDamageTaken)
+        {
+            targetStats.HighestDamageTaken = damage;
+        }
+
         //Zadanie obrażeń
         if (damage > (targetStats.Wt + armor))
         {
@@ -598,10 +611,7 @@ public class MagicManager : MonoBehaviour
         //Śmierć
         if (targetStats.TempHealth < 0 && GameManager.IsAutoKillMode)
         {
-            UnitsManager.Instance.DestroyUnit(targetStats.gameObject);
-
-            //Aktualizuje podświetlenie pól w zasięgu ruchu atakującego (inaczej pozostanie puste pole w miejscu usuniętego przeciwnika)
-            GridManager.Instance.HighlightTilesInMovementRange(spellcasterStats);
+            CombatManager.Instance.HandleDeath(targetStats, targetStats.gameObject, spellcasterStats);
         }
     }
 

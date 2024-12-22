@@ -361,6 +361,12 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("Tryb automatycznej walki został wyłączony. Wszystkie akcje będą wykonywane ręcznie.");
         }
+
+        //Wyłącza, lub włącza podświetlenie pól w zasięgu ruchu
+        if(Unit.SelectedUnit != null)
+        {
+            GridManager.Instance.HighlightTilesInMovementRange(Unit.SelectedUnit.GetComponent<Stats>());
+        }
     }
     public void SetAutoRollingDiceMode()
     {

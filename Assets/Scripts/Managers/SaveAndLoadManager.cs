@@ -534,18 +534,24 @@ public class SaveAndLoadManager : MonoBehaviour
                 DataManager.Instance.LoadAndUpdateWeapons(weapon);
             }
             //Wczytanie aktualnie dobytych broni
-            foreach(var weapon in Unit.SelectedUnit.GetComponent<Inventory>().AllWeapons)
+            Inventory inventory = Unit.SelectedUnit.GetComponent<Inventory>();
+            foreach(var weapon in inventory.AllWeapons)
             {
                 if(weapon.Id == inventoryData.EquippedWeaponsId[0])
                 {
-                    Unit.SelectedUnit.GetComponent<Inventory>().EquippedWeapons[0] = weapon;
+                    inventory.EquippedWeapons[0] = weapon;
                 }
                 if(weapon.Id == inventoryData.EquippedWeaponsId[1])
                 {
-                    Unit.SelectedUnit.GetComponent<Inventory>().EquippedWeapons[1] = weapon;
+                    inventory.EquippedWeapons[1] = weapon;
                 }
             }
             InventoryManager.Instance.CheckForEquippedWeapons();
+
+            //Wczytanie pieniędzy
+            inventory.CopperCoins = inventoryData.CopperCoins;
+            inventory.SilverCoins = inventoryData.SilverCoins;
+            inventory.GoldCoins = inventoryData.GoldCoins;
 
             // Wczytanie tokena, jeśli istnieje
             if (File.Exists(tokenJsonPath))

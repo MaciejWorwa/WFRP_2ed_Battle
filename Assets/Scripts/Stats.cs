@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
 using static UnityEngine.GraphicsBuffer;
+using System.Linq;
 
 public class Stats : MonoBehaviour
 {
@@ -13,6 +14,8 @@ public class Stats : MonoBehaviour
     public int Index;
 
     public bool IsBig;
+
+    public int Overall; // Łączna wartość bojowa jednostki
 
     [Header("Imię")]
     public string Name;
@@ -82,6 +85,19 @@ public class Stats : MonoBehaviour
     [Header("Umiejętności")]
     public int Channeling; // Splatanie magii
     public int Dodge; // Unik
+
+    [Header("Statystyki")]
+    public int HighestDamageDealt; // Największe zadane obrażenia
+    public int TotalDamageDealt; // Suma zadanych obrażeń
+    public int HighestDamageTaken; // Największe otrzymane obrażenia
+    public int TotalDamageTaken; // Suma otrzymanych obrażeń
+    public int OpponentsKilled; // Zabici przeciwnicy
+    public string StrongestDefeatedOpponent; // Najsilniejszy pokonany przeciwnik
+    public int StrongestDefeatedOpponentOverall; // Overall najsilniejszego pokonanego przeciwnika
+    public int RoundsPlayed; // Suma rozegranych rund
+    public int FortunateEvents; // Ilość "Szczęść"
+    public int UnfortunateEvents; // Ilość "Pechów"
+
 
     public void RollForBaseStats()
     {
@@ -155,6 +171,28 @@ public class Stats : MonoBehaviour
 
             Debug.Log($"{Name} zregenerował {woundsToHeal} żywotności.");
         }
+    }
+    
+    public void CalculateOverall()
+    {
+        // Wyznacza większą wartość między WW i US
+        int maxWWorUS = Mathf.Max(WW, US);
+        int minWWorUS = Mathf.Min(WW, US);
+
+        // Sumowanie cech pierwszorzędowych z uwzględnieniem mnożenia większej wartości (WW lub US) przez ilość Ataków
+        int primaryStatsSum = ((maxWWorUS * A) + minWWorUS + K + Odp + Zr + SW);
+
+        // Sumowanie zbroi
+        int totalArmor = Armor_head + Armor_arms + Armor_torso + Armor_legs;
+
+        // Zliczanie aktywnych zdolności
+        int activeAbilitiesCount = GetType()
+            .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+            .Where(field => field.FieldType == typeof(bool) && (bool)field.GetValue(this))
+            .Count();
+
+        // Obliczanie Overall
+        Overall = (primaryStatsSum / 5) + MaxHealth + Sz + totalArmor + activeAbilitiesCount + Channeling + Dodge;
     }
 
     //Zwraca kopię tej klasy

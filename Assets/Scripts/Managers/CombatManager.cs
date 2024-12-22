@@ -396,10 +396,16 @@ public class CombatManager : MonoBehaviour
                 {
                     Debug.Log($"{attackerStats.Name} wyrzucił <color=red>PECHA</color> na trafienie!");
                     _isSuccessful = false;
+
+                    //Aktualizuje osiągnięcia
+                    attackerStats.UnfortunateEvents ++;
                 }
                 else if(rollResult <= 5 && !(attackerWeapon.Quality != "Magiczna" && targetStats.Ethereal))
                 {
                     _isSuccessful = true;
+   
+                    //Aktualizuje osiągnięcia
+                    attackerStats.FortunateEvents ++;
                 }
             }         
 
@@ -541,6 +547,13 @@ public class CombatManager : MonoBehaviour
 
                     Debug.Log($"{attackerStats.Name} zadał {damage} obrażeń.");
 
+                    //Aktualizuje osiągnięcia
+                    attackerStats.TotalDamageDealt += damage;
+                    if(damage > attackerStats.HighestDamageDealt)
+                    {
+                        attackerStats.HighestDamageDealt = damage;
+                    }
+
                     //Zadaje obrażenia
                     ApplyDamage(damage, targetStats, armor, target);
 
@@ -579,6 +592,13 @@ public class CombatManager : MonoBehaviour
 
                 Debug.Log($"{attackerStats.Name} zadał {damage} obrażeń.");
 
+                //Aktualizuje osiągnięcia
+                attackerStats.TotalDamageDealt += damage;
+                if(damage > attackerStats.HighestDamageDealt)
+                {
+                    attackerStats.HighestDamageDealt = damage;
+                }
+
                 //Zadaje obrażenia
                 ApplyDamage(damage, targetStats, armor, target);
             }
@@ -599,6 +619,13 @@ public class CombatManager : MonoBehaviour
     // Obliczanie i stosowanie obrażeń
     private void ApplyDamage(int damage, Stats targetStats, int armor, Unit targetUnit)
     {
+        //Aktualizuje osiągnięcia
+        targetStats.TotalDamageTaken += damage;
+        if(damage > targetStats.HighestDamageTaken)
+        {
+            targetStats.HighestDamageTaken = damage;
+        }
+
         if (damage > targetStats.Wt + armor)
         {
             targetStats.TempHealth -= damage - (targetStats.Wt + armor);
@@ -643,7 +670,7 @@ public class CombatManager : MonoBehaviour
         }
     }
 
-    private void HandleDeath(Stats targetStats, GameObject target, Stats attackerStats)
+    public void HandleDeath(Stats targetStats, GameObject target, Stats attackerStats)
     {
         // Zapobiega usunięciu postaci graczy, gdy statystyki przeciwników są ukryte
         if (GameManager.IsStatsHidingMode && targetStats.gameObject.CompareTag("PlayerUnit"))
@@ -652,6 +679,14 @@ public class CombatManager : MonoBehaviour
         }
 
         StartCoroutine(AnimationManager.Instance.PlayAnimation("kill", attackerStats.gameObject, target));
+
+        //Aktualizuje osiągnięcia
+        attackerStats.OpponentsKilled ++;
+        if(attackerStats.StrongestDefeatedOpponentOverall < targetStats.Overall)
+        {
+            attackerStats.StrongestDefeatedOpponentOverall = targetStats.Overall;
+            attackerStats.StrongestDefeatedOpponent = targetStats.Name;
+        }
 
         // Usuwanie jednostki
         UnitsManager.Instance.DestroyUnit(target);
@@ -1360,6 +1395,9 @@ public class CombatManager : MonoBehaviour
         if(rollResult <= 5)
         {
             Debug.Log($"{targetStats.Name} wyrzucił <color=green>SZCZĘŚCIE</color> na parowanie!</color>");
+ 
+            //Aktualizuje osiągnięcia
+            targetStats.FortunateEvents ++;
             return true;
         }
         else if (rollResult <= targetStats.WW + parryModifier && rollResult < 96)
@@ -1369,6 +1407,9 @@ public class CombatManager : MonoBehaviour
         else if (rollResult >= 96)
         {
             Debug.Log($"{targetStats.Name} wyrzucił <color=red>PECHA</color> na parowanie!");
+                        
+            //Aktualizuje osiągnięcia
+            targetStats.UnfortunateEvents ++;
             return false;
         }
         else
@@ -1396,6 +1437,9 @@ public class CombatManager : MonoBehaviour
         if(rollResult <= 5)
         {
             Debug.Log($"{targetStats.Name} wyrzucił <color=green>SZCZĘŚCIE</color> na unik!</color>");
+
+            //Aktualizuje osiągnięcia
+            targetStats.FortunateEvents ++;
             return true;
         }
         else if (rollResult <= targetStats.Zr + (targetStats.Dodge * 10) - 10 + modifier + targetStats.GetComponent<Unit>().GuardedAttackBonus && rollResult < 96)
@@ -1405,6 +1449,9 @@ public class CombatManager : MonoBehaviour
         else if (rollResult >= 96)
         {
             Debug.Log($"{targetStats.Name} wyrzucił <color=red>PECHA</color> na unik!");
+
+            //Aktualizuje osiągnięcia
+            targetStats.UnfortunateEvents ++;
             return false;
         }
         else

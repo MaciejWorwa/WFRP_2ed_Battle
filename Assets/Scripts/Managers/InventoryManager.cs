@@ -46,6 +46,9 @@ public class InventoryManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button _rightHandButtonLowerBar;
     [SerializeField] private TMP_Text _equippedWeaponsDisplay; // Wyświetlenie nazw dobytych broni w panelu jednostki
     [SerializeField] private UnityEngine.UI.Slider _reloadBar; // Pasek pokazujący stan naładowania broni dystansowej
+    [SerializeField] private TMP_InputField _copperCoinsInput;
+    [SerializeField] private TMP_InputField _silverCoinsInput;
+    [SerializeField] private TMP_InputField _goldCoinsInput;
 
     void Start()
     {
@@ -509,6 +512,10 @@ public class InventoryManager : MonoBehaviour
         if(Unit.SelectedUnit != null)
         {
             _inventoryPanel.transform.Find("inventory_name").GetComponent<TMP_Text>().text = "Ekwipunek " + Unit.SelectedUnit.GetComponent<Stats>().Name;
+
+            _copperCoinsInput.text = Unit.SelectedUnit.GetComponent<Inventory>().CopperCoins.ToString();
+            _silverCoinsInput.text = (Unit.SelectedUnit.GetComponent<Inventory>().SilverCoins).ToString();
+            _goldCoinsInput.text = (Unit.SelectedUnit.GetComponent<Inventory>().GoldCoins).ToString();
         }
 
         ResetInventoryDropdown();
@@ -683,4 +690,266 @@ public class InventoryManager : MonoBehaviour
             _reloadBar.gameObject.SetActive(false);
         }
     }
+
+    #region Money managing
+    public void UpdateMoneyAmount(TMP_InputField inputField)
+    {
+        if (Unit.SelectedUnit == null) return;
+
+        Inventory inventory = Unit.SelectedUnit.GetComponent<Inventory>();
+
+        string rawText = inputField.text.Trim();
+        bool isAddition = false;
+
+        // Sprawdzamy czy jest znak '+' na początku.
+        if (rawText.StartsWith("+"))
+        {
+            isAddition = true;
+            rawText = rawText.Substring(1).Trim();
+        }
+
+        // Próba parsowania wpisanej wartości
+        int inputValue;
+        if (!int.TryParse(rawText, out inputValue))
+        {
+            Debug.LogError("Wprowadzono nieprawidłową wartość!");
+            return;
+        }
+
+        // Rozróżniamy przypadki: ustawianie wartości, dodawanie, odejmowanie
+        if (isAddition)
+        {
+            // Dodajemy do aktualnej wartości
+            AddCoins(inventory, inputField, inputValue);
+        }
+        else if (inputValue < 0)
+        {
+            // Odejmowanie (inputValue jest ujemne)
+            SubtractCoins(inventory, inputField, -inputValue); 
+        }
+        else
+        {
+            // Ustawianie wartości na sztywno (wartość >= 0, brak plusa)
+            SetCoins(inventory, inputField, inputValue);
+        }
+
+        // Normalizujemy walutę – konwertujemy nadmiary/deficyty
+        NormalizeCoins(inventory);
+
+        // Uaktualniamy pola tekstowe w UI
+        UpdateMoneyInputFields(inventory);
+    }
+
+    // Dodaje określoną liczbę monet do właściwego typu (Gold, Silver lub Copper).
+    private void AddCoins(Inventory inventory, TMP_InputField inputField, int amount)
+    {
+        if (inputField == _goldCoinsInput)
+        {
+            inventory.GoldCoins += amount;
+        }
+        else if (inputField == _silverCoinsInput)
+        {
+            inventory.SilverCoins += amount;
+        }
+        else if (inputField == _copperCoinsInput)
+        {
+            inventory.CopperCoins += amount;
+        }
+    }
+
+    // Ustawia (nadpisuje) wartość w danym polu (Gold, Silver lub Copper).
+    private void SetCoins(Inventory inventory, TMP_InputField inputField, int newValue)
+    {
+        if (inputField == _goldCoinsInput)
+        {
+            inventory.GoldCoins = newValue;
+        }
+        else if (inputField == _silverCoinsInput)
+        {
+            inventory.SilverCoins = newValue;
+        }
+        else if (inputField == _copperCoinsInput)
+        {
+            inventory.CopperCoins = newValue;
+        }
+    }
+
+    // Odejmuje z określonego typu monety.  
+    // Jeśli środków nie wystarczy, próbuje pobrać różnicę z innych monet.  
+    // Jeśli nadal nie wystarczy, zeruje wszystko.
+    private void SubtractCoins(Inventory inventory, TMP_InputField inputField, int amountToSubtract)
+    {
+        // Wskazujemy, na którym typie monety wykonujemy odejmowanie.
+        if (inputField == _goldCoinsInput)
+        {
+            SubtractFromGold(inventory, amountToSubtract);
+        }
+        else if (inputField == _silverCoinsInput)
+        {
+            SubtractFromSilver(inventory, amountToSubtract);
+        }
+        else if (inputField == _copperCoinsInput)
+        {
+            SubtractFromCopper(inventory, amountToSubtract);
+        }
+    }
+
+    // Odejmuje najpierw z CopperCoins, w razie deficytu próbuje użyć SilverCoins,
+    // a jeśli to nie wystarczy – GoldCoins (wszystko zgodnie z przelicznikiem).
+    private void SubtractFromCopper(Inventory inv, int amount)
+    {
+        if (amount <= inv.CopperCoins)
+        {
+            // Mamy wystarczająco w copper
+            inv.CopperCoins -= amount;
+        }
+        else
+        {
+            // Brakuje w copper
+            int deficit = amount - inv.CopperCoins;
+            inv.CopperCoins = 0;
+
+            // Próbujemy pobrać z SilverCoins
+            int silverNeeded = Mathf.CeilToInt(deficit / 12f); // 1 Silver = 12 Copper
+            if (silverNeeded <= inv.SilverCoins)
+            {
+                inv.SilverCoins -= silverNeeded;
+                // Po “przelaniu” Silver → Copper, musimy jeszcze odjąć pozostały deficyt z Copper
+                inv.CopperCoins = silverNeeded * 12 - deficit; 
+            }
+            else
+            {
+                // Za mało Silver, więc zgarniamy wszystko z Silver i idziemy dalej
+                deficit -= inv.SilverCoins * 12;
+                inv.SilverCoins = 0;
+
+                // Próbujemy pobrać z GoldCoins
+                int goldNeeded = Mathf.CeilToInt(deficit / 240f); // 1 Gold = 240 Copper
+                if (goldNeeded <= inv.GoldCoins)
+                {
+                    inv.GoldCoins -= goldNeeded;
+                    // Po “przelaniu” Gold → Copper, odejmujemy pozostały deficyt z Copper
+                    inv.CopperCoins = goldNeeded * 240 - deficit;
+                }
+                else
+                {
+                    // Jeśli nawet Gold nie wystarczy, zerujemy wszystko
+                    inv.GoldCoins = 0;
+                    inv.SilverCoins = 0;
+                    inv.CopperCoins = 0;
+                }
+            }
+        }
+    }
+
+    // Odejmuje najpierw z SilverCoins, w razie deficytu próbuje użyć GoldCoins.
+    // Jeśli dalej brakuje, zero dla wszystkich.
+    private void SubtractFromSilver(Inventory inv, int amount)
+    {
+        if (amount <= inv.SilverCoins)
+        {
+            inv.SilverCoins -= amount;
+        }
+        else
+        {
+            // Brakuje w silver
+            int deficit = amount - inv.SilverCoins;
+            inv.SilverCoins = 0;
+
+            // Próbujemy pobrać z GoldCoins
+            if (deficit <= inv.GoldCoins * 20) // 1 Gold = 20 Silver
+            {
+                int goldNeeded = Mathf.CeilToInt(deficit / 20f);
+                inv.GoldCoins -= goldNeeded;
+                // “Przelewamy” z Gold do Silver i odejmujemy pozostały deficyt
+                inv.SilverCoins = goldNeeded * 20 - deficit;
+            }
+            else
+            {
+                inv.GoldCoins = 0;
+                inv.SilverCoins = 0;
+                inv.CopperCoins = 0;
+            }
+        }
+    }
+
+    // Odejmuje bezpośrednio z GoldCoins. Jeśli zabraknie, zeruje Gold, a resztę zostawia.
+    private void SubtractFromGold(Inventory inv, int amount)
+    {
+        if (amount <= inv.GoldCoins)
+        {
+            inv.GoldCoins -= amount;
+        }
+        else
+        {
+            // Za mało Gold – zerujemy Gold i nic więcej nie jesteśmy w stanie zrobić
+            inv.GoldCoins = 0;
+            inv.SilverCoins = 0;
+            inv.CopperCoins = 0;
+        }
+    }
+
+    // Normalizuje ilość monet, konwertując ewentualne nadmiary z Copper → Silver i Silver → Gold (lub braki Copper ← Silver i Silver ← Gold).
+    private void NormalizeCoins(Inventory inv)
+    {
+        // 1) Nadmiar Copper → Silver
+        if (inv.CopperCoins >= 12)
+        {
+            int silverGained = inv.CopperCoins / 12;  
+            inv.SilverCoins += silverGained;
+            inv.CopperCoins %= 12;
+        }
+        else if (inv.CopperCoins < 0)
+        {
+            // Deficyt w Copper – próbujemy “pożyczyć” z Silver
+            int silverNeeded = Mathf.CeilToInt(Mathf.Abs(inv.CopperCoins) / 12f);
+            if (silverNeeded <= inv.SilverCoins)
+            {
+                inv.SilverCoins -= silverNeeded;
+                inv.CopperCoins += silverNeeded * 12;
+            }
+            else
+            {
+                // Jak brakuje Silver, to finalnie może wyzerować wszystko – 
+                // ale zależy od Twojego założenia. Poniżej domyślnie zeruję.
+                inv.GoldCoins = 0;
+                inv.SilverCoins = 0;
+                inv.CopperCoins = 0;
+            }
+        }
+
+        // 2) Nadmiar Silver → Gold
+        if (inv.SilverCoins >= 20)
+        {
+            int goldGained = inv.SilverCoins / 20;
+            inv.GoldCoins += goldGained;
+            inv.SilverCoins %= 20;
+        }
+        else if (inv.SilverCoins < 0)
+        {
+            // Deficyt w Silver – próbujemy “pożyczyć” z Gold
+            int goldNeeded = Mathf.CeilToInt(Mathf.Abs(inv.SilverCoins) / 20f);
+            if (goldNeeded <= inv.GoldCoins)
+            {
+                inv.GoldCoins -= goldNeeded;
+                inv.SilverCoins += goldNeeded * 20;
+            }
+            else
+            {
+                // Jak brakuje Gold – analogicznie wyzerowanie:
+                inv.GoldCoins = 0;
+                inv.SilverCoins = 0;
+                inv.CopperCoins = 0;
+            }
+        }
+    }
+
+    // Aktualizuje pola inputów na podstawie bieżącej ilości monet w inventory.
+    private void UpdateMoneyInputFields(Inventory inventory)
+    {
+        _goldCoinsInput.text = inventory.GoldCoins.ToString();
+        _silverCoinsInput.text = inventory.SilverCoins.ToString();
+        _copperCoinsInput.text = inventory.CopperCoins.ToString();
+    }
+    #endregion
 }

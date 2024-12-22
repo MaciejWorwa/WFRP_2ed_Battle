@@ -288,9 +288,9 @@ public class UnitsManager : MonoBehaviour
             SaveAndLoadManager.Instance.LoadComponentDataWithReflection<WeaponData, Weapon>(newUnit, weaponFilePath);
 
             // Wczytaj ekwipunek
+            InventoryData inventoryData = JsonUtility.FromJson<InventoryData>(File.ReadAllText(inventoryFilePath));
             if (File.Exists(inventoryFilePath))
             {
-                InventoryData inventoryData = JsonUtility.FromJson<InventoryData>(File.ReadAllText(inventoryFilePath));
                 foreach (var weapon in inventoryData.AllWeapons)
                 {
                     InventoryManager.Instance.AddWeaponToInventory(weapon, newUnit);
@@ -310,6 +310,11 @@ public class UnitsManager : MonoBehaviour
                 }
                 InventoryManager.Instance.CheckForEquippedWeapons();
             }
+
+            //Wczytanie pieniędzy
+            newUnit.GetComponent<Inventory>().CopperCoins = inventoryData.CopperCoins;
+            newUnit.GetComponent<Inventory>().SilverCoins = inventoryData.SilverCoins;
+            newUnit.GetComponent<Inventory>().GoldCoins = inventoryData.GoldCoins;
 
             // Wczytaj token
             if (File.Exists(tokenJsonPath))
@@ -868,6 +873,9 @@ public class UnitsManager : MonoBehaviour
         {
             _spellbookButton.SetActive(false);
         }
+
+        stats.CalculateOverall();
+
         //_nameDisplay.text = stats.Name;
         _raceDisplay.text = stats.Race;
 
@@ -908,6 +916,15 @@ public class UnitsManager : MonoBehaviour
         GameObject unit = Unit.SelectedUnit;
         LoadAttributes(unit);
     }
+
+    public void LoadAchievementsByButtonClick()
+    {
+        if(Unit.SelectedUnit == null) return;
+
+        GameObject unit = Unit.SelectedUnit;
+        LoadAchievements(unit);
+    }
+    
 
     public void LoadAttributes(GameObject unit)
     {
@@ -970,6 +987,40 @@ public class UnitsManager : MonoBehaviour
 
         UpdateUnitPanel(Unit.SelectedUnit);
     }
+
+    public void LoadAchievements(GameObject unit)
+    {
+        // Wyszukuje wszystkie pola tekstowe i przyciski do ustalania statystyk postaci wewnatrz gry
+        GameObject[] achievementGameObjects = GameObject.FindGameObjectsWithTag("Achievement");
+
+        foreach (var obj in achievementGameObjects)
+        {
+            string achivementName = obj.name.Replace("_text", "");
+            FieldInfo field = unit.GetComponent<Stats>().GetType().GetField(achivementName);
+
+            if(field == null) continue;
+
+            // Jeśli znajdzie takie pole, to zmienia wartość wyświetlanego tekstu na wartość tej cechy
+            if (field.FieldType == typeof(int)) // to działa dla cech opisywanych wartościami int
+            {
+                int value = (int)field.GetValue(unit.GetComponent<Stats>());
+
+                if (obj.GetComponent<TMP_Text>() != null)
+                {
+                    obj.GetComponent<TMP_Text>().text = value.ToString();
+                }
+            }
+            else if (field.FieldType == typeof(string)) // to działa dla cech opisywanych wartościami string
+            {
+                string value = (string)field.GetValue(unit.GetComponent<Stats>());
+
+                if (obj.GetComponent<TMP_Text>() != null)
+                {
+                    obj.GetComponent<TMP_Text>().text = value;
+                }
+            }
+        }
+    }
     #endregion
 
 
@@ -999,6 +1050,23 @@ public class UnitsManager : MonoBehaviour
 
         string resultString;
 
+        // Szczęście lub Pech
+        string luckOrMisfortune = "";
+        if (rollResult <= 5)
+        {
+            luckOrMisfortune = ". <color=green>SZCZĘŚCIE!</color>";
+
+            //Aktualizuje osiągnięcia
+            stats.FortunateEvents ++;
+        }
+        else if (rollResult >= 96)
+        {
+            luckOrMisfortune = ". <color=red>PECH!</color>";
+
+            //Aktualizuje osiągnięcia
+            stats.UnfortunateEvents ++;
+        }
+
         if((rollResult <= value + modifier || rollResult <= 5) && rollResult < 96)
         {
             resultString = "<color=green>Test zdany.</color> Poziomy sukcesu:";
@@ -1008,7 +1076,7 @@ public class UnitsManager : MonoBehaviour
             resultString = "<color=red>Test niezdany</color> Poziomy porażki:";
         }
 
-        Debug.Log($"{stats.Name} wykonał test {attributeName}. Wynik rzutu: {rollResult} Wartość cechy: {value} Modyfikator: {modifier}. {resultString} {successLevel}");
+        Debug.Log($"{stats.Name} wykonał test {attributeName}. Wynik rzutu: {rollResult} Wartość cechy: {value}{luckOrMisfortune} Modyfikator: {modifier}. {resultString} {successLevel}");
     }
     #endregion
 
