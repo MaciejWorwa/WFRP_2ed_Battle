@@ -280,6 +280,20 @@ public class InventoryManager : MonoBehaviour
         if(!SaveAndLoadManager.Instance.IsLoading)
         {
             Debug.Log($"{unit.GetComponent<Stats>().Name} dobył {selectedWeapon.Name}.");
+
+            //Aktualizuje pasek przewagi w bitwie
+            int newOverall = Unit.SelectedUnit.GetComponent<Stats>().CalculateOverall();
+            int difference = newOverall - Unit.SelectedUnit.GetComponent<Stats>().Overall;
+            Unit.SelectedUnit.GetComponent<Stats>().Overall = newOverall;
+
+            if(difference >= 0)
+            { 
+                InitiativeQueueManager.Instance.CalculateAdvantage(difference, 0, Unit.SelectedUnit.tag);
+            }
+            else
+            {
+                InitiativeQueueManager.Instance.CalculateAdvantage(difference, 0, Unit.SelectedUnit.tag);
+            }
         }
     }
 

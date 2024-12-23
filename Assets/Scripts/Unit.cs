@@ -59,8 +59,6 @@ public class Unit : MonoBehaviour
 
         CalculateStrengthAndToughness(); // Liczy siłę i wytrzymałość
 
-        Stats.CalculateOverall();
-
         DisplayUnitHealthPoints();
 
         //Aktualizuje kolejkę inicjatywy

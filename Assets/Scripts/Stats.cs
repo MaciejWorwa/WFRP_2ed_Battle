@@ -10,12 +10,10 @@ using System.Linq;
 public class Stats : MonoBehaviour
 {
     public int Id;
-
     public int Index;
-
     public bool IsBig;
-
     public int Overall; // Łączna wartość bojowa jednostki
+    public int Exp; // Punkty doświadczenia
 
     [Header("Imię")]
     public string Name;
@@ -98,6 +96,10 @@ public class Stats : MonoBehaviour
     public int FortunateEvents; // Ilość "Szczęść"
     public int UnfortunateEvents; // Ilość "Pechów"
 
+    private void Start()
+    {
+        Overall = CalculateOverall();
+    }
 
     public void RollForBaseStats()
     {
@@ -173,17 +175,35 @@ public class Stats : MonoBehaviour
         }
     }
     
-    public void CalculateOverall()
+    public int CalculateOverall()
     {
         // Wyznacza większą wartość między WW i US
         int maxWWorUS = Mathf.Max(WW, US);
         int minWWorUS = Mathf.Min(WW, US);
 
         // Sumowanie cech pierwszorzędowych z uwzględnieniem mnożenia większej wartości (WW lub US) przez ilość Ataków
-        int primaryStatsSum = ((maxWWorUS * A) + minWWorUS + K + Odp + Zr + SW);
+        int primaryStatsSum = ((maxWWorUS * A) + minWWorUS);
 
-        // Sumowanie zbroi
-        int totalArmor = Armor_head + Armor_arms + Armor_torso + Armor_legs;
+        // Sumowanie zbroi i wytrzymałości
+        int totalArmor = Armor_head + Armor_arms + Armor_torso + Armor_legs + ((Odp / 10) * 4);
+
+        int weaponPower = 0;
+
+        Weapon weapon = InventoryManager.Instance.ChooseWeaponToAttack(this.gameObject);
+        if(weapon != null)
+        {
+            if(weapon.Type.Contains("ranged"))
+            {
+                weaponPower += weapon.S * 8;
+            }
+            else if(weapon.Type.Contains("melee"))
+            {
+                weaponPower += weapon.S + (K / 10) * 8;
+            }
+
+            weaponPower = weapon.S;
+            if(weapon.Impact == true) weaponPower += (maxWWorUS * A) / 2;  
+        }
 
         // Zliczanie aktywnych zdolności
         int activeAbilitiesCount = GetType()
@@ -192,7 +212,9 @@ public class Stats : MonoBehaviour
             .Count();
 
         // Obliczanie Overall
-        Overall = (primaryStatsSum / 5) + MaxHealth + Sz + totalArmor + activeAbilitiesCount + Channeling + Dodge;
+        int overall = (primaryStatsSum / 3) + weaponPower + MaxHealth + Sz + totalArmor * 2 + activeAbilitiesCount + Channeling + (Dodge * Zr / 5) + (SW / 5);
+
+        return overall;
     }
 
     //Zwraca kopię tej klasy
@@ -200,5 +222,4 @@ public class Stats : MonoBehaviour
     {
         return (Stats)this.MemberwiseClone();
     }
-
 }

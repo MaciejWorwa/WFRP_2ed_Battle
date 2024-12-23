@@ -38,6 +38,8 @@ public class InitiativeQueueManager : MonoBehaviour
     private Color _selectedColor = new Color(0f, 0f, 0f, 0.5f); // Kolor wybranego przycisku (zaznaczonej jednostki)
     private Color _activeColor = new Color(0.15f, 1f, 0.45f, 0.2f); // Kolor aktywnego przycisku (jednostka, której tura obecnie trwa)
     private Color _selectedActiveColor = new Color(0.08f, 0.5f, 0.22f, 0.5f); // Kolor wybranego przycisku, gdy jednocześnie jest to aktywna jednostka
+    [SerializeField] private UnityEngine.UI.Slider _advantageBar; // Pasek przewagi sił w bitwie
+    
 
     #region Initiative queue
     public void AddUnitToInitiativeQueue(Unit unit)
@@ -51,12 +53,21 @@ public class InitiativeQueueManager : MonoBehaviour
         {
             RoundsManager.Instance.UnitsWithActionsLeft.Add(unit, 2);
         }
+
+        //Aktualizuje pasek przewagi w bitwie
+        unit.GetComponent<Stats>().Overall = unit.GetComponent<Stats>().CalculateOverall();
+
+        CalculateAdvantage(unit.GetComponent<Stats>().Overall, 0, unit.tag);
     }
 
     public void RemoveUnitFromInitiativeQueue(Unit unit)
     {
         InitiativeQueue.Remove(unit);
         RoundsManager.Instance.UnitsWithActionsLeft.Remove(unit);
+
+        //Aktualizuje pasek przewagi w bitwie
+        unit.GetComponent<Stats>().Overall = unit.GetComponent<Stats>().CalculateOverall();
+        CalculateAdvantage(0, unit.GetComponent<Stats>().Overall, unit.tag);
     }
 
     public void UpdateInitiativeQueue()
@@ -170,4 +181,29 @@ public class InitiativeQueueManager : MonoBehaviour
         }
     }
     #endregion
+    
+    public void CalculateAdvantage(int addedOverall, int substractedOverall, string unitTag)
+    {
+        // Aktualizacja maksymalnej wartości przewagi
+        if(_advantageBar.maxValue == 1) // Początkowa wartość Slidera (nie da sie ustawić na 0)
+        { 
+            _advantageBar.maxValue = addedOverall;
+        }
+        else
+        {
+            _advantageBar.maxValue += addedOverall - substractedOverall;
+        }
+
+        // Aktualizacja wartości przewagi gracza (tylko jeśli jednostka należy do gracza)
+        if (unitTag == "PlayerUnit")
+        {
+            _advantageBar.value += addedOverall - substractedOverall;
+        }
+
+        // Aktywacja paska, jeśli ma sens go wyświetlić
+        if (_advantageBar.maxValue > 1 && !_advantageBar.gameObject.activeSelf)
+        {
+            _advantageBar.gameObject.SetActive(true);
+        }
+    }
 }

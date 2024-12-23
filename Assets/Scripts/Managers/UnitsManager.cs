@@ -8,6 +8,7 @@ using System.Reflection;
 using System;
 using System.IO;
 using static UnityEngine.GraphicsBuffer;
+using System.Linq;
 
 public class UnitsManager : MonoBehaviour
 {
@@ -363,11 +364,7 @@ public class UnitsManager : MonoBehaviour
             {
                 newUnit.GetComponent<Stats>().RollForBaseStats();
             }
-
-            //Ustala początkową inicjatywę i dodaje jednostkę do kolejki inicjatywy
-            newUnit.GetComponent<Stats>().Initiative = newUnit.GetComponent<Stats>().Zr + UnityEngine.Random.Range(1, 11);
-            InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(newUnit.GetComponent<Unit>());
-
+   
             //Dodaje do ekwipunku początkową broń adekwatną dla danej jednostki i wyposaża w nią
             if (newUnit.GetComponent<Stats>().PrimaryWeaponId > 0 && !IsSavedUnitsManaging)
             {
@@ -377,6 +374,11 @@ public class UnitsManager : MonoBehaviour
 
                 InventoryManager.Instance.GrabPrimaryWeapon();
             }
+
+            //Ustala początkową inicjatywę i dodaje jednostkę do kolejki inicjatywy
+            newUnit.GetComponent<Stats>().Initiative = newUnit.GetComponent<Stats>().Zr + UnityEngine.Random.Range(1, 11);
+
+            InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(newUnit.GetComponent<Unit>());
         }
 
         return newUnit;
@@ -465,8 +467,6 @@ public class UnitsManager : MonoBehaviour
 
         //Resetuje Tile, żeby nie było uznawane jako zajęte
         GridManager.Instance.ResetTileOccupancy(unit.transform.position);
-
-        // IsUnitRemoving = false;
 
         //Resetuje kolor przycisku usuwania jednostek
         _removeUnitButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;
@@ -725,7 +725,7 @@ public class UnitsManager : MonoBehaviour
 
         if(field == null) return;
 
-        // Zmienia wartść cechy
+        // Zmienia wartość cechy
         if (field.FieldType == typeof(int) && textInput.GetComponent<UnityEngine.UI.Slider>() == null) // to działa dla cech opisywanych wartościami int (pomija umiejętności, które nie są ustawiane przy użyciu slidera)
         {
             // Pobiera wartość inputa, starając się przekonwertować ją na int
@@ -769,6 +769,22 @@ public class UnitsManager : MonoBehaviour
         }
 
         UpdateUnitPanel(unit);
+
+        if(!SaveAndLoadManager.Instance.IsLoading)
+        {
+            //Aktualizuje pasek przewagi w bitwie
+            int newOverall = unit.GetComponent<Stats>().CalculateOverall();
+            int difference = newOverall - unit.GetComponent<Stats>().Overall;
+
+            if(difference >= 0)
+            { 
+                InitiativeQueueManager.Instance.CalculateAdvantage(difference, 0, unit.tag);
+            }
+            else
+            {
+                InitiativeQueueManager.Instance.CalculateAdvantage(difference, 0, unit.tag);
+            }
+        }
     }
     #endregion
 
@@ -873,8 +889,6 @@ public class UnitsManager : MonoBehaviour
         {
             _spellbookButton.SetActive(false);
         }
-
-        stats.CalculateOverall();
 
         //_nameDisplay.text = stats.Name;
         _raceDisplay.text = stats.Race;

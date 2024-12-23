@@ -536,6 +536,7 @@ public class StatsData
 {
     public int Id;
     public bool IsBig;
+    public int Exp; // Punkty doświadczenia
     public string Name;
     public string Race;
     public int PrimaryWeaponId;

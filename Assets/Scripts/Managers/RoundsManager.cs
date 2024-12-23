@@ -174,6 +174,7 @@ public class RoundsManager : MonoBehaviour
 
             // Czeka, aż postać skończy ruch, zanim wybierze kolejną postać
             yield return new WaitUntil(() => MovementManager.Instance.IsMoving == false);
+            //yield return new WaitUntil(() => UnitsWithActionsLeft[Unit.SelectedUnit.GetComponent<Unit>()] == 0 || Unit.SelectedUnit.GetComponent<Unit>().IsTurnFinished);
             yield return new WaitForSeconds(0.5f);
         }
 
