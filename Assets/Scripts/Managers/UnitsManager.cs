@@ -132,7 +132,7 @@ public class UnitsManager : MonoBehaviour
 
     public void CreateUnitOnRandomTile()
     {
-        List<Vector2> availablePositions = AvailablePositions();
+        List<Vector2> availablePositions = GridManager.Instance.AvailablePositions();
         Vector2 position = Vector2.zero;
 
         if (!SaveAndLoadManager.Instance.IsLoading)
@@ -151,30 +151,9 @@ public class UnitsManager : MonoBehaviour
         CreateUnit(_unitsDropdown.GetSelectedIndex(), _unitNameInputField.text, position);
     }
 
-    private List<Vector2> AvailablePositions()
-    {
-        List<Vector2> availablePositions = new List<Vector2>();
-
-        // Przejście przez wszystkie Tile w tablicy Tiles
-        for (int x = 0; x < GridManager.Width; x++)
-        {
-            for (int y = 0; y < GridManager.Height; y++)
-            {
-                // Sprawdzenie, czy Tile nie jest zajęty
-                if (!GridManager.Instance.Tiles[x, y].IsOccupied)
-                {
-                    // Dodanie pozycji Tile do listy dostępnych pozycji
-                    availablePositions.Add(GridManager.Instance.Tiles[x, y].transform.position);
-                }
-            }
-        }
-
-        return availablePositions;
-    }
-
     public GameObject CreateUnit(int unitId, string unitName, Vector2 position)
     {
-        if (_unitsDropdown.SelectedButton == null && SaveAndLoadManager.Instance.IsLoading != true)
+        if (_unitsDropdown.SelectedButton == null && SaveAndLoadManager.Instance.IsLoading != true && GeneticAlgorithmManager.Instance.IsWorking != true)
         {
             Debug.Log("Wybierz jednostkę z listy.");
             return null;
@@ -189,7 +168,7 @@ public class UnitsManager : MonoBehaviour
         //Gdy próbujemy wczytać jednostkę na polu, które nie istnieje (bo np. siatka jest obecnie mniejsza niż siatka, na której były zapisywane jednostki) lub jest zajęte to wybiera im losową pozycję
         if ((selectedTile == null || selectedTile.GetComponent<Tile>().IsOccupied) && SaveAndLoadManager.Instance.IsLoading == true)
         {
-            List<Vector2> availablePositions = AvailablePositions();
+            List<Vector2> availablePositions = GridManager.Instance.AvailablePositions();
 
             if (availablePositions.Count == 0)
             {
@@ -379,6 +358,31 @@ public class UnitsManager : MonoBehaviour
             newUnit.GetComponent<Stats>().Initiative = newUnit.GetComponent<Stats>().Zr + UnityEngine.Random.Range(1, 11);
 
             InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(newUnit.GetComponent<Unit>());
+
+            //TYMCZASOWE - próba wczytania genomu dla goblina
+            if(newUnit.GetComponent<Stats>().Race == "Goblin")
+            {
+                string filePath = Path.Combine(Application.persistentDataPath, "AI_data.json");;
+                if (File.Exists(filePath))
+                {
+                    string json = File.ReadAllText(filePath);
+                    UnitGenomesContainer container = JsonUtility.FromJson<UnitGenomesContainer>(json);
+
+                    UnitGenomeData data = container.Genomes[UnityEngine.Random.Range(0, container.Genomes.Count)];
+
+                    UnitGenome genome = new UnitGenome
+                    {
+                        Genes = data.Genes,
+                        Fitness = data.Fitness,
+                        UnitName = data.UnitName,
+                        GenerationNumber = data.GenerationNumber
+                    };
+    
+                    newUnit.GetComponent<Unit>().Genome = genome;
+
+                    Debug.Log(string.Join(", ", newUnit.GetComponent<Unit>().Genome.Genes));
+                }
+            }
         }
 
         return newUnit;
@@ -462,6 +466,19 @@ public class UnitsManager : MonoBehaviour
 
         //Usuwa jednostkę z listy wszystkich jednostek
         AllUnits.Remove(unit.GetComponent<Unit>());
+
+        //Przekazanie informacji o śmierci potrzebnej do prawidłowego obliczania fitnessu w algorytmie genetycznym
+        if(GeneticAlgorithmManager.Instance.IsWorking)
+        {
+            foreach(Stats stats in GeneticAlgorithmManager.Instance.AllStats)
+            {
+                if(stats.Name == unit.GetComponent<Stats>().Name)
+                {
+                    stats.TempHealth = unit.GetComponent<Stats>().TempHealth;
+                    break;  // Zatrzymujemy pętlę, gdy znajdziemy pasujący element
+                }
+            }
+        }
 
         Destroy(unit);
 

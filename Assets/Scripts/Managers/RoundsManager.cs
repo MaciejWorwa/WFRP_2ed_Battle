@@ -167,15 +167,36 @@ public class RoundsManager : MonoBehaviour
             if (UnitsManager.Instance.AllUnits[i] == null) continue;
 
             InitiativeQueueManager.Instance.SelectUnitByQueue();
-
             yield return new WaitForSeconds(0.1f);
+            
+            Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
+            if(!UnitsWithActionsLeft.ContainsKey(unit)) continue;
 
-            AutoCombatManager.Instance.Act(Unit.SelectedUnit.GetComponent<Unit>());
+            // Jeśli jednostka to PlayerUnit i gramy w trybie ukrywania statystyk wrogów
+            if (unit.CompareTag("PlayerUnit") && GameManager.IsStatsHidingMode)
+            {
+                // Czeka aż jednostka zakończy swoją turę (UnitsWithActionsLeft[unit] == 0 lub unit.IsTurnFinished)
+                yield return new WaitUntil(() => UnitsWithActionsLeft[unit] == 0 || unit.IsTurnFinished);
+                yield return new WaitForSeconds(0.5f);
+            }
+            else // Jednostki wrogów lub wszystkie jednostki, jeśli nie ukrywamy ich statystyk
+            {
+                //TYMCZASOWE - test algorytmów gentycznych
+                if(unit.Genome != null)
+                {
+                    Debug.Log("ALGORYTM GENETYCZNY");
+                    GeneticAlgorithmManager.Instance.SimulateUnit(unit);
+                }
+                else
+                {
+                    AutoCombatManager.Instance.Act(unit);
+                }
+                //AutoCombatManager.Instance.Act(unit);
 
-            // Czeka, aż postać skończy ruch, zanim wybierze kolejną postać
-            yield return new WaitUntil(() => MovementManager.Instance.IsMoving == false);
-            //yield return new WaitUntil(() => UnitsWithActionsLeft[Unit.SelectedUnit.GetComponent<Unit>()] == 0 || Unit.SelectedUnit.GetComponent<Unit>().IsTurnFinished);
-            yield return new WaitForSeconds(0.5f);
+                // Czeka, aż jednostka zakończy ruch, zanim wybierze kolejną jednostkę
+                yield return new WaitUntil(() => MovementManager.Instance.IsMoving == false);
+                yield return new WaitForSeconds(0.5f);
+            }
         }
 
         NextRoundButton.gameObject.SetActive(true);

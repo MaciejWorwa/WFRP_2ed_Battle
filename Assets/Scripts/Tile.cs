@@ -82,7 +82,7 @@ public class Tile : MonoBehaviour
 
         if(Unit.SelectedUnit != null)
         {
-            if (!GameManager.IsAutoCombatMode)
+            if (!GameManager.IsAutoCombatMode || (Unit.SelectedUnit.CompareTag("PlayerUnit") && GameManager.IsStatsHidingMode))
             {
                 Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
 

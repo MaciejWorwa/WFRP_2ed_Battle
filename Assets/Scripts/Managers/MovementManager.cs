@@ -36,6 +36,7 @@ public class MovementManager : MonoBehaviour
     #region Move functions
     public void MoveSelectedUnit(GameObject selectedTile, GameObject unit)
     {
+
         // Nie pozwala wykonać akcji ruchu, dopóki poprzedni ruch nie zostanie zakończony. Sprawdza też, czy gra nie jest wstrzymana (np. poprzez otwarcie dodatkowych paneli)
         if( IsMoving == true || GameManager.IsGamePaused) return;
 
@@ -55,7 +56,7 @@ public class MovementManager : MonoBehaviour
         List<Vector2> path = FindPath(startCharPos, selectedTilePos);
 
         // Sprawdza czy wybrane pole jest w zasięgu ruchu postaci. W przypadku automatycznej walki ten warunek nie jest wymagany.
-        if (path.Count > 0 && (path.Count <= movementRange || GameManager.IsAutoCombatMode))
+        if (path.Count > 0 && (path.Count <= movementRange || GameManager.IsAutoCombatMode || GeneticAlgorithmManager.Instance.IsWorking))
         {
             //Wykonuje akcję
             bool canDoAction = true;
@@ -85,7 +86,7 @@ public class MovementManager : MonoBehaviour
             selectedTile.GetComponent<Tile>().IsOccupied = true;
 
             //Zapobiega zaznaczeniu jako zajęte pola docelowego, do którego jednostka w trybie automatycznej walki niekoniecznie da radę dojść
-            if(GameManager.IsAutoCombatMode)
+            if(GameManager.IsAutoCombatMode || GeneticAlgorithmManager.Instance.IsWorking)
             {
                 AutoCombatManager.Instance.TargetTile = selectedTile.GetComponent<Tile>();
             }
@@ -117,7 +118,7 @@ public class MovementManager : MonoBehaviour
             float elapsedTime = 0f;
             float duration = 0.2f; // Czas trwania interpolacji
 
-            while (elapsedTime < duration && unit != null)
+            while (elapsedTime < duration && unit != null && !GeneticAlgorithmManager.Instance.IsWorking)
             {
                 IsMoving = true;
 
@@ -148,7 +149,7 @@ public class MovementManager : MonoBehaviour
         }
 
         //Zaznacza jako zajęte faktyczne pole, na którym jednostka zakończy ruch, a nie pole do którego próbowała dojść
-        if(GameManager.IsAutoCombatMode)
+        if(GameManager.IsAutoCombatMode || GeneticAlgorithmManager.Instance.IsWorking)
         {
             AutoCombatManager.Instance.CheckForTargetTileOccupancy(unit);
         }

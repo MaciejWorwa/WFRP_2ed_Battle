@@ -153,7 +153,7 @@ public class InitiativeQueueManager : MonoBehaviour
             
         IEnumerator InvokeSelectUnitCoroutine()
         {
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.05f);
 
             //Czeka ze zmianą postaci, aż obecna postać zakończy ruch
             while (MovementManager.Instance.IsMoving == true)
@@ -168,7 +168,7 @@ public class InitiativeQueueManager : MonoBehaviour
             {
                 ActiveUnit.SelectUnit();
             }
-            else if (GameManager.IsAutoSelectUnitMode && ActiveUnit == null && !GameManager.IsAutoCombatMode)
+            else if (GameManager.IsAutoSelectUnitMode && ActiveUnit == null && !GameManager.IsAutoCombatMode || GameManager.IsStatsHidingMode && ActiveUnit == null)
             {
                 RoundsManager.Instance.NextRound();
             }

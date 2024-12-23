@@ -166,7 +166,7 @@ public class GridManager : MonoBehaviour
     {
         ResetColorOfTilesInMovementRange();
 
-        if(GameManager.IsAutoCombatMode) return;
+        if((GameManager.IsAutoCombatMode && !(unitStats.CompareTag("PlayerUnit") && GameManager.IsStatsHidingMode)) || GeneticAlgorithmManager.Instance.IsWorking) return;
 
         // Sprawdzenie zasięgu ruchu
         int movementRange = unitStats.TempSz;
@@ -264,6 +264,27 @@ public class GridManager : MonoBehaviour
                 tile.IsOccupied = false;
             }
         }
+    }
+
+    public List<Vector2> AvailablePositions()
+    {
+        List<Vector2> availablePositions = new List<Vector2>();
+
+        // Przejście przez wszystkie Tile w tablicy Tiles
+        for (int x = 0; x < Width; x++)
+        {
+            for (int y = 0; y < Height; y++)
+            {
+                // Sprawdzenie, czy Tile nie jest zajęty
+                if (!Instance.Tiles[x, y].IsOccupied)
+                {
+                    // Dodanie pozycji Tile do listy dostępnych pozycji
+                    availablePositions.Add(Tiles[x, y].transform.position);
+                }
+            }
+        }
+
+        return availablePositions;
     }
 
     public void ResetTileOccupancy(Vector2 unitPosition)

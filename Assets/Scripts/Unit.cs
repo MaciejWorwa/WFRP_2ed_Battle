@@ -39,6 +39,7 @@ public class Unit : MonoBehaviour
     public bool CanParry = true;
     public bool CanDodge = false;
     public Stats Stats;
+    public UnitGenome Genome; // Dodane pole przechowujące genom jednostki
 
     public TMP_Text NameDisplay;
     public TMP_Text HealthDisplay;

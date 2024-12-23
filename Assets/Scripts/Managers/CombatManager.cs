@@ -415,14 +415,14 @@ public class CombatManager : MonoBehaviour
             //Zresetowanie celowania, jeżeli było aktywne
             if(attacker.AimingBonus != 0)
             {
-                Unit.SelectedUnit.GetComponent<Unit>().AimingBonus = 0;
+                attacker.AimingBonus = 0;
                 UpdateAimButtonColor();
             }
 
             //Atakowany próbuje parować lub unikać.
             if (_isSuccessful && rollResult > 5 && attackerWeapon.Type.Contains("melee") && (attacker.Feinted != true || AttackTypes["StandardAttack"] != true))
             {
-                bool canParry = target.CanParry && (RoundsManager.Instance.UnitsWithActionsLeft[target] >= 1 || targetStats.LightningParry);
+                bool canParry = target.CanParry && (RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(target) && RoundsManager.Instance.UnitsWithActionsLeft[target] >= 1 || targetStats.LightningParry);
 
                 //Sprawdzenie, czy jest aktywny tryb automatycznej obrony
                 if (!GameManager.IsAutoDefenseMode && (canParry || target.CanDodge))
@@ -1174,6 +1174,8 @@ public class CombatManager : MonoBehaviour
     // Szuka wolnej pozycji obok celu szarży, do której droga postaci jest najkrótsza
     public GameObject GetTileAdjacentToTarget(GameObject attacker, GameObject target)
     {
+        if(target == null) return null;
+
         Vector2 targetPos = target.transform.position;
 
         //Wszystkie przylegające pozycje do atakowanego
@@ -1214,7 +1216,7 @@ public class CombatManager : MonoBehaviour
             }  
         }
 
-        if(shortestPathLength > attacker.GetComponent<Stats>().TempSz && !GameManager.IsAutoCombatMode)
+        if(shortestPathLength > attacker.GetComponent<Stats>().TempSz && !GameManager.IsAutoCombatMode && !GeneticAlgorithmManager.Instance.IsWorking)
         {
             return null;
         }
