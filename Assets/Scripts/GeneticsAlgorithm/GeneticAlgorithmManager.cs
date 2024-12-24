@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System.IO;
+using UnitStates;
 
 public class GeneticAlgorithmManager : MonoBehaviour
 {
@@ -37,12 +38,14 @@ public class GeneticAlgorithmManager : MonoBehaviour
     public static int GenerationNumber = 1;  // Zmienna śledząca numer generacji
     [SerializeField] private FitnessDisplayManager _fitnessDisplayManager;
     [SerializeField] private UnityEngine.UI.Toggle _unitTagToggle;
-    private List<Unit> _allUnits;
+    private List<Unit> _allUnits = new List<Unit>();
     public List<Stats> AllStats = new List<Stats>();
 
     void Start()
     {
         _fitnessDisplayManager.ResetFitnessData(); // Resetujemy dane fitnessu na początku
+
+        ConfigureActions();
 
         // Inicjujemy ewolucję
         //ToggleEvolution();
@@ -105,35 +108,36 @@ public class GeneticAlgorithmManager : MonoBehaviour
 
     private void GenerateInitialPopulation()
     {
-        // if (Population.Count == 0)
-        // {
-            //Jeśli wielkość populacji nie jest zdefiniowana to ustawiamy losową wielkość
-            if(PopulationSize == 0)
-            {
-                PopulationSize = Random.Range(4, 21);
-            }
+        //Jeśli wielkość populacji nie jest zdefiniowana to ustawiamy losową wielkość
+        if(PopulationSize == 0)
+        {
+            PopulationSize = Random.Range(4, 21);
+        }
 
-            for (int i = 0; i < PopulationSize; i++)
-            {
-                UnitGenome newGenome = new UnitGenome();
-                string unitName = "Unit " + i + " (Gen " + GenerationNumber + ")";
-                newGenome.RandomizeGenes(unitName, GenerationNumber);
-                Population.Add(newGenome);
+        for (int i = 0; i < PopulationSize; i++)
+        {
+            UnitGenome newGenome = new UnitGenome();
+            string unitName = "Unit " + i + " (Gen " + GenerationNumber + ")";
+            newGenome.RandomizeGenes(unitName, GenerationNumber);
+            Population.Add(newGenome);
 
-                _unitTagToggle.isOn = Random.value > 0.5f;
+            _unitTagToggle.isOn = Random.value > 0.5f;
 
-                GameObject unitObject = CreateUnitOnRandomTile(1, Population[i].UnitName); // Na razie tworzy jednostki z indexem 1, czyli ludzi
+            GameObject unitObject = CreateUnitOnRandomTile(1, Population[i].UnitName); // Na razie tworzy jednostki z indexem 1, czyli ludzi
 
-                unitObject.GetComponent<Stats>().TempHealth = unitObject.GetComponent<Stats>().MaxHealth;
- 
-                unitObject.GetComponent<Unit>().Genome = Population[i];
-            }
-        //}
+            unitObject.GetComponent<Stats>().TempHealth = unitObject.GetComponent<Stats>().MaxHealth;
+
+            unitObject.GetComponent<Unit>().Genome = Population[i];
+        }
     }
 
     // Algorytm genetyczny
     IEnumerator RunEvolution()
     {
+        // Czyści listy, żeby nie zostały jakieś stare wpisy z poprzedniej rundy
+        _allUnits.Clear();
+        AllStats.Clear();
+
         //Kopiujemy listę wszystkich jednostek, żeby móc obliczac fitness również dla tych, które zginą w trakcie symulacji
         foreach (Unit unit in UnitsManager.Instance.AllUnits)
         {
@@ -277,9 +281,18 @@ public class GeneticAlgorithmManager : MonoBehaviour
         Unit strongestUnit = FindUnitWithHighestOverall(unit);
         Unit targetWithMostAllies = FindTargetWithMostAlliesNearby(unit);
 
-        int decision = unit.Genome.GetDecision();
+        //int decision = unit.Genome.GetDecision();
+        bool[] states = DetermineStates(unit);
+        AIAction chosenAction = ChooseActionBasedOnStates(states);
 
-        switch (decision)
+        if (chosenAction == null)
+        {
+            Debug.LogWarning("chosenAction == null, kończę turę.");
+            RoundsManager.Instance.FinishTurn();
+            return;
+        }
+
+        switch (chosenAction.Id)
         {
             case 0:
                 // Ruch w stronę najbliższego przeciwnika
@@ -318,7 +331,14 @@ public class GeneticAlgorithmManager : MonoBehaviour
                 if (closestOpponent != null)
                 {
                     Debug.Log("Zaatakowanie najbliższego przeciwnika");
+                    int targetHealth = closestOpponent.GetComponent<Stats>().TempHealth;
                     CombatManager.Instance.Attack(unit, closestOpponent.GetComponent<Unit>(), false);
+                    // Sprawdzamy, czy udało się zadać obrażenia
+                    if (closestOpponent.GetComponent<Stats>().TempHealth < targetHealth)
+                    {
+                        // Nagroda za skuteczny atak
+                        RewardAction(chosenAction, states);
+                    }
                 }
                 break;
             case 5:
@@ -326,8 +346,15 @@ public class GeneticAlgorithmManager : MonoBehaviour
                 if (closestOpponent != null)
                 {
                     Debug.Log("Szarża na najbliższego przeciwnika");
+                    int targetHealth = closestOpponent.GetComponent<Stats>().TempHealth;
                     CombatManager.Instance.ChangeAttackType("Charge");
                     CombatManager.Instance.Attack(unit, closestOpponent.GetComponent<Unit>(), false);
+                    // Sprawdzamy, czy udało się zadać obrażenia
+                    if (closestOpponent.GetComponent<Stats>().TempHealth < targetHealth)
+                    {
+                        // Nagroda za skuteczny atak
+                        RewardAction(chosenAction, states);
+                    }
                 }
 
                 break;
@@ -336,8 +363,15 @@ public class GeneticAlgorithmManager : MonoBehaviour
                 if (closestOpponent != null)
                 {
                     Debug.Log("Szaleńczy atak na najbliższego przeciwnika");
+                    int targetHealth = closestOpponent.GetComponent<Stats>().TempHealth;
                     CombatManager.Instance.ChangeAttackType("AllOutAttack");
                     CombatManager.Instance.Attack(unit, closestOpponent.GetComponent<Unit>(), false);
+                    // Sprawdzamy, czy udało się zadać obrażenia
+                    if (closestOpponent.GetComponent<Stats>().TempHealth < targetHealth)
+                    {
+                        // Nagroda za skuteczny atak
+                        RewardAction(chosenAction, states);
+                    }
                 }
                 break;
             case 7:
@@ -739,5 +773,145 @@ public class GeneticAlgorithmManager : MonoBehaviour
 
         return true;
     }
+    #endregion
+
+    #region States
+    [System.Serializable]
+    public class StateWeightModifier
+    {
+        public AIState State;   // który stan
+        public float WeightDelta; // ile się zmienia waga, jeśli ten stan jest aktywny
+    }
+
+    //Pojedyncza akcja jednostki
+    [System.Serializable]
+    public class AIAction
+    {
+        public int Id;                  // np. 0 = ruch w stronę najbliższego przeciwnika, 1 = ...
+        public string Name;             // np. "MoveTowardsClosestEnemy"
+        public float BaseWeight = 1f;   // bazowa „atrakcyjność” akcji
+
+        // Modyfikatory w zależności od stanu:
+        // np. jeśli stany[IsHeavilyWounded] = true, to weight += 0.5
+        // Można też zrobić tablicę o długości równej liczbie stanów
+        public List<StateWeightModifier> StateModifiers = new List<StateWeightModifier>();
+    }
+
+    public AIAction[] PossibleActions;
+
+    void ConfigureActions()
+    {
+        // Przykład “Szarża”:
+        PossibleActions[5].Id = 5;
+        PossibleActions[5].Name = "ChargeClosestEnemy";
+        PossibleActions[5].BaseWeight = 1.0f;
+        PossibleActions[5].StateModifiers.Add(
+        new StateWeightModifier { State = AIState.IsInMelee, WeightDelta = -2.0f }); 
+        // W zwarciu “Charge” ma -2 do wagi
+
+        // Dla stanu IsHeavilyWounded mogłaby mieć np. -1.0f (niechętnie szarżuje, jeśli jest ciężko ranny)
+    }
+
+    //Wybór akcji uwzględniając ich wagę dla obecnej sytuacji, w której jest jednostka
+    private AIAction ChooseActionBasedOnStates(bool[] states)
+    {
+        float summary = 0f;
+        foreach (AIAction action in PossibleActions) 
+        {
+            summary += CalculateActionWeight(action, states);
+        }
+
+        float random = Random.Range(0f, summary);
+        float cumulative = 0f;
+
+        foreach (AIAction action in PossibleActions)
+        {
+            float w = CalculateActionWeight(action, states);
+            cumulative += w;
+            if (random <= cumulative)
+            {
+                return action;
+            }
+        }
+
+        return null; // fallback
+    }
+
+    private float CalculateActionWeight(AIAction action, bool[] states)
+    {
+        float totalWeight = action.BaseWeight;
+
+        // Dodaj/odejmij za każdy aktywny stan
+        foreach (var mod in action.StateModifiers)
+        {
+            if (states[(int)mod.State]) // Jeśli stan jest aktywny
+            {
+                totalWeight += mod.WeightDelta;
+            }
+        }
+
+        // Upewniamy się, że waga nie spadnie poniżej zera (opcjonalnie)
+        if (totalWeight < 0f) totalWeight = 0f;
+
+        return totalWeight;
+    }
+
+    //Wzmocnienie wagi danej akcji za korzyść, którą przyniosła
+    public void RewardAction(AIAction action, bool[] states)
+    {
+        float rewardValue = 0.2f; // jak bardzo chcemy wzmocnić
+
+        // Podnosimy bazową wagę:
+        action.BaseWeight += rewardValue; 
+
+        // Albo: wzmocnij wpływ stanów
+        foreach (var mod in action.StateModifiers)
+        {
+            if (states[(int)mod.State])
+            {
+                mod.WeightDelta += rewardValue;
+            }
+        }
+    }
+
+    //Zmniejszenie wagi danej akcji za szkodę, którą przyniosła
+    public void PenalizeAction(AIAction action, bool[] states)
+    {
+        float penaltyValue = 0.2f;
+
+        // Obniż bazową wagę
+        action.BaseWeight -= penaltyValue;
+        if (action.BaseWeight < 0f) action.BaseWeight = 0f;
+
+        // Albo: obniż (zdementuj) wpływ stanów
+        foreach (var mod in action.StateModifiers)
+        {
+            if (states[(int)mod.State])
+            {
+                mod.WeightDelta -= penaltyValue;
+            }
+        }
+    }
+
+    private bool[] DetermineStates(Unit unit)
+    {
+        bool[] states = new bool[(int)AIState.COUNT];
+        
+        GameObject closestOpponent = AutoCombatManager.Instance.GetClosestOpponent(unit.gameObject, false);
+        float distance = CombatManager.Instance.CalculateDistance(unit.gameObject, closestOpponent);
+
+        Inventory inventory = unit.GetComponent<Inventory>();
+        bool hasRangedWeapon = inventory.EquippedWeapons
+            .Where(w => w != null) // Pomija puste sloty
+            .Any(weapon => weapon.Type.Contains("ranged"));
+        
+        states[(int)AIState.IsInMelee] = (distance <= 1.5f); 
+        states[(int)AIState.HasRangedWeapon] = hasRangedWeapon;
+        states[(int)AIState.IsHeavilyWounded] = (unit.GetComponent<Stats>().TempHealth <= 3);
+
+        // itd.
+        return states;
+    }
+
     #endregion
 }

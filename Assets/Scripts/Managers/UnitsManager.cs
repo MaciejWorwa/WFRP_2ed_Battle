@@ -358,31 +358,6 @@ public class UnitsManager : MonoBehaviour
             newUnit.GetComponent<Stats>().Initiative = newUnit.GetComponent<Stats>().Zr + UnityEngine.Random.Range(1, 11);
 
             InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(newUnit.GetComponent<Unit>());
-
-            //TYMCZASOWE - próba wczytania genomu dla goblina
-            if(newUnit.GetComponent<Stats>().Race == "Goblin")
-            {
-                string filePath = Path.Combine(Application.persistentDataPath, "AI_data.json");;
-                if (File.Exists(filePath))
-                {
-                    string json = File.ReadAllText(filePath);
-                    UnitGenomesContainer container = JsonUtility.FromJson<UnitGenomesContainer>(json);
-
-                    UnitGenomeData data = container.Genomes[UnityEngine.Random.Range(0, container.Genomes.Count)];
-
-                    UnitGenome genome = new UnitGenome
-                    {
-                        Genes = data.Genes,
-                        Fitness = data.Fitness,
-                        UnitName = data.UnitName,
-                        GenerationNumber = data.GenerationNumber
-                    };
-    
-                    newUnit.GetComponent<Unit>().Genome = genome;
-
-                    Debug.Log(string.Join(", ", newUnit.GetComponent<Unit>().Genome.Genes));
-                }
-            }
         }
 
         return newUnit;
@@ -466,19 +441,6 @@ public class UnitsManager : MonoBehaviour
 
         //Usuwa jednostkę z listy wszystkich jednostek
         AllUnits.Remove(unit.GetComponent<Unit>());
-
-        //Przekazanie informacji o śmierci potrzebnej do prawidłowego obliczania fitnessu w algorytmie genetycznym
-        if(GeneticAlgorithmManager.Instance.IsWorking)
-        {
-            foreach(Stats stats in GeneticAlgorithmManager.Instance.AllStats)
-            {
-                if(stats.Name == unit.GetComponent<Stats>().Name)
-                {
-                    stats.TempHealth = unit.GetComponent<Stats>().TempHealth;
-                    break;  // Zatrzymujemy pętlę, gdy znajdziemy pasujący element
-                }
-            }
-        }
 
         Destroy(unit);
 

@@ -410,6 +410,26 @@
       "Armor_arms": 1,
       "Armor_torso": 1,
       "Armor_legs": 0
+    },
+    {
+      "Id": 21,
+      "Race": "Gobliłucznik",
+      "PrimaryWeaponId": 16,
+      "WW": 25,
+      "US": 30,
+      "K": 30,
+      "Odp": 30,
+      "Zr": 25,
+      "Int": 25,
+      "SW": 30,
+      "Ogd": 20,
+      "A": 1,
+      "Sz": 4,
+      "MaxHealth": 8,
+      "Armor_head": 0,
+      "Armor_arms": 0,
+      "Armor_torso": 1,
+      "Armor_legs": 0
     }
   ]
 }

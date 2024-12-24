@@ -56,7 +56,7 @@ public class MovementManager : MonoBehaviour
         List<Vector2> path = FindPath(startCharPos, selectedTilePos);
 
         // Sprawdza czy wybrane pole jest w zasięgu ruchu postaci. W przypadku automatycznej walki ten warunek nie jest wymagany.
-        if (path.Count > 0 && (path.Count <= movementRange || GameManager.IsAutoCombatMode || GeneticAlgorithmManager.Instance.IsWorking))
+        if (path.Count > 0 && (path.Count <= movementRange || GameManager.IsAutoCombatMode || ReinforcementLearningManager.Instance.IsLearning))
         {
             //Wykonuje akcję
             bool canDoAction = true;
@@ -86,7 +86,7 @@ public class MovementManager : MonoBehaviour
             selectedTile.GetComponent<Tile>().IsOccupied = true;
 
             //Zapobiega zaznaczeniu jako zajęte pola docelowego, do którego jednostka w trybie automatycznej walki niekoniecznie da radę dojść
-            if(GameManager.IsAutoCombatMode || GeneticAlgorithmManager.Instance.IsWorking)
+            if(GameManager.IsAutoCombatMode || ReinforcementLearningManager.Instance.IsLearning)
             {
                 AutoCombatManager.Instance.TargetTile = selectedTile.GetComponent<Tile>();
             }
@@ -118,7 +118,7 @@ public class MovementManager : MonoBehaviour
             float elapsedTime = 0f;
             float duration = 0.2f; // Czas trwania interpolacji
 
-            while (elapsedTime < duration && unit != null && !GeneticAlgorithmManager.Instance.IsWorking)
+            while (elapsedTime < duration && unit != null && !ReinforcementLearningManager.Instance.IsLearning)
             {
                 IsMoving = true;
 
@@ -149,7 +149,7 @@ public class MovementManager : MonoBehaviour
         }
 
         //Zaznacza jako zajęte faktyczne pole, na którym jednostka zakończy ruch, a nie pole do którego próbowała dojść
-        if(GameManager.IsAutoCombatMode || GeneticAlgorithmManager.Instance.IsWorking)
+        if(GameManager.IsAutoCombatMode || ReinforcementLearningManager.Instance.IsLearning)
         {
             AutoCombatManager.Instance.CheckForTargetTileOccupancy(unit);
         }

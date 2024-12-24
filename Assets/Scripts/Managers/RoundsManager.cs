@@ -165,11 +165,17 @@ public class RoundsManager : MonoBehaviour
         for(int i=0; i < UnitsManager.Instance.AllUnits.Count; i++)
         {
             if (UnitsManager.Instance.AllUnits[i] == null) continue;
-
+            
             InitiativeQueueManager.Instance.SelectUnitByQueue();
             yield return new WaitForSeconds(0.1f);
             
-            Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
+            Unit unit = null;
+            if (Unit.SelectedUnit != null)
+            {
+                unit = Unit.SelectedUnit.GetComponent<Unit>();
+            }
+            else continue;
+
             if(!UnitsWithActionsLeft.ContainsKey(unit)) continue;
 
             // Jeśli jednostka to PlayerUnit i gramy w trybie ukrywania statystyk wrogów
@@ -182,10 +188,10 @@ public class RoundsManager : MonoBehaviour
             else // Jednostki wrogów lub wszystkie jednostki, jeśli nie ukrywamy ich statystyk
             {
                 //TYMCZASOWE - test algorytmów gentycznych
-                if(unit.Genome != null)
+                //if(ReinforcementLearningManager.Instance.IsLearning)
+                if (ReinforcementLearningManager.Instance.IsRaceTrained(unit.GetComponent<Stats>().Race))
                 {
-                    Debug.Log("ALGORYTM GENETYCZNY");
-                    GeneticAlgorithmManager.Instance.SimulateUnit(unit);
+                    ReinforcementLearningManager.Instance.SimulateUnit(unit);
                 }
                 else
                 {
@@ -196,11 +202,24 @@ public class RoundsManager : MonoBehaviour
                 // Czeka, aż jednostka zakończy ruch, zanim wybierze kolejną jednostkę
                 yield return new WaitUntil(() => MovementManager.Instance.IsMoving == false);
                 yield return new WaitForSeconds(0.5f);
-            }
+            }      
         }
 
         NextRoundButton.gameObject.SetActive(true);
         _useFortunePointsButton.SetActive(true);
+
+        //DO SZKOLENIA AI
+        if(ReinforcementLearningManager.Instance.IsLearning)
+        {
+            if(ReinforcementLearningManager.Instance.BothTeamsExist() == false || RoundNumber > 50)
+            {
+                SaveAndLoadManager.Instance.SetLoadingType(true);
+                SaveAndLoadManager.Instance.LoadGame("AIlearning");
+            }
+
+            yield return new WaitUntil(() => SaveAndLoadManager.Instance.IsLoading == false);
+            NextRound();
+        }
     }
 
     #region Units actions

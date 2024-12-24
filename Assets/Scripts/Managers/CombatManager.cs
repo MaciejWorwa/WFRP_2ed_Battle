@@ -164,7 +164,6 @@ public class CombatManager : MonoBehaviour
                     AttackTypes["StandardAttack"] = true;
                     Debug.Log("Atak wielokrotny jest dostępny tylko dla jednostek z ilością ataków większą niż jeden.");
                 }
-
             }
 
             //Ogłuszanie jest dostępne tylko dla jednostek ze zdolnością ogłuszania
@@ -697,7 +696,7 @@ public class CombatManager : MonoBehaviour
     #endregion
 
     #region Calculating distance and validating distance attack
-    private float CalculateDistance(GameObject attacker, GameObject target)
+    public float CalculateDistance(GameObject attacker, GameObject target)
     {
         if (attacker != null && target != null)
         {
@@ -1108,7 +1107,7 @@ public class CombatManager : MonoBehaviour
     }
     public void UpdateAimButtonColor()
     {
-        if(Unit.SelectedUnit.GetComponent<Unit>().AimingBonus != 0)
+        if(Unit.SelectedUnit != null && Unit.SelectedUnit.GetComponent<Unit>().AimingBonus != 0)
         {
             _aimButton.GetComponent<UnityEngine.UI.Image>().color = UnityEngine.Color.green;
         }
@@ -1216,7 +1215,7 @@ public class CombatManager : MonoBehaviour
             }  
         }
 
-        if(shortestPathLength > attacker.GetComponent<Stats>().TempSz && !GameManager.IsAutoCombatMode && !GeneticAlgorithmManager.Instance.IsWorking)
+        if(shortestPathLength > attacker.GetComponent<Stats>().TempSz && !GameManager.IsAutoCombatMode && !ReinforcementLearningManager.Instance.IsLearning)
         {
             return null;
         }
