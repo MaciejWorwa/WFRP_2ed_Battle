@@ -22,7 +22,7 @@ public class Stats : MonoBehaviour
     public string Race;
 
     [Header("Id początkowej broni")]
-    public int PrimaryWeaponId;
+    public List<int> PrimaryWeaponIds = new List<int>();
 
     [Header("Cechy pierwszorzędowe")]
     public int WW;

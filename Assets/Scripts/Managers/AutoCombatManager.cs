@@ -209,7 +209,7 @@ public class AutoCombatManager : MonoBehaviour
         //Ścieżka ruchu atakującego
         List<Vector2> path = MovementManager.Instance.FindPath(unit.transform.position, targetTilePosition); 
 
-        if ((!weapon.Type.Contains("ranged")) && unit.CanAttack == true && path.Count <= unit.GetComponent<Stats>().Sz * 2 && path.Count >= 3 && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) // Jeśli rywal jest w zasięgu szarży to wykonuje szarżę
+        if ((!weapon.Type.Contains("ranged")) && unit.CanAttack == true && path.Count <= unit.GetComponent<Stats>().Sz * 2 && path.Count >= 2 && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) // Jeśli rywal jest w zasięgu szarży to wykonuje szarżę
         {
             Debug.Log($"{unit.GetComponent<Stats>().Name} szarżuje na {closestOpponent.GetComponent<Stats>().Name}.");
 
@@ -218,7 +218,7 @@ public class AutoCombatManager : MonoBehaviour
 
             CombatManager.Instance.Attack(unit, closestOpponent.GetComponent<Unit>(), false);
         }
-        else if (path.Count < 3 && path.Count > 0 && unit.CanAttack == true && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) //Wykonuje ruch w kierunku przeciwnika, a następnie atak
+        else if (path.Count < 2 && path.Count > 0 && unit.CanAttack == true && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) //Wykonuje ruch w kierunku przeciwnika, a następnie atak
         {
             // Uruchomia korutynę odpowiedzialną za ruch i atak
             StartCoroutine(MoveAndAttack(unit, targetTile, closestOpponent.GetComponent<Unit>(), weapon));

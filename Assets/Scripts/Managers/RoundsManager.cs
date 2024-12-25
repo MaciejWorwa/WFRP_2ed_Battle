@@ -188,16 +188,22 @@ public class RoundsManager : MonoBehaviour
             else // Jednostki wrogów lub wszystkie jednostki, jeśli nie ukrywamy ich statystyk
             {
                 //TYMCZASOWE - test algorytmów gentycznych
-                //if(ReinforcementLearningManager.Instance.IsLearning)
-                if (ReinforcementLearningManager.Instance.IsRaceTrained(unit.GetComponent<Stats>().Race))
+                if(ReinforcementLearningManager.Instance.IsLearning)
+                //if (ReinforcementLearningManager.Instance.IsRaceTrained(unit.GetComponent<Stats>().Race))
                 {
-                    ReinforcementLearningManager.Instance.SimulateUnit(unit);
+                    if(unit.CompareTag("PlayerUnit"))
+                    {
+                        AutoCombatManager.Instance.Act(unit);
+                    }
+                    else
+                    {
+                        ReinforcementLearningManager.Instance.SimulateUnit(unit);
+                    }
                 }
                 else
                 {
                     AutoCombatManager.Instance.Act(unit);
                 }
-                //AutoCombatManager.Instance.Act(unit);
 
                 // Czeka, aż jednostka zakończy ruch, zanim wybierze kolejną jednostkę
                 yield return new WaitUntil(() => MovementManager.Instance.IsMoving == false);

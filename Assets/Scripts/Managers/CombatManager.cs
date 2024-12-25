@@ -251,6 +251,31 @@ public class CombatManager : MonoBehaviour
             {
                 //Sprawdza konieczne warunki do wykonania ataku dystansowego
                 if(ValidateRangedAttack(attacker, target, attackerWeapon, _attackDistance) == false) return;
+
+                // Sprawdza, czy na linii strzału znajduje się przeszkoda
+                RaycastHit2D[] raycastHits = Physics2D.RaycastAll(attacker.transform.position, target.transform.position - attacker.transform.position, _attackDistance);
+
+                foreach (var raycastHit in raycastHits)
+                {
+                    if (raycastHit.collider == null) continue;
+
+                    var mapElement = raycastHit.collider.GetComponent<MapElement>();
+                    var unit = raycastHit.collider.GetComponent<Unit>();
+
+                    if (mapElement != null && mapElement.IsLowObstacle)
+                    {
+                        _attackModifier -= 20;
+                        Debug.Log("Strzał jest wykonywany w jednostkę znajdującą się za przeszkodą. Zastosowano ujemny modyfikator do trafienia.");
+                        break; // Żeby modyfikator nie kumulował się za każdą przeszkodę
+                    }
+
+                    if (unit != null && unit != target && unit != attacker)
+                    {
+                        _attackModifier -= 20;
+                        Debug.Log("Na linii strzału znajduje się inna jednostka. Zastosowano ujemny modyfikator do trafienia.");
+                        break; // Żeby modyfikator nie kumulował się za każdą postać
+                    }
+                }
             }
 
             //Sprawdza, czy jest to atak wykonywany przez gracza, po którym będzie trzeba wpisać obrażenia w odpowiednim panelu. Ta zmienna jest konieczna, aby nowa jednostka nie była wybierana dopóki nie wpiszemy obrażeń.
@@ -421,7 +446,12 @@ public class CombatManager : MonoBehaviour
             //Atakowany próbuje parować lub unikać.
             if (_isSuccessful && rollResult > 5 && attackerWeapon.Type.Contains("melee") && (attacker.Feinted != true || AttackTypes["StandardAttack"] != true))
             {
-                bool canParry = target.CanParry && (RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(target) && RoundsManager.Instance.UnitsWithActionsLeft[target] >= 1 || targetStats.LightningParry);
+                //Sprawdza, czy parowanie wymaga akcji
+                var equippedWeapons = targetStats.GetComponent<Inventory>().EquippedWeapons;
+                bool isFirstWeaponShield = equippedWeapons[0] != null && equippedWeapons[0].Type.Contains("shield");
+                bool hasTwoOneHandedWeaponsOrShield = (equippedWeapons[0] != null && equippedWeapons[1] != null && equippedWeapons[0].Name != equippedWeapons[1].Name) || isFirstWeaponShield;
+
+                bool canParry = target.CanParry && ((RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(target) && RoundsManager.Instance.UnitsWithActionsLeft[target] >= 1) || targetStats.LightningParry || hasTwoOneHandedWeaponsOrShield);
 
                 //Sprawdzenie, czy jest aktywny tryb automatycznej obrony
                 if (!GameManager.IsAutoDefenseMode && (canParry || target.CanDodge))
@@ -473,7 +503,7 @@ public class CombatManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("Cel ataku stoi poza zasięgiem.");
+            Debug.Log("Cel ataku stoi poza zasięgiem." + $"{attackerStats.Name} dystans: {_attackDistance} zasięg:{attackerWeapon.AttackRange} dystansowa: {attackerWeapon.Type.Contains("ranged")}");
         }
     }
 
@@ -484,6 +514,9 @@ public class CombatManager : MonoBehaviour
 
         if (_isSuccessful)
         {
+            //Dodaje nagrodę za trafienie przeciwnika (uczenie AI)
+            ReinforcementLearningManager.Instance.HasHitTarget = true;
+
             //Ogłuszanie
             if (AttackTypes["Stun"] == true)
             {
@@ -612,6 +645,9 @@ public class CombatManager : MonoBehaviour
         {
             Debug.Log($"Atak {attackerStats.Name} chybił.");
             StartCoroutine(AnimationManager.Instance.PlayAnimation("miss", null, target.gameObject));
+
+            //Nie dodaje nagrody za trafienie przeciwnika (uczenie AI)
+            ReinforcementLearningManager.Instance.HasHitTarget = false;
         }
     }
 
@@ -701,7 +737,6 @@ public class CombatManager : MonoBehaviour
         if (attacker != null && target != null)
         {
             _attackDistance = Vector2.Distance(attacker.transform.position, target.transform.position);
-
             return _attackDistance;
         }
         else
@@ -723,7 +758,11 @@ public class CombatManager : MonoBehaviour
         // Sprawdza, czy cel nie znajduje się zbyt blisko
         if (attackDistance <= 1.5f)
         {
-            Debug.Log($"Jednostka stoi zbyt blisko celu, aby wykonać atak dystansowy.");
+            if(!ReinforcementLearningManager.Instance.IsLearning)
+            {
+                Debug.Log($"Jednostka stoi zbyt blisko celu, aby wykonać atak dystansowy.");
+            }
+
             return false;
         }
 
@@ -744,20 +783,6 @@ public class CombatManager : MonoBehaviour
                     Debug.Log("Na linii strzału znajduje się przeszkoda, przez którą strzał jest niemożliwy.");
                     return false;
                 }
-
-                if (mapElement.IsLowObstacle)
-                {
-                    _attackModifier -= 20;
-                    Debug.Log("Strzał jest wykonywany w jednostkę znajdującą się za przeszkodą. Zastosowano ujemny modyfikator do trafienia.");
-                    break; // Żeby modyfikator nie kumulował się za każdą przeszkodę
-                }
-            }
-
-            if (unit != null && unit != target && unit != attacker)
-            {
-                _attackModifier -= 20;
-                Debug.Log("Na linii strzału znajduje się inna jednostka. Zastosowano ujemny modyfikator do trafienia.");
-                break; // Żeby modyfikator nie kumulował się za każdą postać
             }
         }
 
@@ -1140,7 +1165,7 @@ public class CombatManager : MonoBehaviour
         List<Vector2> path = MovementManager.Instance.FindPath(attacker.transform.position, targetTilePosition);
 
         //Sprawdza, czy postać jest wystarczająco daleko do wykonania szarży
-        if (path.Count >= 3 && path.Count <= attacker.GetComponent<Stats>().TempSz)
+        if (path.Count >= 2 && path.Count <= attacker.GetComponent<Stats>().TempSz)
         {
             //Zapisuje grę przed wykonaniem ruchu, aby użycie punktu szczęścia wczytywało pozycję przed wykonaniem szarży i można było wykonać ją ponownie
             SaveAndLoadManager.Instance.SaveUnits(UnitsManager.Instance.AllUnits, "autosave");
@@ -1166,7 +1191,7 @@ public class CombatManager : MonoBehaviour
         {
             ChangeAttackType(); // Resetuje szarżę
 
-            Debug.Log("Zbyt mała odległość na wykonanie szarży");
+            Debug.Log("Zbyt mała odległość na wykonanie szarży." + " " + attacker.GetComponent<Stats>().Name);
         }
     }
 
@@ -1315,7 +1340,7 @@ public class CombatManager : MonoBehaviour
         {
             if (_parryOrDodge == "parry")
             {
-                targetIsDefended = Parry(attackerWeapon, targetWeapon, targetStats, parryModifier);
+                targetIsDefended = Parry(targetStats, parryModifier);
             }
             else if (_parryOrDodge == "dodge")
             {
@@ -1339,7 +1364,7 @@ public class CombatManager : MonoBehaviour
             Warunek sprawdza też, czy obrońca broni się Pięściami (Id=0). Parowanie pięściami jest możliwe tylko, gdy przeciwnik również atakuje Pięściami. */
             if (targetStats.WW + parryModifier > (targetStats.Zr + (targetStats.Dodge * 10) - 10 + dodgeModifier) && (targetWeapon.Id != 0 || targetWeapon.Id == attackerWeapon.Id))
             {
-                targetIsDefended = Parry(attackerWeapon, targetWeapon, targetStats, parryModifier);
+                targetIsDefended = Parry(targetStats, parryModifier);
             }
             else
             {
@@ -1348,7 +1373,7 @@ public class CombatManager : MonoBehaviour
         }
         else if (targetUnit.CanParry && (targetWeapon.Id != 0 || targetWeapon.Id == attackerWeapon.Id))
         {
-            targetIsDefended = Parry(attackerWeapon, targetWeapon, targetStats, parryModifier);
+            targetIsDefended = Parry(targetStats, parryModifier);
         }
         else if (targetUnit.CanDodge)
         {
@@ -1362,7 +1387,7 @@ public class CombatManager : MonoBehaviour
         return !targetIsDefended; //Zwracana wartość definiuje, czy atak się powiódł. Zwracamy odwrotność, bo gdy obrona się powiodła, oznacza to, że atak nie.
     }
             
-    private bool Parry(Weapon attackerWeapon, Weapon targetWeapon, Stats targetStats, int parryModifier)
+    private bool Parry(Stats targetStats, int parryModifier)
     {
         //Wykonuje akcję, jeżeli postać nie posiada błyskawicznego bloku lub dwóch broni/tarczy (sprawdza, czy broń trzymana w drugiej ręce jest jednoręczna, jeśli tak to znaczy, że nie zużywa akcji)
         var equippedWeapons = targetStats.GetComponent<Inventory>().EquippedWeapons;

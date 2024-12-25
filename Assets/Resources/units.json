@@ -3,7 +3,7 @@
     {
       "Id": 1,
       "Race": "Człowiek",
-      "PrimaryWeaponId": 5,
+      "PrimaryWeaponIds": [5],
       "WW": 20,
       "US": 20,
       "K": 20,
@@ -19,7 +19,7 @@
     {
       "Id": 2,
       "Race": "Elf",
-      "PrimaryWeaponId": 5,
+      "PrimaryWeaponIds": [5, 16],
       "WW": 20,
       "US": 30,
       "K": 20,
@@ -35,7 +35,7 @@
     {
       "Id": 3,
       "Race": "Krasnolud",
-      "PrimaryWeaponId": 5,
+      "PrimaryWeaponIds": [5],
       "WW": 30,
       "US": 20,
       "K": 20,
@@ -53,7 +53,7 @@
     {
       "Id": 4,
       "Race": "Niziołek",
-      "PrimaryWeaponId": 5,
+      "PrimaryWeaponIds": [5, 23],
       "WW": 10,
       "US": 30,
       "K": 10,
@@ -69,7 +69,7 @@
     {
       "Id": 5,
       "Race": "Goblin",
-      "PrimaryWeaponId": 33,
+      "PrimaryWeaponIds": [5, 33, 16, 32],
       "WW": 25,
       "US": 30,
       "K": 30,
@@ -89,7 +89,7 @@
     {
       "Id": 6,
       "Race": "Minotaur",
-      "PrimaryWeaponId": 4,
+      "PrimaryWeaponIds": [4],
       "WW": 42,
       "US": 25,
       "K": 48,
@@ -111,7 +111,7 @@
     {
       "Id": 7,
       "Race": "Ogr",
-      "PrimaryWeaponId": 4,
+      "PrimaryWeaponIds": [4],
       "WW": 31,
       "US": 21,
       "K": 46,
@@ -136,7 +136,7 @@
     {
       "Id": 8,
       "Race": "Olbrzym",
-      "PrimaryWeaponId": 7,
+      "PrimaryWeaponIds": [7],
       "WW": 33,
       "US": 25,
       "K": 69,
@@ -161,7 +161,7 @@
     {
       "Id": 9,
       "Race": "Olbrzymi wilk",
-      "PrimaryWeaponId": 6,
+      "PrimaryWeaponIds": [6],
       "WW": 36,
       "US": 0,
       "K": 35,
@@ -181,7 +181,7 @@
     {
       "Id": 10,
       "Race": "Ork zwyczajny",
-      "PrimaryWeaponId": 5,
+      "PrimaryWeaponIds": [5],
       "WW": 35,
       "US": 35,
       "K": 35,
@@ -203,7 +203,7 @@
     {
       "Id": 11,
       "Race": "Skaven - klanbrat",
-      "PrimaryWeaponId": 5,
+      "PrimaryWeaponIds": [5],
       "WW": 30,
       "US": 25,
       "K": 30,
@@ -223,7 +223,7 @@
     {
       "Id": 12,
       "Race": "Szczurogr",
-      "PrimaryWeaponId": 6,
+      "PrimaryWeaponIds": [6],
       "WW": 36,
       "US": 0,
       "K": 54,
@@ -247,7 +247,7 @@
     {
       "Id": 13,
       "Race": "Smok",
-      "PrimaryWeaponId": 7,
+      "PrimaryWeaponIds": [7],
       "WW": 59,
       "US": 0,
       "K": 65,
@@ -272,7 +272,7 @@
     {
       "Id": 14,
       "Race": "Szkielet",
-      "PrimaryWeaponId": 5,
+      "PrimaryWeaponIds": [5],
       "WW": 25,
       "US": 20,
       "K": 30,
@@ -293,7 +293,7 @@
     {
       "Id": 15,
       "Race": "Troll",
-      "PrimaryWeaponId": 4,
+      "PrimaryWeaponIds": [4],
       "WW": 37,
       "US": 15,
       "K": 51,
@@ -315,7 +315,7 @@
     {
       "Id": 16,
       "Race": "Wampir Strzygoń",
-      "PrimaryWeaponId": 6,
+      "PrimaryWeaponIds": [6],
       "WW": 63,
       "US": 31,
       "K": 67,
@@ -335,7 +335,7 @@
     {
       "Id": 17,
       "Race": "Zjawa",
-      "PrimaryWeaponId": 8,
+      "PrimaryWeaponIds": [8],
       "WW": 42,
       "US": 0,
       "K": 40,
@@ -353,7 +353,7 @@
     {
       "Id": 18,
       "Race": "Zombie",
-      "PrimaryWeaponId": 5,
+      "PrimaryWeaponIds": [5],
       "WW": 25,
       "US": 0,
       "K": 35,
@@ -372,7 +372,7 @@
     {
       "Id": 19,
       "Race": "Zwierzoczłek - bestigor",
-      "PrimaryWeaponId": 4,
+      "PrimaryWeaponIds": [4],
       "WW": 45,
       "US": 25,
       "K": 41,
@@ -394,7 +394,7 @@
     {
       "Id": 20,
       "Race": "Zwierzoczłek - gor",
-      "PrimaryWeaponId": 5,
+      "PrimaryWeaponIds": [5],
       "WW": 40,
       "US": 25,
       "K": 35,
@@ -408,26 +408,6 @@
       "MaxHealth": 12,
       "Armor_head": 0,
       "Armor_arms": 1,
-      "Armor_torso": 1,
-      "Armor_legs": 0
-    },
-    {
-      "Id": 21,
-      "Race": "Gobliłucznik",
-      "PrimaryWeaponId": 16,
-      "WW": 25,
-      "US": 30,
-      "K": 30,
-      "Odp": 30,
-      "Zr": 25,
-      "Int": 25,
-      "SW": 30,
-      "Ogd": 20,
-      "A": 1,
-      "Sz": 4,
-      "MaxHealth": 8,
-      "Armor_head": 0,
-      "Armor_arms": 0,
       "Armor_torso": 1,
       "Armor_legs": 0
     }

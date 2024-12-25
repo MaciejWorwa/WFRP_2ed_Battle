@@ -38,7 +38,7 @@ public class InitiativeQueueManager : MonoBehaviour
     private Color _selectedColor = new Color(0f, 0f, 0f, 0.5f); // Kolor wybranego przycisku (zaznaczonej jednostki)
     private Color _activeColor = new Color(0.15f, 1f, 0.45f, 0.2f); // Kolor aktywnego przycisku (jednostka, której tura obecnie trwa)
     private Color _selectedActiveColor = new Color(0.08f, 0.5f, 0.22f, 0.5f); // Kolor wybranego przycisku, gdy jednocześnie jest to aktywna jednostka
-    [SerializeField] private UnityEngine.UI.Slider _advantageBar; // Pasek przewagi sił w bitwie
+    public UnityEngine.UI.Slider AdvantageBar; // Pasek przewagi sił w bitwie
     
 
     #region Initiative queue
@@ -185,25 +185,25 @@ public class InitiativeQueueManager : MonoBehaviour
     public void CalculateAdvantage(int addedOverall, int substractedOverall, string unitTag)
     {
         // Aktualizacja maksymalnej wartości przewagi
-        if(_advantageBar.maxValue == 1) // Początkowa wartość Slidera (nie da sie ustawić na 0)
+        if(AdvantageBar.maxValue == 1) // Początkowa wartość Slidera (nie da sie ustawić na 0)
         { 
-            _advantageBar.maxValue = addedOverall;
+            AdvantageBar.maxValue = addedOverall;
         }
         else
         {
-            _advantageBar.maxValue += addedOverall - substractedOverall;
+            AdvantageBar.maxValue += addedOverall - substractedOverall;
         }
 
         // Aktualizacja wartości przewagi gracza (tylko jeśli jednostka należy do gracza)
         if (unitTag == "PlayerUnit")
         {
-            _advantageBar.value += addedOverall - substractedOverall;
+            AdvantageBar.value += addedOverall - substractedOverall;
         }
 
-        // Aktywacja paska, jeśli ma sens go wyświetlić
-        if (_advantageBar.maxValue > 1 && !_advantageBar.gameObject.activeSelf)
+        // Aktywacja paska, jeśli ma sens go wyświetlać
+        if (AdvantageBar.maxValue > 1 && !AdvantageBar.gameObject.activeSelf && !GameManager.IsStatsHidingMode)
         {
-            _advantageBar.gameObject.SetActive(true);
+            AdvantageBar.gameObject.SetActive(true);
         }
     }
 }

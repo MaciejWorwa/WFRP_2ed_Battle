@@ -153,7 +153,7 @@ public class UnitsManager : MonoBehaviour
 
     public GameObject CreateUnit(int unitId, string unitName, Vector2 position)
     {
-        if (_unitsDropdown.SelectedButton == null && SaveAndLoadManager.Instance.IsLoading != true && GeneticAlgorithmManager.Instance.IsWorking != true)
+        if (_unitsDropdown.SelectedButton == null && SaveAndLoadManager.Instance.IsLoading != true)
         {
             Debug.Log("Wybierz jednostkę z listy.");
             return null;
@@ -344,14 +344,14 @@ public class UnitsManager : MonoBehaviour
                 newUnit.GetComponent<Stats>().RollForBaseStats();
             }
    
-            //Dodaje do ekwipunku początkową broń adekwatną dla danej jednostki i wyposaża w nią
-            if (newUnit.GetComponent<Stats>().PrimaryWeaponId > 0 && !IsSavedUnitsManaging)
+            // Dodaje do ekwipunku początkową broń adekwatną dla danej jednostki i wyposaża w nią
+            if (newUnit.GetComponent<Stats>().PrimaryWeaponIds != null && newUnit.GetComponent<Stats>().PrimaryWeaponIds.Count > 0 && !IsSavedUnitsManaging)
             {
                 Unit.LastSelectedUnit = Unit.SelectedUnit != null ? Unit.SelectedUnit : null;
                 Unit.SelectedUnit = newUnit;
                 SaveAndLoadManager.Instance.IsLoading = true; // Tylko po to, żeby informacja o dobyciu broni i dodaniu do ekwipunku z metody GrabWeapon i LoadWeapon nie były wyświetlane w oknie wiadomości
 
-                InventoryManager.Instance.GrabPrimaryWeapon();
+                InventoryManager.Instance.GrabPrimaryWeapons();
             }
 
             //Ustala początkową inicjatywę i dodaje jednostkę do kolejki inicjatywy
@@ -651,13 +651,13 @@ public class UnitsManager : MonoBehaviour
             InitiativeQueueManager.Instance.UpdateInitiativeQueue();
 
             //Dodaje do ekwipunku początkową broń adekwatną dla danej jednostki i wyposaża w nią
-            if (stats.PrimaryWeaponId > 0 && changeName)
+            if (unit.GetComponent<Stats>().PrimaryWeaponIds != null && unit.GetComponent<Stats>().PrimaryWeaponIds.Count > 0 && changeName)
             {
                 Unit.LastSelectedUnit = Unit.SelectedUnit != null ? Unit.SelectedUnit : null;
                 Unit.SelectedUnit = unit;
                 SaveAndLoadManager.Instance.IsLoading = true; // Tylko po to, żeby informacja o dobyciu broni i dodaniu do ekwipunku z metody GrabWeapon i LoadWeapon nie były wyświetlane w oknie wiadomości
 
-                InventoryManager.Instance.GrabPrimaryWeapon();
+                InventoryManager.Instance.GrabPrimaryWeapons();
             }
 
             unit.GetComponent<Unit>().DisplayUnitName();

@@ -35,6 +35,8 @@ public class InventoryManager : MonoBehaviour
         }
     }
     
+    // Lista wszystkich dostępnych broni
+    public List<WeaponData> AllWeaponData = new List<WeaponData>();
     [SerializeField] private GameObject _buttonPrefab; // Przycisk odpowiadający każdej z broni
     public Transform InventoryScrollViewContent; // Lista ekwipunku postaci
     public CustomDropdown WeaponsDropdown;
@@ -134,15 +136,16 @@ public class InventoryManager : MonoBehaviour
 
         //Dodaje przedmiot do ekwipunku
         unit.GetComponent<Inventory>().AllWeapons.Add(newWeapon);
-        //Sortuje listę alfabetycznie
-        unit.GetComponent<Inventory>().AllWeapons.Sort((x, y) => x.Name.CompareTo(y.Name));
-
-        UpdateInventoryDropdown(unit.GetComponent<Inventory>().AllWeapons, true);
 
         if(!SaveAndLoadManager.Instance.IsLoading) //Zapobiega wypisywaniu wszystkich broni podczas wczytywania stanu gry
         {
+            //Sortuje listę alfabetycznie
+            unit.GetComponent<Inventory>().AllWeapons.Sort((x, y) => x.Name.CompareTo(y.Name));
+
             Debug.Log($"Przedmiot {newWeapon.Name} został dodany do ekwipunku {unit.GetComponent<Stats>().Name}.");
         }
+
+        UpdateInventoryDropdown(unit.GetComponent<Inventory>().AllWeapons, true);
     }
     #endregion
 
@@ -297,15 +300,92 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    public void GrabPrimaryWeapon()
+    public void GrabPrimaryWeapons()
     {
-        WeaponsDropdown.SetSelectedIndex(Unit.SelectedUnit.GetComponent<Stats>().PrimaryWeaponId);
-        LoadWeapons(false);
-        InventoryScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(1);
-        GrabWeapon();
+        Stats unitStats = Unit.SelectedUnit.GetComponent<Stats>();
+        if (unitStats.PrimaryWeaponIds == null || unitStats.PrimaryWeaponIds.Count == 0) return;
+
+        // Kopia listy Id broni
+        List<int> weaponIds = new List<int>(unitStats.PrimaryWeaponIds);
+
+        // Losowo wybieramy jedną broń
+        int randomIndex = UnityEngine.Random.Range(0, weaponIds.Count);
+        int selectedWeaponId = weaponIds[randomIndex];
+
+        // Ustawiamy wybraną broń w dropdownie i dobywamy ją
+        EquipSelectedPrimaryWeapon(unitStats, selectedWeaponId);
+
+        // Sprawdź, czy wybrana broń jest dwuręczna lub tarczą
+        bool isTwoHanded = IsTwoHandedWeapon(selectedWeaponId);
+        bool isShield = IsShield(selectedWeaponId);
+
+        if (!isTwoHanded && !isShield)
+        {
+            // Automatycznie wyposażamy tarczę, jeśli istnieje
+            foreach (int weaponId in weaponIds)
+            {
+                if (IsShield(weaponId))
+                {
+                    SelectHand(false);
+                    EquipSelectedPrimaryWeapon(unitStats, weaponId);
+                    SelectHand(true);
+                    break;
+                }
+            }
+        }
+
+        // Jeśli wybrana broń to tarcza, wybieramy dodatkową broń, upewniając się, że nie jest dwuręczna
+        if (isShield)
+        {
+            SelectHand(false);
+            InventoryScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(1);
+            GrabWeapon();
+            SelectHand(true);
+
+            // Usuwamy tarczę z listy broni
+            weaponIds.RemoveAt(randomIndex);
+
+            // Tworzymy listę broni wykluczającą broń dwuręczną
+            List<int> possibleWeapons = weaponIds.Where(id => !IsTwoHandedWeapon(id)).ToList();
+
+            if (possibleWeapons.Count > 0)
+            {
+                int newRandomIndex = UnityEngine.Random.Range(0, possibleWeapons.Count);
+                int newSelectedWeaponId = possibleWeapons[newRandomIndex];
+                // Ustawiamy wybraną broń w dropdownie i dobywamy ją
+                EquipSelectedPrimaryWeapon(unitStats, newSelectedWeaponId);
+            }
+        }
 
         SaveAndLoadManager.Instance.IsLoading = false;
         Unit.SelectedUnit = Unit.LastSelectedUnit != null ? Unit.LastSelectedUnit : null;
+    }
+
+    private void EquipSelectedPrimaryWeapon(Stats unitStats, int weaponId)
+    {
+        WeaponsDropdown.SetSelectedIndex(weaponId);
+        LoadWeapons(false);
+        int weaponsCount = unitStats.GetComponent<Inventory>().AllWeapons.Count;
+        //Wybieramy ostatnią broń na liście ekwipunku (musiałem wyłączyć alfabetyczne sortowanie)
+        InventoryScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(weaponsCount);
+        GrabWeapon();
+    }
+
+    private bool IsTwoHandedWeapon(int weaponId)
+    {
+        WeaponData weaponData = AllWeaponData.FirstOrDefault(w => w.Id == weaponId);
+        if (weaponData == null) return false;
+
+        return weaponData.TwoHanded;
+    }
+
+    private bool IsShield(int weaponId)
+    {
+        WeaponData weaponData = AllWeaponData.FirstOrDefault(w => w.Id == weaponId);
+        if (weaponData == null) return false;
+
+        bool isShield = weaponData.Type.Contains("shield");
+        return isShield;
     }
 
     public void SelectHand(bool rightHand)

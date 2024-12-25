@@ -255,6 +255,7 @@ public class DataManager : MonoBehaviour
         if(weaponData == null)
         {
             weaponsArray = JsonHelper.FromJson<WeaponData>(jsonFile.text);
+            InventoryManager.Instance.AllWeaponData = weaponsArray.ToList();
         }
         else
         {
@@ -539,7 +540,7 @@ public class StatsData
     public int Exp; // Punkty doświadczenia
     public string Name;
     public string Race;
-    public int PrimaryWeaponId;
+    public List<int> PrimaryWeaponIds = new List<int>(); // Zmienione na listę
     public int WW;
     public int US;
     public int K;
@@ -567,11 +568,11 @@ public class StatsData
     public bool Ambidextrous; // Oburęczność
     public bool Disarm; // Rozbrojenie
     public bool Ethereal; // Eteryczny
-    public bool FastHands; //Dotyk mocy
+    public bool FastHands; // Dotyk mocy
     public bool Fearless; // Nieustraszony
     public bool Frightening; // Straszny (test Fear)
     public bool LightningParry; // Błyskawiczny blok
-    public bool MagicSense; //Zmysł magii
+    public bool MagicSense; // Zmysł magii
     public bool MasterGunner; // Artylerzysta
     public bool MightyShot; // Strzał precyzyjny
     public bool MightyMissile; // Morderczy pocisk
@@ -605,14 +606,23 @@ public class StatsData
         var fields = stats.GetType().GetFields();
         var thisFields = this.GetType().GetFields();
 
-        // Dla każdego pola z klasy stats odnajduje pole w klasie this (czyli StatsData) i ustawia mu wartość jego odpowiednika z klasy stats
         foreach (var thisField in thisFields)
         {
-            var field = fields.FirstOrDefault(f => f.Name == thisField.Name); // Znajduje pierwsze pole o tej samej nazwie wśród pol z klasy Stats
+            var field = fields.FirstOrDefault(f => f.Name == thisField.Name);
 
             if (field != null && field.GetValue(stats) != null)
             {
-                thisField.SetValue(this, field.GetValue(stats));
+                if (thisField.FieldType == typeof(List<int>) && field.FieldType == typeof(List<int>))
+                {
+                    // Specjalne przypisanie dla listy
+                    var listValue = (List<int>)field.GetValue(stats);
+                    thisField.SetValue(this, new List<int>(listValue));
+                }
+                else
+                {
+                    // Standardowe przypisanie
+                    thisField.SetValue(this, field.GetValue(stats));
+                }
             }
         }
     }
