@@ -219,6 +219,8 @@ public class RoundsManager : MonoBehaviour
         {
             if(ReinforcementLearningManager.Instance.BothTeamsExist() == false || RoundNumber > 50)
             {
+                ReinforcementLearningManager.Instance.UpdateTeamWins();
+
                 SaveAndLoadManager.Instance.SetLoadingType(true);
                 SaveAndLoadManager.Instance.LoadGame("AIlearning");
             }

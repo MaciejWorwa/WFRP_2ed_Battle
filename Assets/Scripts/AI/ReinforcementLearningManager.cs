@@ -5,6 +5,7 @@ using System.Linq;
 using System.IO;
 using System;
 using UnitStates;
+using TMPro;
 
 namespace UnitStates
 {
@@ -87,6 +88,10 @@ public class ReinforcementLearningManager : MonoBehaviour
     private List<float> epochRewards = new List<float>();
     private float currentEpochReward = 0f;
     private int actionsThisEpoch = 0;
+
+    [SerializeField] private int _playerWins;
+    [SerializeField] private int _enemyWins;
+    [SerializeField] private TMP_Text _teamWinsDisplay;
 
     // Liczba dostępnych akcji
     private const int ACTION_COUNT = 54;
@@ -981,6 +986,15 @@ public class ReinforcementLearningManager : MonoBehaviour
             if (playerUnitExists && enemyUnitExists) return true;
         }
 
+        if(playerUnitExists == false && enemyUnitExists == true)
+        {    
+            _enemyWins ++;
+        }
+        else if(enemyUnitExists == false && playerUnitExists == true)
+        {
+            _playerWins ++;
+        }
+
         // Jeśli pętla się zakończy, sprawdź, czy którakolwiek drużyna nie istnieje
         return playerUnitExists && enemyUnitExists;
     }
@@ -1072,6 +1086,10 @@ public class ReinforcementLearningManager : MonoBehaviour
     // ======================================================================
     //                        DEBUGOWANIE WYNIKÓW
     // ======================================================================
+    public void UpdateTeamWins()
+    {
+        _teamWinsDisplay.text = $"Player wins: {_playerWins} Enemy wins: {_enemyWins}";
+    }
     public void DebugAllFullQTables()
     {
         // Iterujemy po kluczach (nazwach ras) w QTables
