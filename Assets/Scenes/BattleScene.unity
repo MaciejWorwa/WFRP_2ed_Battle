@@ -38998,6 +38998,8 @@ MonoBehaviour:
   _castingNumberInputField: {fileID: 1380047297}
   _channelingRollPanel: {fileID: 679613678}
   _channelingRollInputField: {fileID: 811522817}
+  _applyDamagePanel: {fileID: 2134261085}
+  _damageInputField: {fileID: 1767491311}
 --- !u!4 &869639095
 Transform:
   m_ObjectHideFlags: 0
