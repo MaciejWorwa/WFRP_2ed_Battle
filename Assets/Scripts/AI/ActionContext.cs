@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Collections.Generic;
+
 
 [System.Serializable]
 public class ActionContext
@@ -11,6 +13,8 @@ public class ActionContext
     public bool HasRanged;
     public bool IsInMelee;
     public bool CanAttack;
+    public bool IsBeyondAttackRange;
+    public bool IsInChargeRange;
 
     public bool OpponentExist;
     public bool FurthestUnitExist;

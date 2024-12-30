@@ -39,7 +39,7 @@ public class CombatManager : MonoBehaviour
 
     private int _attackModifier;
     private float _attackDistance;
-    private int _availableAttacks;
+    public int AvailableAttacks;
 
     [Header("Przyciski wszystkich typów ataku")]
     [SerializeField] private UnityEngine.UI.Button _aimButton;
@@ -64,7 +64,13 @@ public class CombatManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button _cancelButton;
     private string _parryOrDodge;
     [SerializeField] private GameObject _applyDamagePanel;
+    [SerializeField] private GameObject _applyParryOrDodgeRollResultPanel;
+    [SerializeField] private TMP_InputField _parryOrDodgeInputField;
     [SerializeField] private TMP_InputField _damageInputField;
+    // Zmienne do przechowywania wyniku
+    private int _manualRollResult;
+    private bool _isWaitingForRoll;
+    public bool TargetIsDefended;
     public bool IsManualPlayerAttack;
 
     // Metoda inicjalizująca słownik ataków
@@ -156,7 +162,7 @@ public class CombatManager : MonoBehaviour
                 if(unit.GetComponent<Stats>().A > 1)
                 {
                     //Ustala dostępne ataki
-                    _availableAttacks = unit.GetComponent<Stats>().A;
+                    AvailableAttacks = unit.GetComponent<Stats>().A;
                 }
                 else
                 {
@@ -164,6 +170,10 @@ public class CombatManager : MonoBehaviour
                     AttackTypes["StandardAttack"] = true;
                     Debug.Log("Atak wielokrotny jest dostępny tylko dla jednostek z ilością ataków większą niż jeden.");
                 }
+            }
+            else
+            {
+                AvailableAttacks = 0;
             }
 
             //Ogłuszanie jest dostępne tylko dla jednostek ze zdolnością ogłuszania
@@ -287,7 +297,7 @@ public class CombatManager : MonoBehaviour
             {
                 canDoAction = RoundsManager.Instance.DoFullAction(attacker);
             }
-            else if (AttackTypes["AllOutAttack"] == true || AttackTypes["GuardedAttack"] == true || (AttackTypes["SwiftAttack"] == true && _availableAttacks == attackerStats.A)) //Specjalne ataki (szaleńczy, ostrożny i wielokrotny)
+            else if (AttackTypes["AllOutAttack"] == true || AttackTypes["GuardedAttack"] == true || (AttackTypes["SwiftAttack"] == true && AvailableAttacks == attackerStats.A)) //Specjalne ataki (szaleńczy, ostrożny i wielokrotny)
             {
                 canDoAction = RoundsManager.Instance.DoFullAction(attacker);
             }
@@ -305,7 +315,7 @@ public class CombatManager : MonoBehaviour
 
 
             //Zaznacza, że jednostka wykonała już akcję ataku w tej rundzie. Uniemożliwia to wykonanie kolejnej. Nie dotyczy ataku okazyjnego i finty, a w wielokrotnym sprawdza ilość dostępnych ataków
-            if (!opportunityAttack && !AttackTypes["SwiftAttack"] && !AttackTypes["Feint"] || AttackTypes["SwiftAttack"] && _availableAttacks == 0)
+            if (!opportunityAttack && !AttackTypes["SwiftAttack"] && !AttackTypes["Feint"] || AttackTypes["SwiftAttack"] && AvailableAttacks == 0)
             {
                 attacker.CanAttack = false;
             }
@@ -328,16 +338,16 @@ public class CombatManager : MonoBehaviour
             }
             else if(AttackTypes["SwiftAttack"] == true)
             {
-                if(_availableAttacks <= 0)
+                if(AvailableAttacks <= 0)
                 {
                     Debug.Log("Wybrana jednostka nie może wykonać kolejnego ataku w tej rundzie.");
                     return;
                 }
 
-                _availableAttacks --; 
+                AvailableAttacks --; 
 
                 //Zmienia jednostkę wg kolejności inicjatywy
-                if(_availableAttacks <= 0) InitiativeQueueManager.Instance.SelectUnitByQueue();
+                if(AvailableAttacks <= 0) InitiativeQueueManager.Instance.SelectUnitByQueue();
             }
 
             //Aktualizuje modyfikator ataku o celowanie
@@ -470,11 +480,19 @@ public class CombatManager : MonoBehaviour
                         Debug.Log("Wybierz reakcję atakowanej postaci.");
                         yield return new WaitUntil(() => _parryAndDodgePanel.activeSelf == false);
 
-                        _isSuccessful = CheckForParryAndDodge(attackerWeapon, targetWeapon, targetStats, target, false);
+                        StartCoroutine(CheckForParryAndDodge(attackerWeapon, targetWeapon, targetStats, target, false));
+                        
+                        if(!GameManager.IsAutoDiceRollingMode)
+                        {
+                            yield return new WaitUntil(() => _applyParryOrDodgeRollResultPanel.activeSelf == false);
+                        }
+
+                        _isSuccessful = !TargetIsDefended;
+
                         ExecuteAttack(attacker, target, attackerWeapon);
 
                         //Zmienia jednostkę wg kolejności inicjatywy
-                        if(RoundsManager.Instance.UnitsWithActionsLeft[attacker] == 0 && _availableAttacks <= 0)
+                        if(RoundsManager.Instance.UnitsWithActionsLeft[attacker] == 0 && AvailableAttacks <= 0)
                         {
                             InitiativeQueueManager.Instance.SelectUnitByQueue();
                         }
@@ -486,7 +504,8 @@ public class CombatManager : MonoBehaviour
 
                 if(canParry || target.CanDodge)
                 {
-                    _isSuccessful = CheckForParryAndDodge(attackerWeapon, targetWeapon, targetStats, target, false);
+                    StartCoroutine(CheckForParryAndDodge(attackerWeapon, targetWeapon, targetStats, target, false));
+                    _isSuccessful = !TargetIsDefended;
                 }
             }
 
@@ -503,7 +522,7 @@ public class CombatManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("Cel ataku stoi poza zasięgiem." + $"{attackerStats.Name} dystans: {_attackDistance} zasięg:{attackerWeapon.AttackRange} dystansowa: {attackerWeapon.Type.Contains("ranged")}");
+            Debug.Log("Cel ataku stoi poza zasięgiem.");
         }
     }
 
@@ -562,7 +581,6 @@ public class CombatManager : MonoBehaviour
 
                 StartCoroutine(WaitForDamageValue());
 
-                // Korutyna obsługująca reakcję obronną
                 IEnumerator WaitForDamageValue()
                 {
                     // Czekaj na kliknięcie przycisku
@@ -596,7 +614,7 @@ public class CombatManager : MonoBehaviour
                     }
 
                     //Aktualizuje aktywną postać na kolejce inicjatywy, jeśli atakujący nie ma już dostępnych akcji. Ta funkcja jest tu wywołana, dlatego że chcemy zastosować opóźnienie i poczekać ze zmianą jednostki do momentu wpisania wartości obrażeń
-                    if(RoundsManager.Instance.UnitsWithActionsLeft[attacker] == 0 && _availableAttacks <= 0)
+                    if(RoundsManager.Instance.UnitsWithActionsLeft[attacker] == 0 && AvailableAttacks <= 0)
                     {
                         //Zmienia jednostkę wg kolejności inicjatywy
                         InitiativeQueueManager.Instance.SelectUnitByQueue();
@@ -760,7 +778,7 @@ public class CombatManager : MonoBehaviour
         {
             if(!ReinforcementLearningManager.Instance.IsLearning)
             {
-                Debug.Log($"Jednostka stoi zbyt blisko celu, aby wykonać atak dystansowy.");
+                //Debug.Log($"Jednostka stoi zbyt blisko celu, aby wykonać atak dystansowy.");
             }
 
             return false;
@@ -1295,9 +1313,9 @@ public class CombatManager : MonoBehaviour
     #endregion
 
     #region Parry and dodge
-    public bool CheckForParryAndDodge(Weapon attackerWeapon, Weapon targetWeapon, Stats targetStats, Unit targetUnit, bool isTouchSpellAttack)
+    public IEnumerator CheckForParryAndDodge(Weapon attackerWeapon, Weapon targetWeapon, Stats targetStats, Unit targetUnit, bool isTouchSpellAttack)
     {
-        bool targetIsDefended = false;
+        TargetIsDefended = false;
 
         //Sprawdza, czy atakowany ma jakieś modifykatory do parowania
         int parryModifier = 0;
@@ -1336,26 +1354,41 @@ public class CombatManager : MonoBehaviour
 
         if (targetUnit.GuardedAttackBonus != 0) parryModifier += targetUnit.GuardedAttackBonus;
 
+        int manualRollResult = 0;
         if(GameManager.IsAutoDefenseMode == false)
         {
             if (_parryOrDodge == "parry")
             {
-                targetIsDefended = Parry(targetStats, parryModifier);
+                // Ręczne wpisanie wyniku na parowanie lub unik
+                if (!GameManager.IsAutoDiceRollingMode)
+                {
+                    // Wywołaj korutynę i poczekaj na wynik
+                    yield return StartCoroutine(WaitForRollValue());
+                    manualRollResult = _manualRollResult;
+                }
+                TargetIsDefended = Parry(targetStats, parryModifier, manualRollResult);
             }
             else if (_parryOrDodge == "dodge")
             {
-                targetIsDefended = Dodge(targetStats, dodgeModifier);
+                // Ręczne wpisanie wyniku na parowanie lub unik
+                if (!GameManager.IsAutoDiceRollingMode)
+                {
+                    // Wywołaj korutynę i poczekaj na wynik
+                    yield return StartCoroutine(WaitForRollValue());
+                    manualRollResult = _manualRollResult;
+                }
+                TargetIsDefended = Dodge(targetStats, dodgeModifier, manualRollResult);
             }
             else if(_parryOrDodge == "cancel")
             {
-                return false;
+                yield break;
             }
 
-            if(targetIsDefended)
+            if(TargetIsDefended)
             {
                 StartCoroutine(AnimationManager.Instance.PlayAnimation("parry", null, targetUnit.gameObject));
             }
-            return !targetIsDefended;
+            yield break;
         }
 
         if (targetUnit.CanParry && targetUnit.CanDodge)
@@ -1364,31 +1397,72 @@ public class CombatManager : MonoBehaviour
             Warunek sprawdza też, czy obrońca broni się Pięściami (Id=0). Parowanie pięściami jest możliwe tylko, gdy przeciwnik również atakuje Pięściami. */
             if (targetStats.WW + parryModifier > (targetStats.Zr + (targetStats.Dodge * 10) - 10 + dodgeModifier) && (targetWeapon.Id != 0 || targetWeapon.Id == attackerWeapon.Id))
             {
-                targetIsDefended = Parry(targetStats, parryModifier);
+                TargetIsDefended = Parry(targetStats, parryModifier, manualRollResult);
             }
             else
             {
-                targetIsDefended = Dodge(targetStats, dodgeModifier);
+                TargetIsDefended = Dodge(targetStats, dodgeModifier, manualRollResult);
             }
         }
         else if (targetUnit.CanParry && (targetWeapon.Id != 0 || targetWeapon.Id == attackerWeapon.Id))
         {
-            targetIsDefended = Parry(targetStats, parryModifier);
+            TargetIsDefended = Parry(targetStats, parryModifier, manualRollResult);
         }
         else if (targetUnit.CanDodge)
         {
-            targetIsDefended = Dodge(targetStats, dodgeModifier);
+            TargetIsDefended = Dodge(targetStats, dodgeModifier, manualRollResult);
         }
 
-        if(targetIsDefended)
+        if(TargetIsDefended)
         {
             StartCoroutine(AnimationManager.Instance.PlayAnimation("parry", null, targetUnit.gameObject));
         }
-        return !targetIsDefended; //Zwracana wartość definiuje, czy atak się powiódł. Zwracamy odwrotność, bo gdy obrona się powiodła, oznacza to, że atak nie.
+    }
+
+    // Korutyna czekająca na wpisanie wyniku przez użytkownika
+    private IEnumerator WaitForRollValue()
+    {
+        _isWaitingForRoll = true;
+        _manualRollResult = 0;
+
+        // Wyświetl panel do wpisania wyniku
+        if (_applyParryOrDodgeRollResultPanel != null)
+        {
+            _applyParryOrDodgeRollResultPanel.SetActive(true);
+        }
+
+        // Wyzeruj pole tekstowe
+        if (_parryOrDodgeInputField != null)
+        {
+            _parryOrDodgeInputField.text = "";
+        }
+
+        // Czekaj aż użytkownik wpisze wartość i kliknie Submit
+        while (_isWaitingForRoll)
+        {
+            yield return null; // Czekaj na następną ramkę
+        }
+
+        // Ukryj panel po wpisaniu
+        if (_applyParryOrDodgeRollResultPanel != null)
+        {
+            _applyParryOrDodgeRollResultPanel.SetActive(false);
+        }
+    }
+
+    public void OnSubmitRoll()
+    {
+        if (_parryOrDodgeInputField != null && int.TryParse(_parryOrDodgeInputField.text, out int result))
+        {
+            _manualRollResult = result;
+            _isWaitingForRoll = false; // Przerywamy oczekiwanie
+            _parryOrDodgeInputField.text = ""; // Czyścimy pole
+        }
     }
             
-    private bool Parry(Stats targetStats, int parryModifier)
+    private bool Parry(Stats targetStats, int parryModifier, int manualRollResult = 0)
     {
+        Debug.Log("parowanie");
         //Wykonuje akcję, jeżeli postać nie posiada błyskawicznego bloku lub dwóch broni/tarczy (sprawdza, czy broń trzymana w drugiej ręce jest jednoręczna, jeśli tak to znaczy, że nie zużywa akcji)
         var equippedWeapons = targetStats.GetComponent<Inventory>().EquippedWeapons;
         bool isFirstWeaponShield = equippedWeapons[0] != null && equippedWeapons[0].Type.Contains("shield");
@@ -1407,7 +1481,7 @@ public class CombatManager : MonoBehaviour
         //Sprawia, że atakowany nie będzie mógł więcej parować w tej rundzie
         targetStats.GetComponent<Unit>().CanParry = false;
 
-        int rollResult = UnityEngine.Random.Range(1, 101);
+        int rollResult = manualRollResult == 0 ? UnityEngine.Random.Range(1, 101) : manualRollResult;
 
         if (parryModifier != 0)
         {
@@ -1444,16 +1518,18 @@ public class CombatManager : MonoBehaviour
         }
     }
 
-    private bool Dodge(Stats targetStats, int modifier)
+    private bool Dodge(Stats targetStats, int modifier, int manualRollResult = 0)
     {
         //Sprawia, że atakowany nie będzie mógł więcej unikać w tej rundzie   
         targetStats.GetComponent<Unit>().CanDodge = false;
         
-        int rollResult = UnityEngine.Random.Range(1, 101);
+        int rollResult = manualRollResult == 0 ? UnityEngine.Random.Range(1, 101) : manualRollResult;
+
+        modifier += (targetStats.Dodge * 10) - 10;
 
         if (modifier != 0)
         {
-            Debug.Log($"Rzut {targetStats.Name} na unik: {rollResult} Wartość cechy: {targetStats.Zr} Modyfikator za zbroje: {modifier}");
+            Debug.Log($"Rzut {targetStats.Name} na unik: {rollResult} Wartość cechy: {targetStats.Zr} Modyfikator: {modifier}");
         }
         else
         {

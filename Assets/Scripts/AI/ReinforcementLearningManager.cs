@@ -47,7 +47,10 @@ public enum AttackType
     DefensiveStance, 
     Aim,             
     Reload,          
-    FinishTurn       
+    FinishTurn,      
+    MoveAway,
+    RunAway,
+    Retreat
 }
 
 // Definiujemy parę (target, attack)
@@ -94,7 +97,7 @@ public class ReinforcementLearningManager : MonoBehaviour
     [SerializeField] private TMP_Text _teamWinsDisplay;
 
     // Liczba dostępnych akcji
-    private const int ACTION_COUNT = 54;
+    private const int ACTION_COUNT = 57;
 
     // Liczba kombinacji stanów (2^(AIState.COUNT))
     private int totalStateCombinations;
@@ -237,8 +240,8 @@ public class ReinforcementLearningManager : MonoBehaviour
         if (RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(unit) &&
             RoundsManager.Instance.UnitsWithActionsLeft[unit] == 0)
         {
-            // Jednostka nie ma więcej akcji, wybierz tylko FinishTurn (ID=53)
-            return 53; // Zakładam, że 53 to ID akcji FinishTurn
+            // Jednostka nie ma więcej akcji, wybierz tylko FinishTurn (ID=56)
+            return 56; // Zakładam, że 56 to ID akcji FinishTurn
         }
 
         List<int> validActions = new List<int>();
@@ -252,107 +255,66 @@ public class ReinforcementLearningManager : MonoBehaviour
             AttackType aType = def.attackType;
 
             // Czy to jest ruch, atak, czy akcja specjalna?
-            bool isMove = (aType == AttackType.Move);
-            bool isRun = (aType == AttackType.Run);
+            bool isMove = (aType == AttackType.Move || aType == AttackType.MoveAway || aType == AttackType.Retreat);
+            bool isRun = (aType == AttackType.Run || aType == AttackType.RunAway);
             bool isAttack = (aType != AttackType.Move 
                         && aType != AttackType.DefensiveStance
                         && aType != AttackType.Aim
                         && aType != AttackType.Reload
-                        && aType != AttackType.FinishTurn);
+                        && aType != AttackType.FinishTurn
+                        && aType != AttackType.MoveAway
+                        && aType != AttackType.RunAway
+                        && aType != AttackType.Retreat);
 
             // ---- WARUNKI BLOKADY DLA ATAKÓW ----
             if (isAttack)
             {
                 // Musi być przeciwnik
-                if (!context.OpponentExist) continue;
+                if (!context.OpponentExist) continue; 
                 // Musi mieć CanAttack
-                if (!context.CanAttack) continue;
+                if (!context.CanAttack) continue; 
                 // Musi mieć broń wybraną
-                if (context.CurrentWeapon == null) continue;
+                if (context.CurrentWeapon == null) continue; 
                 // Broń musi być naładowana
-                if (context.CurrentWeapon.ReloadLeft > 0)
-                {
-                    continue;
-                }
+                if (context.CurrentWeapon.ReloadLeft > 0) continue; 
 
                 // Znajdź docelowy Unit:
                 Unit potentialTarget = GetTargetByType(context.Info, tType);
-                if (potentialTarget == null) continue;
+                if (potentialTarget == null) continue; 
 
                 // Sprawdź, czy mamy Distances
-                if (!context.Info.Distances.ContainsKey(potentialTarget))
-                {
-                    // brak dystansu => zablokuj
-                    continue;
-                }
+                if (!context.Info.Distances.ContainsKey(potentialTarget)) continue; 
 
-                float distance = context.Info.Distances[potentialTarget];
-                float attackRange = context.CurrentWeapon.AttackRange;
-
-                bool isBeyondAttackRange;
-                bool isInChargeRange;
-
-                if (hasRangedWeapon)
-                {
-                    // Dla broni zasięgowej
-                    Weapon weapon = InventoryManager.Instance.ChooseWeaponToAttack(unit.gameObject);
-                    isBeyondAttackRange = CombatManager.Instance.ValidateRangedAttack(unit, potentialTarget, weapon, distance);
-                }
-                else
-                {
-                    isBeyondAttackRange = distance > attackRange;
-                }
-
-                // Ustawienie stanu IsInChargeRange
-                float chargeRange = stats.TempSz * 2;
-                isInChargeRange = distance <= chargeRange && distance >= 3f;
+                bool isBeyondAttackRange = context.IsBeyondAttackRange;
+                bool isInChargeRange = context.IsInChargeRange;
 
                 if (aType == AttackType.Charge)
                 {
                     // Zablokuj szarżę, jeśli jest poza zasięgiem szarży
-                    if (!isInChargeRange)
-                    {
-                        continue;
-                    }
+                    if (!isInChargeRange) continue; 
 
                     // Pozwól na szarżę tylko jeśli jest poza zasięgiem ataku i broń nie jest zasięgowa
-                    if (!(isBeyondAttackRange && !hasRangedWeapon))
-                    {
-                        continue;
-                    }
+                    if (!(isBeyondAttackRange && !hasRangedWeapon)) continue; 
                 }
                 else
                 {
                     // Zablokuj ataki (oprócz szarży) jeśli jest poza zasięgiem broni
-                    if (isBeyondAttackRange)
-                    {
-                        continue;
-                    }
+                    if (isBeyondAttackRange) continue; 
                 }
 
                 // Wymaganie 2 akcji dla Charge, AllOut, Swift, Guarded i do biegu
                 if (aType == AttackType.Charge || aType == AttackType.AllOut || aType == AttackType.Swift || aType == AttackType.Guarded || aType == AttackType.Run)
                 {
-                    if (RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(unit) &&
-                        RoundsManager.Instance.UnitsWithActionsLeft[unit] < 2)
-                    {
-                        continue;
-                    }
+                    if (RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(unit) && RoundsManager.Instance.UnitsWithActionsLeft[unit] < 2) continue; 
                 }
 
                 // hasRangedWeapon==true => zablokuj Charge i Feint
-                if (hasRangedWeapon && (aType == AttackType.Charge || aType == AttackType.Feint))
-                {
-                    continue;
-                }
+                if (hasRangedWeapon && (aType == AttackType.Charge || aType == AttackType.Feint)) continue; 
 
                 // Zablokowanie SwiftAttack dla jednostek z A < 2
                 if (aType == AttackType.Swift)
                 {
-                    if (stats != null && stats.A < 2)
-                    {
-                        continue;
-                    }
+                    if (stats != null && stats.A < 2) continue; 
                 }
             }
 
@@ -360,24 +322,23 @@ public class ReinforcementLearningManager : MonoBehaviour
             if (isMove || isRun)
             {
                 // Musi istnieć odpowiedni target
-                if (tType == TargetType.Closest     && !context.OpponentExist)          continue;
-                if (tType == TargetType.Furthest    && !context.FurthestUnitExist)      continue;
-                if (tType == TargetType.MostInjured && !context.MostInjuredUnitExist)   continue;
-                if (tType == TargetType.LeastInjured&& !context.LeastInjuredUnitExist)  continue;
-                if (tType == TargetType.Weakest     && !context.WeakestUnitExist)       continue;
-                if (tType == TargetType.Strongest   && !context.StrongestUnitExist)     continue;
-                if (tType == TargetType.MostAlliesNearby   && !context.TargetWithMostAlliesExist) continue;
+                if (tType == TargetType.Closest     && !context.OpponentExist) continue; 
+                if (tType == TargetType.Furthest    && !context.FurthestUnitExist) continue; 
+                if (tType == TargetType.MostInjured && !context.MostInjuredUnitExist) continue; 
+                if (tType == TargetType.LeastInjured&& !context.LeastInjuredUnitExist) continue; 
+                if (tType == TargetType.Weakest     && !context.WeakestUnitExist) continue; 
+                if (tType == TargetType.Strongest   && !context.StrongestUnitExist) continue; 
+                if (tType == TargetType.MostAlliesNearby   && !context.TargetWithMostAlliesExist) continue; 
             }
+
+            //Aby wykonać bezpieczny odwrót musimy znajdować się w zwarciu
+            if(aType == AttackType.Retreat && context.IsInMelee == false) continue;
 
             // ---- AKCJE SPECJALNE (DefensiveStance, Aim, Reload, FinishTurn) ----
             // AttackType.Reload => jeśli CurrentWeapon != null i jest WeaponIsLoaded => ZABLOKUJ
             if (aType == AttackType.Reload)
             {
-                if (context.CurrentWeapon != null && context.WeaponIsLoaded)
-                {
-                    // Broń już jest naładowana => sensu brak
-                    continue;
-                }
+                if (context.CurrentWeapon != null && context.WeaponIsLoaded) continue; 
             }
 
             if (aType == AttackType.DefensiveStance && 
@@ -393,8 +354,8 @@ public class ReinforcementLearningManager : MonoBehaviour
         // Jeśli brak dozwolonych akcji => FinishTurn (lub inny fallback)
         if (validActions.Count == 0)
         {
-            // Zakładam ID=53 to jest FinishTurn w AllActions
-            return 53;
+            // Zakładam ID=56 to jest FinishTurn w AllActions
+            return 56;
         }
 
         // --- EPSILON-GREEDY WYBÓR ---
@@ -489,7 +450,7 @@ public class ReinforcementLearningManager : MonoBehaviour
             if (hasRanged)
             {
                 // Dla broni zasięgowej
-                states[(int)AIState.IsBeyondAttackRange] = CombatManager.Instance.ValidateRangedAttack(unit, closestOpponent.GetComponent<Unit>(), weapon, distance);
+                states[(int)AIState.IsBeyondAttackRange] = !CombatManager.Instance.ValidateRangedAttack(unit, closestOpponent.GetComponent<Unit>(), weapon, distance);
             }
             else
             {
@@ -526,9 +487,6 @@ public class ReinforcementLearningManager : MonoBehaviour
         Weapon weapon = InventoryManager.Instance.ChooseWeaponToAttack(unit.gameObject);
         bool weaponIsLoaded = (weapon != null && weapon.ReloadLeft == 0);
 
-        bool hasRanged = oldStates[(int)AIState.HasRangedWeapon];
-        bool canAttack = unit.CanAttack;
-
         TargetsInfo info = GatherTargetsInfo(unit);
         bool opponentExist = (info.Closest != null);
 
@@ -538,9 +496,11 @@ public class ReinforcementLearningManager : MonoBehaviour
             RaceName = stats.Race,
             StateIndex = oldStateIndex,
             WeaponIsLoaded = weaponIsLoaded,
-            HasRanged = hasRanged,
+            HasRanged = oldStates[(int)AIState.HasRangedWeapon],
             IsInMelee = oldStates[(int)AIState.IsInMelee],
-            CanAttack = canAttack,
+            CanAttack = unit.CanAttack,
+            IsBeyondAttackRange = oldStates[(int)AIState.IsBeyondAttackRange],
+            IsInChargeRange = oldStates[(int)AIState.IsInChargeRange],
 
             // Wnioskujemy, że OpponentExist => info.Closest != null
             OpponentExist = (info.Closest != null),
@@ -601,7 +561,7 @@ public class ReinforcementLearningManager : MonoBehaviour
         // Sprawdzamy definicję:
         if (actionID < 0 || actionID >= AllActions.Length)
         {
-            // out of range => FinishTurn (ID=53)
+            // out of range => FinishTurn (ID=56)
             RoundsManager.Instance.FinishTurn();
             return reward;
         }
@@ -651,6 +611,33 @@ public class ReinforcementLearningManager : MonoBehaviour
         if (aType == AttackType.FinishTurn)
         {
             RoundsManager.Instance.FinishTurn();
+            return reward;
+        }
+        if (aType == AttackType.MoveAway)
+        {
+            GameObject retreatTile = GetTileFarthestFromTarget(unit.gameObject, target.gameObject);
+            if (retreatTile != null && target != null)
+                MoveTowards(unit, target.gameObject);
+            reward += CalculateRewardBasedOnUnitHealth(unit.GetComponent<Stats>(), oldHP);
+            return reward;
+        }
+        if (aType == AttackType.RunAway)
+        {
+            GameObject retreatTile = GetTileFarthestFromTarget(unit.gameObject, target.gameObject);
+            if (retreatTile != null && target != null)
+                MoveTowards(unit, target.gameObject, 3);
+            reward += CalculateRewardBasedOnUnitHealth(unit.GetComponent<Stats>(), oldHP);
+            return reward;
+        }
+        if (aType == AttackType.Retreat)
+        {
+            GameObject retreatTile = GetTileFarthestFromTarget(unit.gameObject, target.gameObject);
+            if (retreatTile != null && target != null)
+            {
+                MovementManager.Instance.Retreat(true);
+                MoveTowards(unit, target.gameObject);
+            }
+            reward += CalculateRewardBasedOnUnitHealth(unit.GetComponent<Stats>(), oldHP);
             return reward;
         }
 
@@ -781,7 +768,16 @@ public class ReinforcementLearningManager : MonoBehaviour
         // 52: Przeładowanie
         new ActionDefinition(TargetType.None, AttackType.Reload),
 
-        // 53: Zakończenie tury
+        // 53: Odejście od najbliższego przeciwnika
+        new ActionDefinition(TargetType.Closest, AttackType.MoveAway),
+
+        // 54: Bieg jak najdalej od najbliższego przeciwnika
+        new ActionDefinition(TargetType.Closest, AttackType.RunAway),
+
+        // 55: Bezpieczny odwrót od najbliższego przeciwnika
+        new ActionDefinition(TargetType.Closest, AttackType.Retreat),
+
+        // 56: Zakończenie tury
         new ActionDefinition(TargetType.None, AttackType.FinishTurn),
     };
 
@@ -929,6 +925,53 @@ public class ReinforcementLearningManager : MonoBehaviour
         }
 
         return info;
+    }
+
+    public GameObject GetTileFarthestFromTarget(GameObject attacker, GameObject target)
+    {
+        if (target == null) return null;
+
+        Vector2 attackerPos = attacker.transform.position;
+        Vector2 targetPos = target.transform.position;
+
+        // Pobierz zasięg ruchu jednostki
+        int movementRange = attacker.GetComponent<Stats>().TempSz;
+
+        Tile farthestTile = null;
+        float maxDistance = -1f;
+        int shortestPathLengthForFarthest = int.MaxValue;
+
+        foreach (Tile tile in GridManager.Instance.Tiles)
+        {
+            if (tile.IsOccupied) continue; // Pomijamy zajęte pola
+
+            Vector2 tilePos = tile.transform.position;
+
+            // Oblicz długość ścieżki do danego pola
+            List<Vector2> path = MovementManager.Instance.FindPath(attackerPos, tilePos);
+            if (path.Count == 0) continue; // Brak ścieżki
+            if (path.Count > movementRange) continue; // Poza zasięgiem ruchu
+
+            // Oblicz odległość od przeciwnika
+            float distanceToTarget = Vector2.Distance(tilePos, targetPos);
+
+            // Aktualizacja najdalszego pola
+            if (distanceToTarget > maxDistance)
+            {
+                maxDistance = distanceToTarget;
+                farthestTile = tile;
+                shortestPathLengthForFarthest = path.Count;
+            }
+        }
+
+        if (farthestTile != null)
+        {
+            return farthestTile.gameObject;
+        }
+        else
+        {
+            return null;
+        }
     }
 
     private void CountAdjacentUnits(Vector2 center, string allyTag, string opponentTag, ref int allies, ref int opponents)
@@ -1256,27 +1299,47 @@ public class ReinforcementLearningManager : MonoBehaviour
         float[,] table = QTables[raceName];
         int numStates = table.GetLength(0);
         int numActions = table.GetLength(1);
+        int numberOfStates = (int)AIState.COUNT;
 
         using (StreamWriter sw = new StreamWriter(filePath))
         {
-            // Nagłówek
-            sw.WriteLine("State,StateDescription,Action,QValue");
+            // Nagłówek: State;IsInMelee;IsHeavilyWounded;...
+            List<string> headers = new List<string> { "State" };
+            for (int i = 0; i < numberOfStates; i++)
+            {
+                headers.Add(((AIState)i).ToString());
+            }
+            headers.Add("Action");
+            headers.Add("QValue");
+            sw.WriteLine(string.Join(";", headers));
 
             for (int s = 0; s < numStates; s++)
             {
-                string stateDesc = DescribeState(s);
+                // Tworzenie wartości dla kolumn stanów
+                List<string> rowValues = new List<string> { s.ToString() };
+                for (int i = 0; i < numberOfStates; i++)
+                {
+                    bool isSet = (s & (1 << i)) != 0;
+                    rowValues.Add(isSet.ToString().ToLower()); // true/false w małych literach
+                }
+
                 for (int a = 0; a < numActions; a++)
                 {
-                    float val = table[s,a];
-                    // Dodajemy stateDesc w drugiej kolumnie
-                    sw.WriteLine($"{s},{stateDesc},{a},{val}");
+                    float val = table[s, a];
+                    List<string> actionValues = new List<string>(rowValues)
+                    {
+                        a.ToString(),
+                        val.ToString("F2") // Formatowanie Q-value do 2 miejsc po przecinku
+                    };
+                    sw.WriteLine(string.Join(";", actionValues));
                 }
             }
         }
+
         Debug.Log($"Q-values for race '{raceName}' exported to: {filePath}");
     }
 
-     // ======================================================================
+    // ======================================================================
     //                        EKSPORT LOGÓW
     // ======================================================================
 
@@ -1289,11 +1352,13 @@ public class ReinforcementLearningManager : MonoBehaviour
         {
             if (!fileExists)
             {
-                sw.WriteLine("Epoch,AverageReward");
+                // Nagłówki z separatorem ;
+                sw.WriteLine("Epoch;AverageReward");
             }
 
             int currentEpoch = epochRewards.Count;
-            sw.WriteLine($"{currentEpoch},{averageReward}");
+            // Dane z separatorem ;
+            sw.WriteLine($"{currentEpoch};{averageReward}");
         }
 
         Debug.Log($"Average reward for epoch {epochRewards.Count} saved to {filePath}");

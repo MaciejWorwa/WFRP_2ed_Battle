@@ -182,7 +182,7 @@ public class RoundsManager : MonoBehaviour
             if (unit.CompareTag("PlayerUnit") && GameManager.IsStatsHidingMode)
             {
                 // Czeka aż jednostka zakończy swoją turę (UnitsWithActionsLeft[unit] == 0 lub unit.IsTurnFinished)
-                yield return new WaitUntil(() => UnitsWithActionsLeft[unit] == 0 || unit.IsTurnFinished);
+                yield return new WaitUntil(() => (UnitsWithActionsLeft[unit] == 0 && CombatManager.Instance.AvailableAttacks == 0) || unit.IsTurnFinished);
                 yield return new WaitForSeconds(0.5f);
             }
             else // Jednostki wrogów lub wszystkie jednostki, jeśli nie ukrywamy ich statystyk
@@ -202,7 +202,8 @@ public class RoundsManager : MonoBehaviour
                 }
                 else
                 {
-                    AutoCombatManager.Instance.Act(unit);
+                    ReinforcementLearningManager.Instance.SimulateUnit(unit);
+                    //AutoCombatManager.Instance.Act(unit);
                 }
 
                 // Czeka, aż jednostka zakończy ruch, zanim wybierze kolejną jednostkę

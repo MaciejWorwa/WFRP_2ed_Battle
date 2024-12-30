@@ -360,6 +360,12 @@ public class UnitsManager : MonoBehaviour
             InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(newUnit.GetComponent<Unit>());
         }
 
+        //Odnacza jednostkę, jeśli jakaś jest zaznaczona
+        if(Unit.SelectedUnit != null)
+        {
+            Unit.SelectedUnit.GetComponent<Unit>().SelectUnit();
+        }
+
         return newUnit;
     }
 
