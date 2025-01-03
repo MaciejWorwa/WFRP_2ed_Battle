@@ -10,7 +10,6 @@ using System.Linq;
 public class Stats : MonoBehaviour
 {
     public int Id;
-    public int Index;
     public bool IsBig;
     public int Overall; // Łączna wartość bojowa jednostki
     public int Exp; // Punkty doświadczenia
@@ -58,11 +57,14 @@ public class Stats : MonoBehaviour
 
     [Header("Zdolności")]
     public bool Ambidextrous; // Oburęczność
+    public bool ArmouredCasting; // Pancerz Wiary
+    public bool DaemonicAura; // Demoniczna aura (Wt +2 na niemagiczną broń, odporność na truciznę, ataki demona to broń magiczna)
     public bool Disarm; // Rozbrojenie
     public bool Ethereal; // Eteryczny
     public bool FastHands; //Dotyk mocy
     public bool Fearless; // Nieustraszony
     public bool Frightening; // Straszny (test Fear)
+    public bool GrudgeBornFury; // Zapiekła nienawiść
     public bool LightningParry; // Błyskawiczny blok
     public bool MagicSense; //Zmysł magii
     public bool MasterGunner; // Artylerzysta
@@ -79,6 +81,7 @@ public class Stats : MonoBehaviour
     public bool SureShot; // Strzał przebijający
     public bool Terryfying; // Przerażający (test Terror)
     public bool QuickDraw; // Szybkie wyciągnięcie
+    public bool WillOfIron; // Żelazna wola
 
     [Header("Umiejętności")]
     public int Channeling; // Splatanie magii
@@ -156,7 +159,7 @@ public class Stats : MonoBehaviour
     public void CheckForSpecialRaceAbilities()
     {
         //Zdolność regeneracji
-        if (Race == "Troll")
+        if (Race == "Troll" || Race == "Troll Chaosu")
         {
             int regeneration = Random.Range(0, 11);
             int currentWounds = 0;

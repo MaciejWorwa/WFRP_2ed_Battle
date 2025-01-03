@@ -41,6 +41,7 @@ public class SaveAndLoadManager : MonoBehaviour
     }
 
     [SerializeField] private TMP_InputField _saveNameInput;
+    [SerializeField] private TMP_InputField _searchInputField;
     [SerializeField] private Transform _savesScrollViewContent;
     [SerializeField] private GameObject _buttonPrefab; // Przycisk odpowiadający każdemu zapisowi na liście
     [SerializeField] private GameObject _loadGamePanel; 
@@ -300,7 +301,25 @@ public class SaveAndLoadManager : MonoBehaviour
     {
         IsOnlyUnitsLoading = value;
     }
-     public void LoadSettings()
+
+    public void FilterList()
+    {
+        string searchText = _searchInputField.text.ToLower();
+
+        foreach (Transform child in _savesScrollViewContent)
+        {
+            var buttonText = child.GetComponentInChildren<TextMeshProUGUI>();
+
+            if (buttonText == null) continue;
+
+            // Sprawdzaj, czy tekst zawiera wyszukiwaną frazę
+            bool matchesSearch = buttonText.text.ToLower().Contains(searchText);
+
+            // Ukryj/wyświetl przycisk na podstawie wyniku wyszukiwania
+            child.gameObject.SetActive(matchesSearch);
+        }
+    }
+    public void LoadSettings()
     {
         // Ścieżka do pliku ustawień
         string settingsFilePath = Path.Combine(Application.persistentDataPath, "GameSettings.json");
@@ -382,6 +401,8 @@ public class SaveAndLoadManager : MonoBehaviour
         {
             SaveGame(CurrentGameName);
         }
+
+        _searchInputField.text = "";
 
         //Przechowanie nazwy aktualnej gry (potrzebne do wykonywania automatycznego zapisu)
         CurrentGameName = saveName;
@@ -558,7 +579,11 @@ public class SaveAndLoadManager : MonoBehaviour
             {
                 string tokenJson = File.ReadAllText(tokenJsonPath);
                 TokenData tokenData = JsonUtility.FromJson<TokenData>(tokenJson);
-                StartCoroutine(TokensManager.Instance.LoadTokenImage(tokenData.filePath, Unit.SelectedUnit));
+
+                if(tokenData.filePath.Length > 1)
+                {
+                    StartCoroutine(TokensManager.Instance.LoadTokenImage(tokenData.filePath, Unit.SelectedUnit));
+                }
             }
 
             if (unitGameObject.GetComponent<Unit>().IsSelected) unitGameObject.GetComponent<Unit>().SelectUnit();
@@ -581,6 +606,8 @@ public class SaveAndLoadManager : MonoBehaviour
                     }
                 }
             }
+
+            unitGameObject.GetComponent<Unit>().DisplayUnitName();
 
             //Aktualizuje pasek przewagi w bitwie
             unitGameObject.GetComponent<Stats>().Overall = unitGameObject.GetComponent<Stats>().CalculateOverall();
@@ -680,7 +707,15 @@ public class SaveAndLoadManager : MonoBehaviour
 
     public void LoadMap()
     {
+        _searchInputField.text = "";
+
         CustomDropdown dropdown = _savesScrollViewContent.GetComponent<CustomDropdown>();
+        if(dropdown == null || dropdown.SelectedButton == null)
+        {
+            Debug.Log($"<color=red>Aby wczytać grę musisz wybrać plik z listy.</color>");
+            return;
+        }
+
         string saveName = dropdown.SelectedButton.GetComponentInChildren<TextMeshProUGUI>().text;
 
         string mapElementsFilePath = Path.Combine(Application.persistentDataPath, saveName, "MapElements.json");
@@ -700,6 +735,11 @@ public class SaveAndLoadManager : MonoBehaviour
         else
         {
             Debug.LogError("Pliku z mapą nie znaleziono.");
+        }
+
+        if(_loadGamePanel!= null)
+        {
+            _loadGamePanel.SetActive(false);
         }
     }
     #endregion

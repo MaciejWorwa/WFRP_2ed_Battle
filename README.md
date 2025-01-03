@@ -22,8 +22,8 @@ At the moment only Polish language is supported.
 # Features
 
 - Battlefield editor with 34 unique map elements,
-- 20 different races or monsters to choose,
-- 33 different weapons (with quality to choose),
+- 55 different races or monsters to choose,
+- 36 different weapons (with quality to choose),
 - 16 different spells,
 - 10 different game modes (including automatic combat mode),
 - Save and load system,
@@ -95,13 +95,13 @@ Press **Esc** to open the main menu, where you can access **Settings**. By defau
 9. **Unit Name Hiding Mode** (Ctrl+N): Hides the names of units on their tokens.
 10. **Health Points Hiding Mode** (Ctrl+H): Hides the health points of units on their tokens.
 
-## Hotkeys  
+## Hotkeys
 
-Here are the available hotkeys to streamline gameplay:  
+Here are the available hotkeys to streamline gameplay:
 
-- **Ctrl + S**: Save the current game state.  
-- **Ctrl + W**: Toggle **Covering Areas** mode.  
-- **Ctrl + C**: Copy selected units.  
-- **Ctrl + V**: Paste copied units.  
-- **Delete**: Remove selected units.  
-- **I**: Open the inventory.  
+- **Ctrl + S**: Save the current game state.
+- **Ctrl + W**: Toggle **Covering Areas** mode.
+- **Ctrl + C**: Copy selected units.
+- **Ctrl + V**: Paste copied units.
+- **Delete**: Remove selected units.
+- **I**: Open the inventory.

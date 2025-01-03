@@ -580,10 +580,17 @@ public class InventoryManager : MonoBehaviour
                 string value = (string)field.GetValue(selectedWeapon);
                 TMP_Dropdown dropdown = inputField.GetComponent<TMP_Dropdown>();
 
-                int index = dropdown.options.FindIndex(option => option.text == value);
-                if (index >= 0)
+                if (string.IsNullOrEmpty(value)) // Sprawdza, czy wartość jest pusta
                 {
-                    dropdown.value = index;
+                    dropdown.value = 1; // Ustawia na zwykłą jakość (index 1)
+                }
+                else
+                {
+                    int index = dropdown.options.FindIndex(option => option.text == value);
+                    if (index >= 0)
+                    {
+                        dropdown.value = index;
+                    }
                 }
             }
             else if (field.FieldType == typeof(string)) // to działa dla cech opisywanych wartościami string

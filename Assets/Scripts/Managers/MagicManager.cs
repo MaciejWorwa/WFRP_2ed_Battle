@@ -465,7 +465,8 @@ public class MagicManager : MonoBehaviour
         if (etherArmor == false)
         {
             int[] armors = { stats.Armor_head, stats.Armor_arms, stats.Armor_torso, stats.Armor_legs };
-            modifier -= armors.Max(); // Znajdź maksymalną wartość w tablicy
+            int armouredCastingModifier = stats.ArmouredCasting == true ? 3 : 0;
+            modifier -= Math.Max(0, armors.Max() - armouredCastingModifier); //Odejmuje największa wartość zbroi i uwzględnia Pancerz Wiary
         }
 
         return modifier;

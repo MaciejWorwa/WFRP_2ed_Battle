@@ -72,6 +72,8 @@ public class CombatManager : MonoBehaviour
     private bool _isWaitingForRoll;
     public bool TargetIsDefended;
     public bool IsManualPlayerAttack;
+    private List<string> _greenskinsList = new List<string> {"Goblin", "Hobgoblin", "Ork zwyczajny", "Czarny ork", "Dziki ork"}; //Lista string wszystkich zielonoskórych
+    private List<string> _poisoningUnitsList = new List<string> {"Ghul", "Hobgoblin", "Olbrzymi pająk", "Wywern"}; //Lista string wszystkich jednostek, których atak jest trujący
 
     // Metoda inicjalizująca słownik ataków
     void Start()
@@ -434,7 +436,7 @@ public class CombatManager : MonoBehaviour
                     //Aktualizuje osiągnięcia
                     attackerStats.UnfortunateEvents ++;
                 }
-                else if(rollResult <= 5 && !(attackerWeapon.Quality != "Magiczna" && targetStats.Ethereal))
+                else if(rollResult <= 5 && !(attackerWeapon.Quality != "Magiczna" && attackerStats.DaemonicAura != true && targetStats.Ethereal))
                 {
                     _isSuccessful = true;
    
@@ -605,7 +607,7 @@ public class CombatManager : MonoBehaviour
                     }
 
                     //Zadaje obrażenia
-                    ApplyDamage(damage, targetStats, armor, target);
+                    ApplyDamage(damage, attackerStats, targetStats, armor, target);
 
                     //Sprawdza, czy atak spowodował śmierć
                     if (targetStats.TempHealth < 0 && GameManager.IsAutoKillMode)
@@ -650,7 +652,7 @@ public class CombatManager : MonoBehaviour
                 }
 
                 //Zadaje obrażenia
-                ApplyDamage(damage, targetStats, armor, target);
+                ApplyDamage(damage, attackerStats, targetStats, armor, target);
             }
 
             //Sprawdza, czy atak spowodował śmierć
@@ -670,7 +672,7 @@ public class CombatManager : MonoBehaviour
     }
 
     // Obliczanie i stosowanie obrażeń
-    private void ApplyDamage(int damage, Stats targetStats, int armor, Unit targetUnit)
+    private void ApplyDamage(int damage, Stats attackerStats, Stats targetStats, int armor, Unit targetUnit)
     {
         //Aktualizuje osiągnięcia
         targetStats.TotalDamageTaken += damage;
@@ -679,19 +681,59 @@ public class CombatManager : MonoBehaviour
             targetStats.HighestDamageTaken = damage;
         }
 
-        if (damage > targetStats.Wt + armor)
+        int targetWt = targetStats.Wt;
+
+        //Uwzględnienie zdolności Demoniczna Aura
+        if(targetStats.DaemonicAura == true && attackerStats.GetComponent<Weapon>().Quality != "Magiczna")
         {
-            targetStats.TempHealth -= damage - (targetStats.Wt + armor);
+            targetWt += 2;
+        }
+
+        if (damage > targetWt + armor)
+        {
+            // Zatrucie
+            if(_poisoningUnitsList.Contains(attackerStats.Race))
+            {
+                int rollOdp = UnityEngine.Random.Range(1, 101);
+                int modifier = attackerStats.Race == "Olbrzymi pająk" ? 0 : -10;
+                int extraDamage = attackerStats.Race == "Wywern" ? 3 : 2;
+
+                Debug.Log($"{targetStats.Name} wykonał rzut na Odporność i wyrzucił {rollOdp}. Wartość cechy: {targetStats.Odp}. Modyfikator: {modifier}");
+
+                if(rollOdp > targetStats.Odp + modifier)
+                {
+                    if(attackerStats.Race == "Olbrzymi pająk")
+                    {
+                        int duration = UnityEngine.Random.Range(1, 11);
+                        targetStats.GetComponent<Unit>().HelplessDuration += duration;
+                        RoundsManager.Instance.UnitsWithActionsLeft[targetStats.GetComponent<Unit>()] = 0;
+
+                        Debug.Log($"{targetStats.Name} nie zdał testu i został sparaliżowany przez {attackerStats.Name} na {duration} rund/y.");
+                    }
+                    else
+                    {
+                        damage += extraDamage;
+                        Debug.Log($"{targetStats.Name} nie zdał testu i traci dodatkowe {extraDamage} punkty Żywotności w wyniku zatrucia przez {attackerStats.Name}.");
+                    }
+                }
+                else
+                {
+                    Debug.Log($"{targetStats.Name} zdał test Odporności.");
+                }
+            }
+
+            targetStats.TempHealth -= damage - (targetWt + armor);
 
             if(!GameManager.IsStatsHidingMode || targetUnit.gameObject.CompareTag("PlayerUnit"))
             {
-                Debug.Log($"{targetStats.Name} znegował {targetStats.Wt + armor} obrażeń.");
+                Debug.Log($"{targetStats.Name} znegował {targetWt + armor} obrażeń.");
             }
             else if(targetStats.TempHealth >= 0)
             {
                 Debug.Log($"{targetStats.Name} został zraniony.");
             }
-            
+
+                   
             if ((targetStats.TempHealth < 0 && GameManager.IsHealthPointsHidingMode) || (targetStats.TempHealth < 0 && targetUnit.gameObject.CompareTag("EnemyUnit") && GameManager.IsStatsHidingMode))
             {
                 Debug.Log($"Żywotność {targetStats.Name} spadła poniżej zera i wynosi <color=red>{targetStats.TempHealth}</color>.");
@@ -715,7 +757,7 @@ public class CombatManager : MonoBehaviour
                 targetUnit.HideUnitHealthPoints();
             }
 
-            StartCoroutine(AnimationManager.Instance.PlayAnimation("damage", null, targetUnit.gameObject, damage - (targetStats.Wt + armor)));
+            StartCoroutine(AnimationManager.Instance.PlayAnimation("damage", null, targetUnit.gameObject, damage - (targetWt + armor)));
         }
         else
         {
@@ -833,22 +875,26 @@ public class CombatManager : MonoBehaviour
                 .Where(weapon => weapon != null && weapon.Name == "Tarcza")
                 .Select(_ => 10).FirstOrDefault();
 
-            _isSuccessful = rollResult <= (attackerStats.US + _attackModifier - targetUnit.DefensiveBonus - shieldModifier);
+            int totalModifier = _attackModifier - targetUnit.DefensiveBonus - shieldModifier;
 
-            Debug.Log($"{attackerStats.Name} atakuje {targetUnit.GetComponent<Stats>().Name} przy użyciu {attackerWeapon.Name}. Rzut na US: {rollResult} Wartość cechy: {attackerStats.US} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus - shieldModifier}");
+            _isSuccessful = rollResult <= (attackerStats.US + totalModifier);
+
+            Debug.Log($"{attackerStats.Name} atakuje {targetUnit.GetComponent<Stats>().Name} przy użyciu {attackerWeapon.Name}. Rzut na US: {rollResult} Wartość cechy: {attackerStats.US}" + $"{(totalModifier != 0 ? $" Modyfikator: {totalModifier}" : "")}");
             ResetWeaponLoad(attackerWeapon, attackerStats);
         }
 
         // Sprawdzenie ataku w zwarciu
         if (attackerWeapon.Type.Contains("melee"))
         {
-            _isSuccessful = rollResult <= (attackerStats.WW + _attackModifier - targetUnit.DefensiveBonus);
+            int totalModifier = _attackModifier - targetUnit.DefensiveBonus;
 
-            Debug.Log($"{attackerStats.Name} atakuje {targetUnit.GetComponent<Stats>().Name} przy użyciu {attackerWeapon.Name}. Rzut na WW: {rollResult} Wartość cechy: {attackerStats.WW} Modyfikator: {_attackModifier - targetUnit.DefensiveBonus}");
+            _isSuccessful = rollResult <= (attackerStats.WW + totalModifier);
+
+            Debug.Log($"{attackerStats.Name} atakuje {targetUnit.GetComponent<Stats>().Name} przy użyciu {attackerWeapon.Name}. Rzut na WW: {rollResult} Wartość cechy: {attackerStats.WW}" + $"{(totalModifier != 0 ? $" Modyfikator: {totalModifier}" : "")}");
         }
 
         // Odporność przeciwnika na niemagiczne ataki
-        if (attackerWeapon.Quality != "Magiczna" && targetUnit.GetComponent<Stats>().Ethereal)
+        if (attackerWeapon.Quality != "Magiczna" && attackerStats.DaemonicAura != true && targetUnit.GetComponent<Stats>().Ethereal)
         {
             Debug.Log("Przeciwnik jest odporny na niemagiczne ataki. Aby go zranić, konieczne jest użycie magicznej broni lub zaklęcia.");
             return false;
@@ -903,12 +949,20 @@ public class CombatManager : MonoBehaviour
             attackModifier += 10;
         }
 
+        //Zapiekła nienawiść
+        if(attackerStats.GrudgeBornFury == true && _greenskinsList.Contains(targetUnit.GetComponent<Stats>().Race))
+        {
+            attackModifier += 5;
+        }
+
         return attackModifier;
     }
 
     //Modyfikator za przewagę liczebną
     private int CountOutnumber(Unit attacker, Unit target)
     {
+        if (attacker.CompareTag(target.tag)) return 0; // Jeśli atakujemy sojusznika to pomijamy przewagę liczebną
+
         int adjacentOpponents = 0; // Przeciwnicy atakującego stojący obok celu ataku
         int adjacentAllies = 0;    // Sojusznicy atakującego stojący obok celu ataku
         int adjacentOpponentsNearAttacker = 0; // Przeciwnicy atakującego stojący obok atakującego
@@ -1462,7 +1516,6 @@ public class CombatManager : MonoBehaviour
             
     private bool Parry(Stats targetStats, int parryModifier, int manualRollResult = 0)
     {
-        Debug.Log("parowanie");
         //Wykonuje akcję, jeżeli postać nie posiada błyskawicznego bloku lub dwóch broni/tarczy (sprawdza, czy broń trzymana w drugiej ręce jest jednoręczna, jeśli tak to znaczy, że nie zużywa akcji)
         var equippedWeapons = targetStats.GetComponent<Inventory>().EquippedWeapons;
         bool isFirstWeaponShield = equippedWeapons[0] != null && equippedWeapons[0].Type.Contains("shield");

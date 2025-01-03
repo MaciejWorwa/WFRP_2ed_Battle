@@ -42,6 +42,8 @@ public class DataManager : MonoBehaviour
     [SerializeField] private TMP_Dropdown _spellLoresDropdown; // Lista tradycji magii potrzebna do sortowania listy zaklęć
     [SerializeField] private TMP_Dropdown _weaponQualityDropdown; // Lista jakości broni
     [SerializeField] private Transform _unitScrollViewContent; // Lista wszystkich dostępnych ras (jednostek)
+    [SerializeField] private TMP_InputField _searchInputFieldForUnits;
+    [SerializeField] private TMP_InputField _searchInputFieldForWeapons;
 
     public List<string> TokensPaths = new List<string>();
 
@@ -57,6 +59,34 @@ public class DataManager : MonoBehaviour
 
         LoadAndUpdateStats();
     }
+
+    public void FilterList(string listName)
+    {
+        Transform scrollViewContent = listName switch
+        {
+            "unitList" => _unitScrollViewContent,
+            "weaponList" => _weaponScrollViewContent,
+            _ => null
+        };
+
+        if (scrollViewContent == null) return;
+
+        string searchText = listName == "unitList" ? _searchInputFieldForUnits.text.ToLower() : _searchInputFieldForWeapons.text.ToLower();
+
+        foreach (Transform child in scrollViewContent)
+        {
+            var buttonText = child.GetComponentInChildren<TextMeshProUGUI>();
+
+            if (buttonText == null) continue;
+
+            // Sprawdzaj, czy tekst zawiera wyszukiwaną frazę
+            bool matchesSearch = buttonText.text.ToLower().Contains(searchText);
+
+            // Ukryj/wyświetl przycisk na podstawie wyniku wyszukiwania
+            child.gameObject.SetActive(matchesSearch);
+        }
+    }
+
     public void LoadAndUpdateStats(GameObject unitObject = null)
     {
         Stats statsToUpdate = null;
@@ -128,6 +158,8 @@ public class DataManager : MonoBehaviour
                 targetField?.SetValue(statsToUpdate, field.GetValue(statsData));
             }
         }
+
+        _searchInputFieldForUnits.text = "";
 
         bool buttonExists;
 
@@ -268,6 +300,8 @@ public class DataManager : MonoBehaviour
             return;
         }
 
+        _searchInputFieldForWeapons.text = "";
+
         //Odniesienie do broni postaci
         Weapon weaponToUpdate = null;
         if(Unit.SelectedUnit != null)
@@ -381,6 +415,9 @@ public class DataManager : MonoBehaviour
         {
             //Filtrowanie listy zaklęć wg wybranej tradycji
             if (spell.Lore != selectedLore && selectedLore != "Wszystkie zaklęcia") continue;
+
+            // Filtrowanie zaklęć, których Poziom Mocy jest poza możliwościami aktualnej jednostki
+            if (Unit.SelectedUnit != null && spell.CastingNumber > Unit.SelectedUnit.GetComponent<Stats>().Mag * 11) continue;
 
             //Dodaje zaklęcie do ScrollViewContent w postaci buttona
             GameObject buttonObj = Instantiate(_buttonPrefab, _spellbookScrollViewContent);
@@ -566,11 +603,14 @@ public class StatsData
     public int Armor_legs;
     public int Initiative;
     public bool Ambidextrous; // Oburęczność
+    public bool ArmouredCasting; // Pancerz Wiary
+    public bool DaemonicAura; // Demoniczna aura
     public bool Disarm; // Rozbrojenie
     public bool Ethereal; // Eteryczny
     public bool FastHands; // Dotyk mocy
     public bool Fearless; // Nieustraszony
     public bool Frightening; // Straszny (test Fear)
+    public bool GrudgeBornFury; // Zapiekła nienawiść
     public bool LightningParry; // Błyskawiczny blok
     public bool MagicSense; // Zmysł magii
     public bool MasterGunner; // Artylerzysta
@@ -587,6 +627,7 @@ public class StatsData
     public bool SureShot; // Strzał przebijający
     public bool Terryfying; // Przerażający (test Terror)
     public bool QuickDraw; // Szybkie wyciągnięcie
+    public bool WillOfIron; // Żelazna wola
     public int Channeling; // Splatanie magii
     public int Dodge; // Unik
     public int HighestDamageDealt; // Największe zadane obrażenia

@@ -77,14 +77,14 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {    
-        if (Display.displays.Length > 1)
-        {
-            IsStatsHidingMode = false;
-        }
-        else
-        {
-            IsStatsHidingMode = true;
-        }
+        // if (Display.displays.Length > 1)
+        // {
+        //     IsStatsHidingMode = false;
+        // }
+        // else
+        // {
+        //     IsStatsHidingMode = true;
+        // }
 
         if (SceneManager.GetActiveScene().buildIndex == 0)
         {

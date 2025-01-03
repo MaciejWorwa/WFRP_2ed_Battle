@@ -202,8 +202,8 @@ public class RoundsManager : MonoBehaviour
                 }
                 else
                 {
-                    ReinforcementLearningManager.Instance.SimulateUnit(unit);
-                    //AutoCombatManager.Instance.Act(unit);
+                    //ReinforcementLearningManager.Instance.SimulateUnit(unit);
+                    AutoCombatManager.Instance.Act(unit);
                 }
 
                 // Czeka, aż jednostka zakończy ruch, zanim wybierze kolejną jednostkę

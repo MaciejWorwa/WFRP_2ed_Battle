@@ -137,7 +137,7 @@ public class ReinforcementLearningManager : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R))
+        if (Input.GetKeyDown(KeyCode.R) && IsLearning)
         {
             SaveQTables();
         }
@@ -412,6 +412,12 @@ public class ReinforcementLearningManager : MonoBehaviour
             {
                 maxQnext = qTable[newState, a];
             }
+        }
+
+        // Zabezpieczenie przed float.NegativeInfinity
+        if (maxQnext == float.NegativeInfinity)
+        {
+            maxQnext = 0f;
         }
 
         float newQ = oldQ + Alpha * (reward + Gamma * maxQnext - oldQ);

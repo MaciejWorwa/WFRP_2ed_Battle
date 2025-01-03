@@ -37,6 +37,7 @@ public class UnitsManager : MonoBehaviour
 
     [SerializeField] private GameObject _unitPanel;
     [SerializeField] private GameObject _spellbookButton;
+    [SerializeField] private GameObject _spellListPanel;
     [SerializeField] private GameObject _actionsPanel;
     [SerializeField] private GameObject _statesPanel; //Panel opisujący obecny stan postaci, np. unieruchomienie
     [SerializeField] private TMP_Text _raceDisplay;
@@ -46,7 +47,6 @@ public class UnitsManager : MonoBehaviour
     [SerializeField] private GameObject _unitPrefab;
     [SerializeField] private CustomDropdown _unitsDropdown;
     public Transform UnitsScrollViewContent;
-    [SerializeField] private TMP_InputField _unitNameInputField;
     [SerializeField] private UnityEngine.UI.Slider _modifierAttributeSlider;
     [SerializeField] private UnityEngine.UI.Toggle _rollForHalfValueToggle; // Rzut na połowę cechy (gdy jednostka nie posiada umiejętności)
     [SerializeField] private UnityEngine.UI.Toggle _unitTagToggle;
@@ -55,7 +55,6 @@ public class UnitsManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button _removeUnitButton;
     [SerializeField] private UnityEngine.UI.Button _selectUnitsButton; // Przycisk do zaznaczania wielu jednostek
     [SerializeField] private UnityEngine.UI.Button _removeSavedUnitFromListButton; // Przycisk do usuwania zapisanych jednostek z listy
-    [SerializeField] private UnityEngine.UI.Toggle _savedUnitsManagingToggle;
     [SerializeField] private UnityEngine.UI.Button _updateUnitButton;
     [SerializeField] private UnityEngine.UI.Button _removeUnitConfirmButton;
     [SerializeField] private GameObject _removeUnitConfirmPanel;
@@ -118,13 +117,13 @@ public class UnitsManager : MonoBehaviour
     {
         IsTileSelecting = true;
 
-        Debug.Log("Wybierz pole na którym chcesz stworzyć jednostkę.");
+        Debug.Log("Wybierz pole, na którym chcesz stworzyć jednostkę.");
         return;
     }
 
     public void CreateUnitOnSelectedTile(Vector2 position)
     {
-        CreateUnit(_unitsDropdown.GetSelectedIndex(), _unitNameInputField.text, position);
+        CreateUnit(_unitsDropdown.GetSelectedIndex(), "", position);
     
         //Resetuje kolor przycisku z wybraną jednostką na liście jednostek
         CreateUnitButton.SelectedUnitButtonImage.color = new Color(0.55f, 0.66f, 0.66f, 0.05f);
@@ -148,7 +147,7 @@ public class UnitsManager : MonoBehaviour
             position = availablePositions[randomIndex];
         }
 
-        CreateUnit(_unitsDropdown.GetSelectedIndex(), _unitNameInputField.text, position);
+        CreateUnit(_unitsDropdown.GetSelectedIndex(), "", position);
     }
 
     public GameObject CreateUnit(int unitId, string unitName, Vector2 position)
@@ -158,9 +157,6 @@ public class UnitsManager : MonoBehaviour
             Debug.Log("Wybierz jednostkę z listy.");
             return null;
         }
-
-        //Resetuje input field z nazwą jednostki
-        _unitNameInputField.text = null;
 
         // Pole na którym chcemy stworzyć jednostkę
         GameObject selectedTile = GameObject.Find($"Tile {position.x - GridManager.Instance.transform.position.x} {position.y - GridManager.Instance.transform.position.y}");
@@ -193,8 +189,6 @@ public class UnitsManager : MonoBehaviour
         {
             Unit.SelectedUnit.GetComponent<Unit>().SelectUnit();
         }
-
-        IsTileSelecting = false;
       
         //Tworzy nową postać na odpowiedniej pozycji
         GameObject newUnit = Instantiate(_unitPrefab, position, Quaternion.identity);
@@ -252,7 +246,7 @@ public class UnitsManager : MonoBehaviour
         }
 
         // Wczytuje dane zapisanej jednostki
-        if (IsSavedUnitsManaging)
+        if (IsSavedUnitsManaging && IsTileSelecting)
         {
             //Jeżeli gra już jest w trakcie wczytywania to nie powielamy tego. Jest to istotne, żeby nie wystąpiły błędy przy wczytywaniu gry, jeśli na mapie są zapisane jednostki
             bool wasLoadingInitially = SaveAndLoadManager.Instance.IsLoading;
@@ -302,12 +296,16 @@ public class UnitsManager : MonoBehaviour
             newUnit.GetComponent<Inventory>().SilverCoins = inventoryData.SilverCoins;
             newUnit.GetComponent<Inventory>().GoldCoins = inventoryData.GoldCoins;
 
-            // Wczytaj token
+            // Wczytaj token, jeśli istnieje
             if (File.Exists(tokenJsonPath))
             {
                 string tokenJson = File.ReadAllText(tokenJsonPath);
                 TokenData tokenData = JsonUtility.FromJson<TokenData>(tokenJson);
-                StartCoroutine(TokensManager.Instance.LoadTokenImage(tokenData.filePath, newUnit));
+
+                if(tokenData.filePath.Length > 1)
+                {
+                    StartCoroutine(TokensManager.Instance.LoadTokenImage(tokenData.filePath, newUnit));
+                }
             }
 
             if (!wasLoadingInitially)
@@ -315,6 +313,8 @@ public class UnitsManager : MonoBehaviour
                 SaveAndLoadManager.Instance.IsLoading = false;
             }
         }
+
+        IsTileSelecting = false;
 
         if (SaveAndLoadManager.Instance.IsLoading != true)
         {
@@ -369,15 +369,14 @@ public class UnitsManager : MonoBehaviour
         return newUnit;
     }
 
-    public void SetSavedUnitsManaging()
+    public void SetSavedUnitsManaging(bool value)
     {
-        IsSavedUnitsManaging = _savedUnitsManagingToggle.isOn;
+        IsSavedUnitsManaging = value;
 
         if(IsSavedUnitsManaging)
         {
             IsUnitEditing = false;
 
-            _unitNameInputField.gameObject.SetActive(false);
             _createUnitButton.gameObject.SetActive(false);
             _removeUnitButton.gameObject.SetActive(false);
             _selectUnitsButton.gameObject.SetActive(false);
@@ -386,7 +385,6 @@ public class UnitsManager : MonoBehaviour
         }
         else
         {
-            _unitNameInputField.gameObject.SetActive(true);
             _removeSavedUnitFromListButton.gameObject.SetActive(false);
             EditUnitModeOff();
         }
@@ -455,6 +453,18 @@ public class UnitsManager : MonoBehaviour
 
         //Resetuje kolor przycisku usuwania jednostek
         _removeUnitButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;
+    }
+
+    public void RemoveUnitFromList(GameObject confirmPanel)
+    {
+        if (_unitsDropdown.SelectedButton == null)
+        {
+            Debug.Log("Wybierz jednostkę z listy.");
+        }
+        else
+        {
+            confirmPanel.SetActive(true);
+        }
     }
     #endregion
 
@@ -542,9 +552,8 @@ public class UnitsManager : MonoBehaviour
         _selectUnitsButton.gameObject.SetActive(true);
         _updateUnitButton.gameObject.SetActive(false);
 
-        if(_savedUnitsManagingToggle.isOn)
+        if(IsSavedUnitsManaging)
         {
-            _savedUnitsManagingToggle.isOn = false;
             _removeSavedUnitFromListButton.gameObject.SetActive(false);
         }
     }
@@ -562,17 +571,6 @@ public class UnitsManager : MonoBehaviour
         GameObject unit = Unit.SelectedUnit;
         Stats stats = unit.GetComponent<Stats>();
 
-        //Aktualizuje imię postaci
-        if (_unitNameInputField.text.Length > 0)
-        {
-            stats.Name = _unitNameInputField.text;
-
-            unit.GetComponent<Unit>().DisplayUnitName();
-
-            unit.name = _unitNameInputField.text;
-            //Resetuje input field z nazwą jednostki
-            _unitNameInputField.text = null;
-        }
         //Ustawia tag postaci, który definiuje, czy jest to sojusznik, czy przeciwnik, a także jej domyślny kolor.
         if (_unitTagToggle.isOn)
         {
@@ -717,6 +715,11 @@ public class UnitsManager : MonoBehaviour
             int value = int.TryParse(textInput.GetComponent<TMP_InputField>().text, out int inputValue) ? inputValue : 0;
 
             field.SetValue(unit.GetComponent<Stats>(), value);
+
+            if(attributeName == "Mag")
+            {
+                DataManager.Instance.LoadAndUpdateSpells(); //Aktualizuje listę zaklęć, które może rzucić jednostka
+            }
         }
         else if (field.FieldType == typeof(int) && textInput.GetComponent<UnityEngine.UI.Slider>() != null) // to działa z umiejętnościami
         {
@@ -863,6 +866,7 @@ public class UnitsManager : MonoBehaviour
         if (stats.Mag > 0)
         {
             _spellbookButton.SetActive(true);
+            DataManager.Instance.LoadAndUpdateSpells(); //Aktualizuje listę zaklęć, które może rzucić jednostka
             unit.GetComponent<Unit>().CanCastSpell = true;
 
             if(unit.GetComponent<Spell>() == null)
@@ -873,6 +877,7 @@ public class UnitsManager : MonoBehaviour
         else
         {
             _spellbookButton.SetActive(false);
+            _spellListPanel.SetActive(false);
         }
 
         //_nameDisplay.text = stats.Name;
@@ -1145,7 +1150,7 @@ public class UnitsManager : MonoBehaviour
         foreach (var unit in AllUnits)
         {
             //Pomija jednostki, których nie dotyczy ten rzut (czyli sojusznicy strasznej jednostki, postacie ze zdolnością nieustraszony lub jednostki, które wcześniej zdały test)
-            if(unit.CompareTag(unitTag) == false || unit.GetComponent<Stats>().Fearless == true || unit.IsFearTestPassed) continue;
+            if(unit.CompareTag(unitTag) == false || unit.GetComponent<Stats>().Fearless == true || unit.IsFearTestPassed || unit.GetComponent<Stats>().WillOfIron == true) continue;
 
             FearRoll(unit);
         }
@@ -1193,8 +1198,8 @@ public class UnitsManager : MonoBehaviour
     {
         foreach (var unit in AllUnits)
         {
-            //Pomija jednostki, których nie dotyczy ten rzut (czyli sojusznicy strasznej jednostki, postacie ze zdolnością nieustraszony lub jednostki, które wcześniej zdały test)
-            if(unit.CompareTag(unitTag) == false || unit.IsFearTestPassed) continue;
+            //Pomija jednostki, których nie dotyczy ten rzut (czyli sojusznicy strasznej jednostki, postacie ze zdolnością Żelazna Wola lub jednostki, które wcześniej zdały test)
+            if(unit.CompareTag(unitTag) == false || unit.IsFearTestPassed || unit.GetComponent<Stats>().WillOfIron == true) continue;
 
             if(unit.GetComponent<Stats>().Fearless == true) 
             {
