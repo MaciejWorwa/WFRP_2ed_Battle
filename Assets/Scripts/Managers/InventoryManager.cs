@@ -193,6 +193,44 @@ public class InventoryManager : MonoBehaviour
 
         Debug.Log($"Przedmiot {selectedWeapon.Name} został usunięty z ekwipunku {unit.GetComponent<Stats>().Name}.");
     }
+
+    public void RemoveAllWeaponsFromInventory()
+    {
+        if (Unit.SelectedUnit == null || InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons.Count == 0) return;
+
+        GameObject unit = Unit.SelectedUnit;
+
+        // Pobiera ekwipunek postaci
+        List<Weapon> allWeapons = unit.GetComponent<Inventory>().AllWeapons;
+
+        // Iteruje przez wszystkie bronie w ekwipunku
+        foreach (Weapon weapon in new List<Weapon>(allWeapons)) // Tworzymy kopię listy, aby uniknąć modyfikacji podczas iteracji
+        {
+            // Zwraca broń do puli
+            WeaponsPool.Instance.ReturnWeaponToPool(weapon.gameObject);
+
+            // Usuwa broń ze słownika broni z zapisanym czasem przeładowania
+            Unit.SelectedUnit.GetComponent<Weapon>().WeaponsWithReloadLeft.Remove(weapon.Id);
+
+            // Jeżeli usuwamy broń, która była aktualnym komponentem Weapon danej jednostki, ustawiamy ten komponent na Pięści
+            if (weapon.Id == Unit.SelectedUnit.GetComponent<Weapon>().Id)
+            {
+                Unit.SelectedUnit.GetComponent<Weapon>().ResetWeapon();
+            }
+        }
+
+        // Opróżnia tablicę dobytych broni
+        Weapon[] equippedWeapons = unit.GetComponent<Inventory>().EquippedWeapons;
+        for (int i = 0; i < equippedWeapons.Length; i++)
+        {
+            equippedWeapons[i] = null;
+        }
+
+        // Opróżnia ekwipunek
+        allWeapons.Clear();
+
+        UpdateInventoryDropdown(allWeapons, true);
+    }
     #endregion
 
     #region Grabing weapons

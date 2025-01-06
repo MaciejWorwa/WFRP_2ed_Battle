@@ -278,14 +278,18 @@ public class MovementManager : MonoBehaviour
     }
 
     #region Charge and Run modes
-    public void UpdateMovementRange(int modifier)
+    public void UpdateMovementRange(int modifier, Unit unit = null)
     {
-        if (Unit.SelectedUnit == null) return;
+        if (Unit.SelectedUnit != null)
+        {
+            unit = Unit.SelectedUnit.GetComponent<Unit>();
+        }
 
-        Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
-        Stats stats = Unit.SelectedUnit.GetComponent<Stats>();
+        if(unit == null) return;
 
-        int actions_left = RoundsManager.Instance.UnitsWithActionsLeft[unit.GetComponent<Unit>()];
+        Stats stats = unit.GetComponent<Stats>();
+
+        int actions_left = RoundsManager.Instance.UnitsWithActionsLeft[unit];
 
         //Jeżeli postać już jest w trybie szarży lub biegu, resetuje je
         if (unit.IsCharging && modifier == 2 || unit.IsRunning && modifier == 3)

@@ -49,7 +49,8 @@ public class Unit : MonoBehaviour
         DisplayUnitName();
 
         if(Stats.Dodge > 0) CanDodge = true;
-        Stats.TempSz = Stats.Sz;
+        
+        MovementManager.Instance.UpdateMovementRange(1, this);
 
         if(Stats.Name.Contains(Stats.Race)) // DO POKMINIENIA, JAKI INNY WARUNEK DAĆ, BO TEN NIE JEST IDEALNY, BO KTOŚ MOŻE NAZWAĆ ZAPISANEGO GOBLINA NP. "FAJNY GOBLIN"
         {

@@ -207,9 +207,9 @@ public class AutoCombatManager : MonoBehaviour
         }
 
         //Ścieżka ruchu atakującego
-        List<Vector2> path = MovementManager.Instance.FindPath(unit.transform.position, targetTilePosition); 
+        List<Vector2> path = MovementManager.Instance.FindPath(unit.transform.position, targetTilePosition);
 
-        if ((!weapon.Type.Contains("ranged")) && unit.CanAttack == true && path.Count <= unit.GetComponent<Stats>().Sz * 2 && path.Count >= 2 && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) // Jeśli rywal jest w zasięgu szarży to wykonuje szarżę
+        if ((!weapon.Type.Contains("ranged")) && unit.CanAttack == true && path.Count <= unit.GetComponent<Stats>().TempSz * 2 && path.Count >= 2 && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2) // Jeśli rywal jest w zasięgu szarży to wykonuje szarżę
         {
             Debug.Log($"{unit.GetComponent<Stats>().Name} szarżuje na {closestOpponent.GetComponent<Stats>().Name}.");
 

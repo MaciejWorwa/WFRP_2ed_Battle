@@ -657,6 +657,9 @@ public class UnitsManager : MonoBehaviour
             //Dodaje do ekwipunku początkową broń adekwatną dla danej jednostki i wyposaża w nią
             if (unit.GetComponent<Stats>().PrimaryWeaponIds != null && unit.GetComponent<Stats>().PrimaryWeaponIds.Count > 0 && changeName)
             {
+                //Usuwa posiadane bronie
+                InventoryManager.Instance.RemoveAllWeaponsFromInventory();
+
                 Unit.LastSelectedUnit = Unit.SelectedUnit != null ? Unit.SelectedUnit : null;
                 Unit.SelectedUnit = unit;
                 SaveAndLoadManager.Instance.IsLoading = true; // Tylko po to, żeby informacja o dobyciu broni i dodaniu do ekwipunku z metody GrabWeapon i LoadWeapon nie były wyświetlane w oknie wiadomości

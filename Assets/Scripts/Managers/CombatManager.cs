@@ -700,8 +700,16 @@ public class CombatManager : MonoBehaviour
 
                 Debug.Log($"{targetStats.Name} wykonał rzut na Odporność i wyrzucił {rollOdp}. Wartość cechy: {targetStats.Odp}. Modyfikator: {modifier}");
 
-                if(rollOdp > targetStats.Odp + modifier)
+                if((rollOdp > targetStats.Odp + modifier && rollOdp > 5) || rollOdp >= 96)
                 {
+                    if (rollOdp >= 96)
+                    {
+                        Debug.Log($"{targetStats.Name} wyrzucił <color=red>PECHA!</color>");
+                                    
+                        //Aktualizuje osiągnięcia
+                        targetStats.UnfortunateEvents ++;
+                    }
+
                     if(attackerStats.Race == "Olbrzymi pająk")
                     {
                         int duration = UnityEngine.Random.Range(1, 11);
@@ -716,8 +724,15 @@ public class CombatManager : MonoBehaviour
                         Debug.Log($"{targetStats.Name} nie zdał testu i traci dodatkowe {extraDamage} punkty Żywotności w wyniku zatrucia przez {attackerStats.Name}.");
                     }
                 }
-                else
+                else if (rollOdp < 96)
                 {
+                    if(rollOdp <= 5)
+                    {
+                        Debug.Log($"{targetStats.Name} wyrzucił <color=green>SZCZĘŚCIE!</color>");
+            
+                        //Aktualizuje osiągnięcia
+                        targetStats.FortunateEvents ++;
+                    }
                     Debug.Log($"{targetStats.Name} zdał test Odporności.");
                 }
             }
@@ -1066,7 +1081,7 @@ public class CombatManager : MonoBehaviour
                 {
                     additionalDamage = UnityEngine.Random.Range(1, 11);
                     damageRollResult += additionalDamage;
-                    Debug.Log($"Rzut na potwierdzenie {confirmRoll}. FURIA ULRYKA!");
+                    Debug.Log($"Rzut na potwierdzenie {confirmRoll}. <color=green>FURIA ULRYKA!</color>");
                 }
                 else
                 {
@@ -1079,7 +1094,7 @@ public class CombatManager : MonoBehaviour
                 {
                     additionalDamage = UnityEngine.Random.Range(1, 11);
                     damageRollResult += additionalDamage;
-                    Debug.Log($"Rzut na potwierdzenie {confirmRoll}. FURIA ULRYKA!");
+                    Debug.Log($"Rzut na potwierdzenie {confirmRoll}. <color=green>FURIA ULRYKA!</color>");
                 }
                 else
                 {
@@ -1091,7 +1106,7 @@ public class CombatManager : MonoBehaviour
             {
                 additionalDamage = UnityEngine.Random.Range(1, 11);
                 damageRollResult += additionalDamage;
-                Debug.Log($"KOLEJNA FURIA ULRYKA!");
+                Debug.Log($"KOLEJNA <color=green>FURIA ULRYKA!</color>");
             }
         }
 
@@ -1263,7 +1278,7 @@ public class CombatManager : MonoBehaviour
         {
             ChangeAttackType(); // Resetuje szarżę
 
-            Debug.Log("Zbyt mała odległość na wykonanie szarży." + " " + attacker.GetComponent<Stats>().Name);
+            Debug.Log("Zbyt mała odległość na wykonanie szarży.");
         }
     }
 
