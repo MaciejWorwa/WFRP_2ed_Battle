@@ -230,29 +230,72 @@ public class ReinforcementLearningManager : MonoBehaviour
     }
 
     // Wybiera akcję epsilon-greedy na podstawie rasy i stanu.
-    private int ChooseValidActionEpsilonGreedy(ActionContext context)
+    private ActionChoice ChooseValidActionEpsilonGreedy(ActionContext context)
     {
         float[,] qTable = GetQTable(context.RaceName);
         Unit unit = context.Unit;
         Stats stats = context.Unit.GetComponent<Stats>();
+
+        Dictionary<Unit, bool[]> statesCache = new Dictionary<Unit, bool[]>();
 
         // 1. Sprawdź, czy jednostka ma jeszcze dostępne akcje
         if (RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(unit) &&
             RoundsManager.Instance.UnitsWithActionsLeft[unit] == 0)
         {
             // Jednostka nie ma więcej akcji, wybierz tylko FinishTurn (ID=56)
-            return 56; // Zakładam, że 56 to ID akcji FinishTurn
+            return new ActionChoice 
+            { 
+                ActionId = 56, 
+                ChosenTarget = null, 
+                ChosenStates = new bool[(int)AIState.COUNT] 
+            };
         }
 
         List<int> validActions = new List<int>();
 
-        bool hasRangedWeapon = context.HasRanged;
+        // Domyślnie (na wypadek, gdyby coś poszło nie tak):
+        Unit fallbackTarget = null;
+        bool[] fallbackStates = new bool[(int)AIState.COUNT];
+
+        //bool hasRangedWeapon = context.HasRanged;
 
         for (int i = 0; i < AllActions.Length; i++)
         {
             ActionDefinition def = AllActions[i];
             TargetType tType = def.targetType;
             AttackType aType = def.attackType;
+
+            //Akcje, które wymagają zużycia akcji podwójnej
+            if (GetActionCost(aType) == 2 && RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(unit) && RoundsManager.Instance.UnitsWithActionsLeft[unit] < 2)
+            {
+                continue;
+            }
+
+            // Znajdź docelowy Unit na podstawie targetType
+            Unit potentialTarget = GetTargetByType(context.Info, tType);
+
+            if (potentialTarget == null) continue;
+
+            if (!statesCache.ContainsKey(potentialTarget))
+            {
+                statesCache[potentialTarget] = DetermineStates(unit, potentialTarget);
+            }
+
+            //  Policz stany – z tym konkretnym targetem
+            bool[] states = statesCache[potentialTarget];
+
+            // (Zachowaj sobie cokolwiek do fallbacku)
+            if (fallbackTarget == null)
+            {
+                fallbackTarget = potentialTarget;
+                fallbackStates = states;
+            }
+
+            bool isInMelee = states[(int)AIState.IsInMelee];
+            bool isHeavilyWounded = states[(int)AIState.IsHeavilyWounded];
+            bool hasRangedWeapon = states[(int)AIState.HasRangedWeapon];
+            bool isBeyondAttackRange = states[(int)AIState.IsBeyondAttackRange];
+            bool isInChargeRange = states[(int)AIState.IsInChargeRange];
 
             // Czy to jest ruch, atak, czy akcja specjalna?
             bool isMove = (aType == AttackType.Move || aType == AttackType.MoveAway || aType == AttackType.Retreat);
@@ -266,6 +309,7 @@ public class ReinforcementLearningManager : MonoBehaviour
                         && aType != AttackType.RunAway
                         && aType != AttackType.Retreat);
 
+
             // ---- WARUNKI BLOKADY DLA ATAKÓW ----
             if (isAttack)
             {
@@ -278,15 +322,13 @@ public class ReinforcementLearningManager : MonoBehaviour
                 // Broń musi być naładowana
                 if (context.CurrentWeapon.ReloadLeft > 0) continue; 
 
-                // Znajdź docelowy Unit:
-                Unit potentialTarget = GetTargetByType(context.Info, tType);
                 if (potentialTarget == null) continue; 
 
                 // Sprawdź, czy mamy Distances
                 if (!context.Info.Distances.ContainsKey(potentialTarget)) continue; 
 
-                bool isBeyondAttackRange = context.IsBeyondAttackRange;
-                bool isInChargeRange = context.IsInChargeRange;
+                // bool isBeyondAttackRange = context.IsBeyondAttackRange;
+                // bool isInChargeRange = context.IsInChargeRange;
 
                 if (aType == AttackType.Charge)
                 {
@@ -298,14 +340,11 @@ public class ReinforcementLearningManager : MonoBehaviour
                 }
                 else
                 {
+                    // Dla broni bezzasięgowej, IsBeyondAttackRange jest prawdziwe, gdy odległość > attackRange
+                    isBeyondAttackRange = context.Info.Distances[potentialTarget] > InventoryManager.Instance.ChooseWeaponToAttack(unit.gameObject).AttackRange;
+
                     // Zablokuj ataki (oprócz szarży) jeśli jest poza zasięgiem broni
                     if (isBeyondAttackRange) continue; 
-                }
-
-                // Wymaganie 2 akcji dla Charge, AllOut, Swift, Guarded i do biegu
-                if (aType == AttackType.Charge || aType == AttackType.AllOut || aType == AttackType.Swift || aType == AttackType.Guarded || aType == AttackType.Run)
-                {
-                    if (RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(unit) && RoundsManager.Instance.UnitsWithActionsLeft[unit] < 2) continue; 
                 }
 
                 // hasRangedWeapon==true => zablokuj Charge i Feint
@@ -341,28 +380,26 @@ public class ReinforcementLearningManager : MonoBehaviour
                 if (context.CurrentWeapon != null && context.WeaponIsLoaded) continue; 
             }
 
-            if (aType == AttackType.DefensiveStance && 
-                RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(unit) && 
-                RoundsManager.Instance.UnitsWithActionsLeft[unit] < 2)
-            {
-                continue;
-            }
-
             validActions.Add(i);
         }
 
         // Jeśli brak dozwolonych akcji => FinishTurn (lub inny fallback)
         if (validActions.Count == 0)
         {
-            // Zakładam ID=56 to jest FinishTurn w AllActions
-            return 56;
+            // Brak dozwolonych akcji => FinishTurn
+            return new ActionChoice 
+            { 
+                ActionId = 56, 
+                ChosenTarget = fallbackTarget, 
+                ChosenStates = fallbackStates 
+            };
         }
 
-        // --- EPSILON-GREEDY WYBÓR ---
+        // --- EPSILON-GREEDY ---
+        int chosenIndex;
         if (UnityEngine.Random.value < Epsilon)
         {
-            int rndIdx = UnityEngine.Random.Range(0, validActions.Count);
-            return validActions[rndIdx];
+            chosenIndex = UnityEngine.Random.Range(0, validActions.Count);
         }
         else
         {
@@ -378,24 +415,60 @@ public class ReinforcementLearningManager : MonoBehaviour
                     bestActions.Clear();
                     bestActions.Add(actID);
                 }
-                else if (val == bestVal)
+                else if (Mathf.Approximately(val, bestVal))
                 {
                     bestActions.Add(actID);
                 }
             }
 
-            // Losowy wybór spośród najlepszych akcji
-            if (bestActions.Count > 0)
-            {
-                int bestAction = bestActions[UnityEngine.Random.Range(0, bestActions.Count)];
-                return bestAction;
-            }
-            else
-            {
-                // Fallback, jeśli coś poszło nie tak
-                int fallbackAction = validActions[UnityEngine.Random.Range(0, validActions.Count)];
-                return fallbackAction;
-            }
+            chosenIndex = (bestActions.Count > 0)
+                ? UnityEngine.Random.Range(0, bestActions.Count)
+                : UnityEngine.Random.Range(0, validActions.Count);
+        }
+
+        int chosenActionId = validActions[chosenIndex];
+        ActionDefinition chosenDef = AllActions[chosenActionId];
+
+        // Jeszcze raz ustal docelowy target i stany dla *wybranej* akcji
+        Unit chosenTarget = GetTargetByType(context.Info, chosenDef.targetType);
+        bool[] chosenStates = statesCache[chosenTarget];
+
+        // Zwróć wszystko w obiekcie ActionChoice
+        return new ActionChoice 
+        {
+            ActionId      = chosenActionId,
+            ChosenTarget  = chosenTarget,
+            ChosenStates  = chosenStates
+        };
+    }
+
+    public class ActionChoice
+    {
+        public int ActionId;         // numer akcji w AllActions
+        public Unit ChosenTarget;    // docelowy target
+        public bool[] ChosenStates;  // stany dla (unit, target)
+    }
+
+    private int GetActionCost(AttackType aType)
+    {
+        // Dla przykładu:
+        // charge, all-out, swift, guarded, defensiveStance itp. => koszt 2
+        // reszta => koszt 1
+
+        switch (aType)
+        {
+            case AttackType.Charge:
+            case AttackType.AllOut:
+            case AttackType.Swift:
+            case AttackType.Guarded:
+            case AttackType.DefensiveStance:
+            case AttackType.Run:
+            case AttackType.RunAway:
+            case AttackType.Retreat:
+                return 2;
+            
+            default:
+                return 1;
         }
     }
 
@@ -428,7 +501,7 @@ public class ReinforcementLearningManager : MonoBehaviour
     //         LOGIKA STANÓW ORAZ GŁÓWNA METODA SimulateUnit
     // ======================================================================
 
-    public bool[] DetermineStates(Unit unit)
+    public bool[] DetermineStates(Unit unit, Unit target)
     {
         bool[] states = new bool[(int)AIState.COUNT];
 
@@ -440,11 +513,9 @@ public class ReinforcementLearningManager : MonoBehaviour
         bool hasRanged = weapon != null && weapon.Type.Contains("ranged");
         states[(int)AIState.HasRangedWeapon] = hasRanged;
 
-        // Znalezienie najbliższego przeciwnika
-        GameObject closestOpponent = AutoCombatManager.Instance.GetClosestOpponent(unit.gameObject, false);
-        if (closestOpponent != null)
+        if (target != null)
         {
-            float distance = CombatManager.Instance.CalculateDistance(unit.gameObject, closestOpponent);
+            float distance = CombatManager.Instance.CalculateDistance(unit.gameObject, target.gameObject);
 
             // Ustawienie stanu IsInMelee
             states[(int)AIState.IsInMelee] = distance <= 1.5f;
@@ -456,7 +527,7 @@ public class ReinforcementLearningManager : MonoBehaviour
             if (hasRanged)
             {
                 // Dla broni zasięgowej
-                states[(int)AIState.IsBeyondAttackRange] = !CombatManager.Instance.ValidateRangedAttack(unit, closestOpponent.GetComponent<Unit>(), weapon, distance);
+                states[(int)AIState.IsBeyondAttackRange] = !CombatManager.Instance.ValidateRangedAttack(unit, target, weapon, distance);
             }
             else
             {
@@ -479,73 +550,81 @@ public class ReinforcementLearningManager : MonoBehaviour
     }
 
     // Główna metoda sterująca akcjami jednostki w turze – Q-learning.
-    public void SimulateUnit(Unit unit)
+    public void SimulateUnit(Unit unit, int recursionDepth = 0)
     {
         if (unit == null) return;
         Stats stats = unit.GetComponent<Stats>();
         if (stats == null) return;
         if (stats.TempHealth < 0) return;
-
-        bool[] oldStates = DetermineStates(unit);
-        int oldStateIndex = EncodeState(oldStates);
-        int oldHP = stats.TempHealth;
-
-        Weapon weapon = InventoryManager.Instance.ChooseWeaponToAttack(unit.gameObject);
-        bool weaponIsLoaded = (weapon != null && weapon.ReloadLeft == 0);
+        if (recursionDepth >= 10) return;
 
         TargetsInfo info = GatherTargetsInfo(unit);
-        bool opponentExist = (info.Closest != null);
 
+        // Ustaw kontekst (wszystkie rzeczy, które przekazujesz do ChooseValidActionEpsilonGreedy)
         ActionContext ctx = new ActionContext
         {
-            Unit = unit,
-            RaceName = stats.Race,
-            StateIndex = oldStateIndex,
-            WeaponIsLoaded = weaponIsLoaded,
-            HasRanged = oldStates[(int)AIState.HasRangedWeapon],
-            IsInMelee = oldStates[(int)AIState.IsInMelee],
-            CanAttack = unit.CanAttack,
-            IsBeyondAttackRange = oldStates[(int)AIState.IsBeyondAttackRange],
-            IsInChargeRange = oldStates[(int)AIState.IsInChargeRange],
-
-            // Wnioskujemy, że OpponentExist => info.Closest != null
-            OpponentExist = (info.Closest != null),
-            FurthestUnitExist = (info.Furthest != null),
-            MostInjuredUnitExist = (info.MostInjured != null),
+            Unit              = unit,
+            RaceName          = stats.Race,
+            StateIndex        = 0, // UWAGA: tu za moment pokażę, skąd wziąć "realny" StateIndex
+            WeaponIsLoaded    = (InventoryManager.Instance.ChooseWeaponToAttack(unit.gameObject)?.ReloadLeft == 0),
+            HasRanged         = false, // (te pola i tak nadpiszesz w samej logice ataku, 
+            IsInMelee         = false, // bo docelowy target jest w "ChosenStates")
+            CanAttack         = unit.CanAttack,
+            IsBeyondAttackRange = false,
+            IsInChargeRange   = false,
+            
+            OpponentExist         = (info.Closest != null),
+            FurthestUnitExist     = (info.Furthest != null),
+            MostInjuredUnitExist  = (info.MostInjured != null),
             LeastInjuredUnitExist = (info.LeastInjured != null),
-            WeakestUnitExist = (info.Weakest != null),
-            StrongestUnitExist = (info.Strongest != null),
+            WeakestUnitExist      = (info.Weakest != null),
+            StrongestUnitExist    = (info.Strongest != null),
             TargetWithMostAlliesExist = (info.WithMostAllies != null),
-
-            CurrentWeapon = weapon,
+            
+            CurrentWeapon = InventoryManager.Instance.ChooseWeaponToAttack(unit.gameObject),
             Info = info
         };
 
-        int chosenAction = ChooseValidActionEpsilonGreedy(ctx);
-        ActionUsageCount[ctx.RaceName][oldStateIndex, chosenAction]++;
+        // (1) Wybierz akcję
+        ActionChoice choice = ChooseValidActionEpsilonGreedy(ctx);
+        int chosenActionId = choice.ActionId;
+        Unit chosenTarget  = choice.ChosenTarget;
+        bool[] oldStates   = choice.ChosenStates;
 
-        float reward = PerformParameterAction(chosenAction, unit, info, oldHP);
+        // (2) Zakoduj "stary stan" do Q-learningu
+        int oldStateIndex = EncodeState(oldStates);
+
+        ActionUsageCount[ctx.RaceName][oldStateIndex, chosenActionId]++;
+
+        // (3) Wykonaj akcję – liczymy reward
+        int oldHP = stats.TempHealth;
+        float reward = PerformParameterAction(chosenActionId, unit, info, oldHP);
 
         // Zbieranie nagród do logowania
         currentEpochReward += reward;
         actionsThisEpoch++;
 
-        bool[] newStates = DetermineStates(unit);
+        // (5) Policz "nowe" stany – wystarczy ponownie `DetermineStates(unit, chosenTarget)`,
+        //     bo to stany "po wykonaniu tej akcji" (HP mogło spaść, mogłeś się przemieścić itd.)
+        bool[] newStates = DetermineStates(unit, chosenTarget);
         int newStateIndex = EncodeState(newStates);
-        UpdateQ(ctx.RaceName, oldStateIndex, chosenAction, reward, newStateIndex);
+
+        // (6) Update Q
+        UpdateQ(ctx.RaceName, oldStateIndex, chosenActionId, reward, newStateIndex);
 
         if (RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(unit)
             && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 1
             && !unit.IsTurnFinished)
         {
-            SimulateUnit(unit);
+            SimulateUnit(unit, recursionDepth + 1);
             unit.IsTurnFinished = true;
         }
 
-        Epsilon -= 0.0001f; // Spowolniony spadek Epsilon
+        // (7) Spadek Epsilon
+        Epsilon -= 0.0001f;
         Epsilon = Mathf.Max(Epsilon, 0.05f); // Minimalna wartość Epsilon
 
-        // Sprawdzenie, czy osiągnięto próg akcji per epokę
+        // (8) Sprawdź, czy osiągnięto próg akcji per epokę
         if (actionsThisEpoch >= ActionsPerEpoch)
         {
             float averageReward = currentEpochReward / actionsThisEpoch;

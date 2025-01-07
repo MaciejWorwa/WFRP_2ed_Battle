@@ -42,6 +42,7 @@ public class UnitsManager : MonoBehaviour
     [SerializeField] private GameObject _statesPanel; //Panel opisujący obecny stan postaci, np. unieruchomienie
     [SerializeField] private TMP_Text _raceDisplay;
     [SerializeField] private TMP_Text _healthDisplay;
+    [SerializeField] private TMP_InputField _unitStateDurationInputField;
     [SerializeField] private UnityEngine.UI.Slider _healthBar;
     [SerializeField] private UnityEngine.UI.Image _tokenDisplay;
     [SerializeField] private GameObject _unitPrefab;
@@ -489,6 +490,50 @@ public class UnitsManager : MonoBehaviour
         }
     }
 
+    public void SetSelectedUnitState(string state)
+    {
+        if(Unit.SelectedUnit == null) return;
+
+        Unit unit = Unit.SelectedUnit.GetComponent<Unit>();
+
+        if(state == "scared")
+        {
+            unit.IsScared = true;
+            Debug.Log("Jednostka została wprowadzona w stan strachu.");
+        }    
+        else if(state == "trapped")
+        {
+            unit.Trapped = true;
+            Debug.Log("Jednostka została wprowadzona w stan unieruchomienia.");
+        }
+        else if(state == "helpless")
+        {
+            if (!int.TryParse(_unitStateDurationInputField.text, out int helplessDuration) || helplessDuration <= 0)
+            {
+                Debug.Log("Dla stanu bezbronności wymagane jest ustalenie czasu trwania.");
+                return;
+            }
+            unit.HelplessDuration = helplessDuration;
+            Debug.Log($"Jednostka została wprowadzona w stan bezbronności na {helplessDuration} rund/y.");
+        }
+        else if(state == "stunned")
+        {
+            if (!int.TryParse(_unitStateDurationInputField.text, out int stunDuration) || stunDuration <= 0)
+            {
+                Debug.Log("Dla stanu ogłuszenia wymagane jest ustalenie czasu trwania.");
+                return;
+            }
+            unit.StunDuration = stunDuration;
+            Debug.Log($"Jednostka została wprowadzona w stan ogłuszenia na {stunDuration} rund/y.");
+        }
+
+        _unitStateDurationInputField.text = "";
+
+        RoundsManager.Instance.UnitsWithActionsLeft[unit] = 0;
+
+        UpdateUnitPanel(Unit.SelectedUnit);
+    }
+
     public void ResetSelectedUnitState()
     {
         if(Unit.SelectedUnit == null) return;
@@ -540,6 +585,28 @@ public class UnitsManager : MonoBehaviour
         if(AnimationManager.Instance.PanelStates[panelAnimator] == false)
         {
             AnimationManager.Instance.TogglePanel(panelAnimator);
+        }
+
+        // Jeżeli mamy wybraną jednostkę, pobieramy jej rasę
+        string currentRace = Unit.SelectedUnit.GetComponent<Stats>().Race;
+
+        int foundIndex = -1;
+        for (int i = 0; i < _unitsDropdown.Buttons.Count; i++)
+        {
+            // Tutaj sprawdzamy text w komponencie TextMeshProUGUI
+            var txt = _unitsDropdown.Buttons[i].GetComponentInChildren<TextMeshProUGUI>();
+            if (txt != null && txt.text == currentRace)
+            {
+                foundIndex = i;
+                break;
+            }
+        }
+
+        // Jeśli znaleźliśmy pasujący przycisk, wywołujemy `SetSelectedIndex(foundIndex+1)`
+        if (foundIndex != -1)
+        {
+            // Indeksy w `Buttons` idą od 0, a `SelectOption` od 1
+            _unitsDropdown.SetSelectedIndex(foundIndex + 1);
         }
     }
 
@@ -895,6 +962,8 @@ public class UnitsManager : MonoBehaviour
 
         InventoryManager.Instance.DisplayEquippedWeaponsName();
 
+        RoundsManager.Instance.DisplayActionsLeft();
+
         LoadAttributes(unit);
     }
 
@@ -1238,20 +1307,6 @@ public class UnitsManager : MonoBehaviour
 
             Debug.Log($"<color=red> {unitStats.Name} nie zdał testu grozy. Wynik rzutu: {rollResult} </color>");
         }
-    }
-
-    public void SetSelectedUnitFearState(bool value)
-    {
-        if(Unit.SelectedUnit == null) return;
-
-        Unit.SelectedUnit.GetComponent<Unit>().IsScared = value;
-
-        if(value == true)
-        {
-            RoundsManager.Instance.UnitsWithActionsLeft[Unit.SelectedUnit.GetComponent<Unit>()] = 0;
-        }
-
-        UpdateUnitPanel(Unit.SelectedUnit);
     }
     #endregion
 

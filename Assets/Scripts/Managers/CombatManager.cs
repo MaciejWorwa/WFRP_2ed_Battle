@@ -315,9 +315,8 @@ public class CombatManager : MonoBehaviour
                 return;
             }
 
-
             //Zaznacza, że jednostka wykonała już akcję ataku w tej rundzie. Uniemożliwia to wykonanie kolejnej. Nie dotyczy ataku okazyjnego i finty, a w wielokrotnym sprawdza ilość dostępnych ataków
-            if (!opportunityAttack && !AttackTypes["SwiftAttack"] && !AttackTypes["Feint"] || AttackTypes["SwiftAttack"] && AvailableAttacks == 0)
+            if ((!opportunityAttack && !AttackTypes["SwiftAttack"] && !AttackTypes["Feint"]) || (AttackTypes["SwiftAttack"] && AvailableAttacks == 0))
             {
                 attacker.CanAttack = false;
             }
@@ -825,8 +824,11 @@ public class CombatManager : MonoBehaviour
     {
         // Sprawdza, czy broń jest naładowana
         if (attackerWeapon.ReloadLeft != 0)
-        {
-            Debug.Log($"Broń wymaga przeładowania.");
+        {            
+            if(!ReinforcementLearningManager.Instance.IsLearning)
+            {
+                Debug.Log($"Broń wymaga przeładowania.");
+            }
             return false;
         }
 
@@ -835,7 +837,7 @@ public class CombatManager : MonoBehaviour
         {
             if(!ReinforcementLearningManager.Instance.IsLearning)
             {
-                //Debug.Log($"Jednostka stoi zbyt blisko celu, aby wykonać atak dystansowy.");
+                Debug.Log($"Jednostka stoi zbyt blisko celu, aby wykonać atak dystansowy.");
             }
 
             return false;
@@ -1268,6 +1270,8 @@ public class CombatManager : MonoBehaviour
             IEnumerator DelayedAttack(GameObject attacker, GameObject target, float delay)
             {
                 yield return new WaitForSeconds(delay);
+
+                if(attacker == null || target == null) yield break;
 
                 Attack(attacker.GetComponent<Unit>(), target.GetComponent<Unit>(), false);
                      
@@ -1741,7 +1745,20 @@ public class CombatManager : MonoBehaviour
 
             Debug.Log($"Rzut na odporność {targetStats.Name}. Wynik rzutu: {odpRoll} Wartość cechy: {targetStats.Odp}. Modyfikator za hełm: {armorModifier}");
 
-            if (odpRoll > (targetStats.Odp + modifier))
+            if (odpRoll >= 96)
+            {
+                Debug.Log($"{targetStats.Name} wyrzucił <color=red>PECHA!</color>");                
+                //Aktualizuje osiągnięcia
+                targetStats.UnfortunateEvents ++;
+            }
+            else if (odpRoll <= 5)
+            {
+                Debug.Log($"{targetStats.Name} wyrzucił <color=red>SZCZĘŚCIE!</color>");                
+                //Aktualizuje osiągnięcia
+                targetStats.FortunateEvents ++;
+            }
+
+            if (odpRoll > (targetStats.Odp + modifier) && odpRoll > 5 || odpRoll >= 96)
             {
                 int roundsNumber = UnityEngine.Random.Range(1, 11);
 
@@ -1775,7 +1792,21 @@ public class CombatManager : MonoBehaviour
 
         Debug.Log($"{unitStats.Name} próbuje się uwolnić. Rzut na {attributeName}: {rollResult} Wartość cechy: {attributeValue}");
 
-        if (rollResult < attributeValue)
+        if (rollResult >= 96)
+        {
+            Debug.Log($"{unitStats.Name} wyrzucił <color=red>PECHA!</color>");                
+            //Aktualizuje osiągnięcia
+            unitStats.UnfortunateEvents ++;
+        }
+        else if (rollResult <= 5)
+        {
+            Debug.Log($"{unitStats.Name} wyrzucił <color=red>SZCZĘŚCIE!</color>");                
+            //Aktualizuje osiągnięcia
+            unitStats.FortunateEvents ++;
+        }
+
+
+        if (rollResult < attributeValue && rollResult < 96 || rollResult <= 5)
         {
             unit.Trapped = false;
 

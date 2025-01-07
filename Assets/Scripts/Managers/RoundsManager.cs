@@ -79,11 +79,15 @@ public class RoundsManager : MonoBehaviour
             {
                 UnitsWithActionsLeft[key] = 0;
                 key.StunDuration--;
+
+                if(key.StunDuration == 0) UnitsWithActionsLeft[key] = 2;
             }
             if (key.HelplessDuration > 0)
             {
                 UnitsWithActionsLeft[key] = 0;
                 key.HelplessDuration--;
+
+                if(key.HelplessDuration == 0) UnitsWithActionsLeft[key] = 2;
             }
             if (key.SpellDuration > 0)
             {
@@ -132,9 +136,6 @@ public class RoundsManager : MonoBehaviour
         {
             UnitsManager.Instance.LookForScaryUnits();
         }
-
-        //Aktualizuje wyświetlane dostępne akcje
-        DisplayActionsLeft();
 
         InitiativeQueueManager.Instance.UpdateInitiativeQueue();
 

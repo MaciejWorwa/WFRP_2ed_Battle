@@ -50,7 +50,10 @@ public class Unit : MonoBehaviour
 
         if(Stats.Dodge > 0) CanDodge = true;
         
-        MovementManager.Instance.UpdateMovementRange(1, this);
+        if(RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(this))
+        {
+            MovementManager.Instance.UpdateMovementRange(1, this);
+        }
 
         if(Stats.Name.Contains(Stats.Race)) // DO POKMINIENIA, JAKI INNY WARUNEK DAĆ, BO TEN NIE JEST IDEALNY, BO KTOŚ MOŻE NAZWAĆ ZAPISANEGO GOBLINA NP. "FAJNY GOBLIN"
         {
@@ -106,12 +109,6 @@ public class Unit : MonoBehaviour
             MovementManager.Instance.UpdateMovementRange(1); //Resetuje szarżę lub bieg, jeśli były aktywne
             MovementManager.Instance.Retreat(false); //Resetuje bezpieczny odwrót
 
-            // //Resetuje przycisk celowania i pozycji obronne jeśli były aktywne
-            // AimingBonus = 0;
-            // CombatManager.Instance.UpdateAimButtonColor(); 
-            // DefensiveBonus = 0;
-            // CombatManager.Instance.UpdateDefensiveStanceButtonColor(); 
-
             //Zamyka aktywne panele
             GameManager.Instance.HideActivePanels(); 
 
@@ -151,9 +148,6 @@ public class Unit : MonoBehaviour
 
         //Zaznacza lub odznacza jednostkę na kolejce inicjatywy
         InitiativeQueueManager.Instance.UpdateInitiativeQueue();
-
-        //Włącza lub wyłącza podgląd dostępnych akcji dla jednostki (w zależności, czy ją zaznaczamy, czy odznaczamy)
-        RoundsManager.Instance.DisplayActionsLeft();
 
         //Zresetowanie rzucania zaklęć
         MagicManager.Instance.ResetSpellCasting();
