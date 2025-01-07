@@ -712,10 +712,12 @@ public class CombatManager : MonoBehaviour
                     if(attackerStats.Race == "Olbrzymi pająk")
                     {
                         int duration = UnityEngine.Random.Range(1, 11);
-                        targetStats.GetComponent<Unit>().HelplessDuration += duration;
-                        RoundsManager.Instance.UnitsWithActionsLeft[targetStats.GetComponent<Unit>()] = 0;
-
-                        Debug.Log($"{targetStats.Name} nie zdał testu i został sparaliżowany przez {attackerStats.Name} na {duration} rund/y.");
+                        if(targetStats.GetComponent<Unit>().HelplessDuration < duration)
+                        {
+                            targetStats.GetComponent<Unit>().HelplessDuration = duration;
+                            RoundsManager.Instance.UnitsWithActionsLeft[targetStats.GetComponent<Unit>()] = 0;
+                            Debug.Log($"{targetStats.Name} nie zdał testu i został sparaliżowany przez {attackerStats.Name} na {duration} rund/y.");
+                        }     
                     }
                     else
                     {
@@ -1762,10 +1764,12 @@ public class CombatManager : MonoBehaviour
             {
                 int roundsNumber = UnityEngine.Random.Range(1, 11);
 
-                targetStats.GetComponent<Unit>().StunDuration = roundsNumber;
-                RoundsManager.Instance.UnitsWithActionsLeft[targetStats.GetComponent<Unit>()] = 0;
-
-                Debug.Log($"{targetStats.Name} zostaje ogłuszony na {roundsNumber} rund/y.");
+                if(targetStats.GetComponent<Unit>().StunDuration < roundsNumber)
+                {
+                    targetStats.GetComponent<Unit>().StunDuration = roundsNumber;
+                    RoundsManager.Instance.UnitsWithActionsLeft[targetStats.GetComponent<Unit>()] = 0;
+                    Debug.Log($"{targetStats.Name} zostaje ogłuszony na {roundsNumber} rund/y.");
+                }
             }
             else
             {
