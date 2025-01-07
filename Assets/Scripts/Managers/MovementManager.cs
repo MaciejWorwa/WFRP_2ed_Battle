@@ -285,7 +285,7 @@ public class MovementManager : MonoBehaviour
             unit = Unit.SelectedUnit.GetComponent<Unit>();
         }
 
-        if(unit == null) return;
+        if(unit == null || !RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(unit)) return;
 
         Stats stats = unit.GetComponent<Stats>();
 
