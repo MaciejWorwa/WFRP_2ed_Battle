@@ -496,7 +496,19 @@ public class SaveAndLoadManager : MonoBehaviour
             //Ustalenie pozycji jednostki
             Vector3 position = new Vector3(unitData.position[0], unitData.position[1], unitData.position[2]);
 
-            //Stworzenie jednostki o konkretnym Id, nazwie i na ustalonej pozycji
+            //Jeżeli jest to proces uczenia AI to wczytujemy jednostki na losowych pozycjach
+            if(ReinforcementLearningManager.Instance.IsLearning)
+            {
+                List<Vector2> availablePositions = GridManager.Instance.AvailablePositions();
+
+                if (availablePositions.Count != 0)
+                {
+                    // Wybranie losowej pozycji z dostępnych
+                    int randomIndex = UnityEngine.Random.Range(0, availablePositions.Count);
+                    position = availablePositions[randomIndex];
+                }
+            }
+
             GameObject unitGameObject = UnitsManager.Instance.CreateUnit(statsData.Id, statsData.Name, position);
 
             if(unitGameObject == null) yield break;

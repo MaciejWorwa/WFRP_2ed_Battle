@@ -198,7 +198,17 @@ public class RoundsManager : MonoBehaviour
                     }
                     else
                     {
-                        ReinforcementLearningManager.Instance.SimulateUnit(unit);
+                        int iterationCount = 0;
+
+                        while (UnitsWithActionsLeft.ContainsKey(unit) && UnitsWithActionsLeft[unit] > 0 && iterationCount < 5)
+                        {
+                            ReinforcementLearningManager.Instance.SimulateUnit(unit);
+                            iterationCount++;
+                        }
+                        if(iterationCount >= 5 && UnitsWithActionsLeft.ContainsKey(unit) && UnitsWithActionsLeft[unit] > 0)
+                        {
+                            FinishTurn();
+                        }
                     }
                 }
                 else
