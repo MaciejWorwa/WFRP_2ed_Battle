@@ -328,11 +328,8 @@ public class ReinforcementLearningManager : MonoBehaviour
 
                 if (aType == AttackType.Charge)
                 {
-                    Debug.Log($"szarżaAAAAAAAAAAAAAAAAAAAAAAAAA - czy jest w zaseigu: {isInChargeRange}");
                     if (!isInChargeRange) continue;
                     if (!(isBeyondAttackRange && !hasRangedWeapon)) continue;
-
-                    Debug.Log("SZARŻA DOSTĘPNAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
                 }
                 else
                 {

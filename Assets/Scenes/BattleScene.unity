@@ -35846,7 +35846,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Alpha: 0.1
   Gamma: 0.9
-  Epsilon: 0.2
+  Epsilon: 1
   ActionsPerEpoch: 300
   simpleGraph: {fileID: 743434307}
   _playerWins: 0
