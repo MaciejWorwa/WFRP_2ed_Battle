@@ -630,6 +630,7 @@ public class SaveAndLoadManager : MonoBehaviour
 
         Unit.SelectedUnit = null;
         InitiativeQueueManager.Instance.UpdateInitiativeQueue();
+        GridManager.Instance.ResetColorOfTilesInMovementRange();
 
         IsLoading = false;
 

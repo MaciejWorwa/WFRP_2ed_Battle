@@ -1435,7 +1435,7 @@ public class CombatManager : MonoBehaviour
             if (_parryOrDodge == "parry")
             {
                 // Ręczne wpisanie wyniku na parowanie lub unik
-                if (!GameManager.IsAutoDiceRollingMode)
+                if (!GameManager.IsAutoDiceRollingMode && targetStats.CompareTag("PlayerUnit"))
                 {
                     // Wywołaj korutynę i poczekaj na wynik
                     yield return StartCoroutine(WaitForRollValue());
@@ -1446,7 +1446,7 @@ public class CombatManager : MonoBehaviour
             else if (_parryOrDodge == "dodge")
             {
                 // Ręczne wpisanie wyniku na parowanie lub unik
-                if (!GameManager.IsAutoDiceRollingMode)
+                if (!GameManager.IsAutoDiceRollingMode && targetStats.CompareTag("PlayerUnit"))
                 {
                     // Wywołaj korutynę i poczekaj na wynik
                     yield return StartCoroutine(WaitForRollValue());

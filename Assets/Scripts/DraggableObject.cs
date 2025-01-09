@@ -105,10 +105,25 @@ public class DraggableObject : MonoBehaviour
 
     private bool SnapToGrid()
     { 
+        //Sprawdzamy, czy przesuwany obiekt jest jednostką
+        Unit unit = GetComponent<Unit>();
+
         // Jeżeli przesuwamy obiekt będący jednostką to odznaczamy ją
-        if (this.gameObject.GetComponent<Unit>() != null && Unit.SelectedUnit == this.gameObject)
+        if (unit != null)
         {
-            this.gameObject.GetComponent<Unit>().SelectUnit();
+            //Odznaczamy jednostkę, którą przesuwamy
+            if(Unit.SelectedUnit == this.gameObject)
+            {
+                unit.SelectUnit();
+            }
+
+            // Sprawdza, czy jednostka jest już w kolejce inicjatywy. Jeśli nie to dodaje ją.
+            if (!InitiativeQueueManager.Instance.InitiativeQueue.ContainsKey(unit))
+            {
+                InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(unit);
+                InitiativeQueueManager.Instance.UpdateInitiativeQueue();
+                InitiativeQueueManager.Instance.SelectUnitByQueue();
+            }
         }
 
         Vector2 offset = Vector2.zero;
@@ -169,6 +184,24 @@ public class DraggableObject : MonoBehaviour
                 if(Unit.SelectedUnit != null)
                 {
                     GridManager.Instance.HighlightTilesInMovementRange(Unit.SelectedUnit.GetComponent<Stats>());  
+                }
+
+                //Jeżeli przesuwamy jednostkę na zakryte pole, usuwamy ją z kolejki inicjatywy
+                if (unit != null)
+                {
+                    // Dodatkowe sprawdzenie obecności obiektu z tagiem "TileCover" w tym miejscu
+                    Collider2D[] cellColliders = Physics2D.OverlapPointAll(transform.position);
+                    foreach (var cellCollider in cellColliders)
+                    {
+                        if (cellCollider != null && cellCollider.CompareTag("TileCover"))
+                        {
+                            // Jeśli znaleziono obiekt TileCover, usuń jednostkę z kolejki inicjatywy
+                            InitiativeQueueManager.Instance.RemoveUnitFromInitiativeQueue(unit);
+                            InitiativeQueueManager.Instance.UpdateInitiativeQueue();
+                            InitiativeQueueManager.Instance.SelectUnitByQueue();
+                            break;
+                        }
+                    }
                 }
 
                 return true;

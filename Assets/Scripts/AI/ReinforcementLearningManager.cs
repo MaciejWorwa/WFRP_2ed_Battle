@@ -151,7 +151,6 @@ public class ReinforcementLearningManager : MonoBehaviour
     // Metoda do sprawdzania, czy rasa jest wytrenowana
     public bool IsRaceTrained(string race)
     {
-        Debug.Log(race + " " + _trainedRaces.Contains(race));
         return _trainedRaces.Contains(race);
     }
 
