@@ -23,7 +23,7 @@ public class TargetsInfo
     public int StrongestOverall = 0;
 
     public Unit WithMostAllies = null;
-    public int WithMostAlliesScore = int.MinValue;
+    public int WithMostAlliesScore = 0;
 
     // Odległość do KAŻDEGO innego Unit
     public Dictionary<Unit, float> Distances = new Dictionary<Unit, float>();

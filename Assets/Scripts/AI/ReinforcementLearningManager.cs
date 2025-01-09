@@ -18,6 +18,8 @@ namespace UnitStates
         IsInChargeRange,
         CanParry,
         TargetBehindObstacle,
+        CanDoFullAction,
+        WeaponIsLoaded,
         
         // Dodaj tu kolejne stany
         COUNT // Tyle mamy stanów (7 => 2^7 = 128 kombinacji w wersji bool)
@@ -100,7 +102,7 @@ public class ReinforcementLearningManager : MonoBehaviour
     [SerializeField] private TMP_Text _teamWinsDisplay;
 
     // Liczba dostępnych akcji
-    private const int ACTION_COUNT = 57;
+    private const int ACTION_COUNT = 63;
 
     // Liczba kombinacji stanów (2^(AIState.COUNT))
     private int totalStateCombinations;
@@ -247,7 +249,7 @@ public class ReinforcementLearningManager : MonoBehaviour
         {
             return new ActionChoice
             {
-                ActionId = 56,
+                ActionId = 62,
                 ChosenTarget = null,
                 ChosenStates = new bool[(int)AIState.COUNT]
             };
@@ -262,14 +264,6 @@ public class ReinforcementLearningManager : MonoBehaviour
             ActionDefinition def = AllActions[i];
             TargetType tType = def.targetType;
             AttackType aType = def.attackType;
-
-            // Sprawdzenie kosztu akcji
-            if (GetActionCost(aType) == 2 &&
-                RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(unit) &&
-                RoundsManager.Instance.UnitsWithActionsLeft[unit] < 2)
-            {
-                continue;
-            }
 
             bool requiresTarget = (tType != TargetType.None);
             Unit potentialTarget = null;
@@ -297,6 +291,12 @@ public class ReinforcementLearningManager : MonoBehaviour
             {
                 fallbackTarget = potentialTarget;
                 fallbackStates = states;
+            }
+
+            // Sprawdzenie kosztu akcji
+            if (GetActionCost(aType) == 2 && states[(int)AIState.CanDoFullAction] == false)
+            {
+                continue;
             }
 
             bool isInMelee = states[(int)AIState.IsInMelee];
@@ -364,12 +364,11 @@ public class ReinforcementLearningManager : MonoBehaviour
                 if (tType == TargetType.MostAlliesNearby && !context.TargetWithMostAlliesExist) continue;
             }
 
-            if (aType == AttackType.Retreat && context.IsInMelee == false) continue;
+            if (aType == AttackType.Retreat && isInMelee == false) continue;
 
             // ---- AKCJE SPECJALNE ----
             if (aType == AttackType.Reload)
             {
-                Debug.Log($"broń {stats.Name} czyli {context.CurrentWeapon?.Name} jest załadowana: {context.WeaponIsLoaded}");
                 if (context.CurrentWeapon != null && context.WeaponIsLoaded) continue;
             }
 
@@ -381,7 +380,7 @@ public class ReinforcementLearningManager : MonoBehaviour
         {
             return new ActionChoice
             {
-                ActionId = 56,
+                ActionId = 62,
                 ChosenTarget = fallbackTarget,
                 ChosenStates = fallbackStates
             };
@@ -556,7 +555,7 @@ public class ReinforcementLearningManager : MonoBehaviour
             //Ścieżka ruchu szarżującego
             GameObject targetTile = CombatManager.Instance.GetTileAdjacentToTarget(unit.gameObject, target.gameObject);
             Vector2 targetTilePosition = Vector2.zero;
-            if(targetTile != null)
+            if(targetTile == null)
             {
                 states[(int)AIState.IsInChargeRange] = false;
             }
@@ -590,8 +589,14 @@ public class ReinforcementLearningManager : MonoBehaviour
             states[(int)AIState.IsHeavilyWounded] = stats.TempHealth <= stats.MaxHealth / 3f;
         }
 
+        // Ustawienie stanu WeaponIsLoaded
+        states[(int)AIState.WeaponIsLoaded] = weapon.ReloadLeft == 0 ? true : false;
+
         // Ustawienie stanu CanParry
         states[(int)AIState.CanParry] = unit.CanParry;
+
+        // Ustawienie stanu CanDoFullAction
+        states[(int)AIState.CanDoFullAction] = RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(unit) && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2 ? true : false;
 
         return states;
     }
@@ -619,6 +624,9 @@ public class ReinforcementLearningManager : MonoBehaviour
             CanAttack = unit.CanAttack,
             IsBeyondAttackRange = false,
             IsInChargeRange = false,
+            CanParry = unit.CanParry,
+            TargetBehindObstacle = false,
+            CanDoFullAction = RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(unit) && RoundsManager.Instance.UnitsWithActionsLeft[unit] == 2 ? true : false,
 
             OpponentExist = (info.Closest != null),
             FurthestUnitExist = (info.Furthest != null),
@@ -687,7 +695,7 @@ public class ReinforcementLearningManager : MonoBehaviour
         // Sprawdzamy definicję:
         if (actionID < 0 || actionID >= AllActions.Length)
         {
-            // out of range => FinishTurn (ID=56)
+            // out of range => FinishTurn (ID=62)
             RoundsManager.Instance.FinishTurn();
             return reward;
         }
@@ -813,6 +821,7 @@ public class ReinforcementLearningManager : MonoBehaviour
             case TargetType.LeastInjured:return info.LeastInjured;
             case TargetType.Weakest:     return info.Weakest;
             case TargetType.Strongest:   return info.Strongest;
+            case TargetType.MostAlliesNearby: return info.WithMostAllies;
             default: return null; // None
         }
     }
@@ -837,73 +846,79 @@ public class ReinforcementLearningManager : MonoBehaviour
         new ActionDefinition(TargetType.Strongest,       AttackType.Run),
         new ActionDefinition(TargetType.MostAlliesNearby,AttackType.Run),
 
-        // 14..19: Zwykły atak (Null)
+        // 14..20: Zwykły atak (Null)
         new ActionDefinition(TargetType.Closest,     AttackType.Null),
         new ActionDefinition(TargetType.Furthest,    AttackType.Null),
         new ActionDefinition(TargetType.MostInjured, AttackType.Null),
         new ActionDefinition(TargetType.LeastInjured,AttackType.Null),
         new ActionDefinition(TargetType.Weakest,     AttackType.Null),
         new ActionDefinition(TargetType.Strongest,   AttackType.Null),
+        new ActionDefinition(TargetType.MostAlliesNearby,AttackType.Null),
 
-        // 20..25: Szarża
+        // 21..27: Szarża
         new ActionDefinition(TargetType.Closest,     AttackType.Charge),
         new ActionDefinition(TargetType.Furthest,    AttackType.Charge),
         new ActionDefinition(TargetType.MostInjured, AttackType.Charge),
         new ActionDefinition(TargetType.LeastInjured,AttackType.Charge),
         new ActionDefinition(TargetType.Weakest,     AttackType.Charge),
         new ActionDefinition(TargetType.Strongest,   AttackType.Charge),
+        new ActionDefinition(TargetType.MostAlliesNearby,AttackType.Charge),
 
-        // 26..31: Finta
+        // 28..34: Finta
         new ActionDefinition(TargetType.Closest,     AttackType.Feint),
         new ActionDefinition(TargetType.Furthest,    AttackType.Feint),
         new ActionDefinition(TargetType.MostInjured, AttackType.Feint),
         new ActionDefinition(TargetType.LeastInjured,AttackType.Feint),
         new ActionDefinition(TargetType.Weakest,     AttackType.Feint),
         new ActionDefinition(TargetType.Strongest,   AttackType.Feint),
+        new ActionDefinition(TargetType.MostAlliesNearby,AttackType.Feint),
 
-        // 32..37: Atak wielokrotny
+        // 35..41: Atak wielokrotny
         new ActionDefinition(TargetType.Closest,     AttackType.Swift),
         new ActionDefinition(TargetType.Furthest,    AttackType.Swift),
         new ActionDefinition(TargetType.MostInjured, AttackType.Swift),
         new ActionDefinition(TargetType.LeastInjured,AttackType.Swift),
         new ActionDefinition(TargetType.Weakest,     AttackType.Swift),
         new ActionDefinition(TargetType.Strongest,   AttackType.Swift),
+        new ActionDefinition(TargetType.MostAlliesNearby,AttackType.Swift),
 
-        // 38..43: Ostrożny atak
+        // 42..48: Ostrożny atak
         new ActionDefinition(TargetType.Closest,     AttackType.Guarded),
         new ActionDefinition(TargetType.Furthest,    AttackType.Guarded),
         new ActionDefinition(TargetType.MostInjured, AttackType.Guarded),
         new ActionDefinition(TargetType.LeastInjured,AttackType.Guarded),
         new ActionDefinition(TargetType.Weakest,     AttackType.Guarded),
         new ActionDefinition(TargetType.Strongest,   AttackType.Guarded),
+        new ActionDefinition(TargetType.MostAlliesNearby,AttackType.Guarded),
 
-        // 44..49: Szaleńczy atak
+        // 49..55: Szaleńczy atak
         new ActionDefinition(TargetType.Closest,     AttackType.AllOut),
         new ActionDefinition(TargetType.Furthest,    AttackType.AllOut),
         new ActionDefinition(TargetType.MostInjured, AttackType.AllOut),
         new ActionDefinition(TargetType.LeastInjured,AttackType.AllOut),
         new ActionDefinition(TargetType.Weakest,     AttackType.AllOut),
         new ActionDefinition(TargetType.Strongest,   AttackType.AllOut),
+        new ActionDefinition(TargetType.MostAlliesNearby,AttackType.AllOut),
 
-        // 50: Pozycja Obronna
+        // 56: Pozycja Obronna
         new ActionDefinition(TargetType.None, AttackType.DefensiveStance),
 
-        // 51: Przycelowanie
+        // 57: Przycelowanie
         new ActionDefinition(TargetType.None, AttackType.Aim),
 
-        // 52: Przeładowanie
+        // 58: Przeładowanie
         new ActionDefinition(TargetType.None, AttackType.Reload),
 
-        // 53: Odejście od najbliższego przeciwnika
+        // 59: Odejście od najbliższego przeciwnika
         new ActionDefinition(TargetType.Closest, AttackType.MoveAway),
 
-        // 54: Bieg jak najdalej od najbliższego przeciwnika
+        // 60: Bieg jak najdalej od najbliższego przeciwnika
         new ActionDefinition(TargetType.Closest, AttackType.RunAway),
 
-        // 55: Bezpieczny odwrót od najbliższego przeciwnika
+        // 61: Bezpieczny odwrót od najbliższego przeciwnika
         new ActionDefinition(TargetType.Closest, AttackType.Retreat),
 
-        // 56: Zakończenie tury
+        // 62: Zakończenie tury
         new ActionDefinition(TargetType.None, AttackType.FinishTurn),
     };
 
@@ -1146,7 +1161,6 @@ public class ReinforcementLearningManager : MonoBehaviour
         HashSet<Collider2D> countedOpponents = new HashSet<Collider2D>();
         Vector2[] positions =
         {
-            center,
             center + Vector2.right, center + Vector2.left,
             center + Vector2.up, center + Vector2.down,
             center + new Vector2(1,1), center + new Vector2(-1,-1),

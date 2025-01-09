@@ -36,7 +36,6 @@ public class MovementManager : MonoBehaviour
     #region Move functions
     public void MoveSelectedUnit(GameObject selectedTile, GameObject unit)
     {
-
         // Nie pozwala wykonać akcji ruchu, dopóki poprzedni ruch nie zostanie zakończony. Sprawdza też, czy gra nie jest wstrzymana (np. poprzez otwarcie dodatkowych paneli)
         if( IsMoving == true || GameManager.IsGamePaused) return;
 

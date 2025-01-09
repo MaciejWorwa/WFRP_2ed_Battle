@@ -15,6 +15,9 @@ public class ActionContext
     public bool CanAttack;
     public bool IsBeyondAttackRange;
     public bool IsInChargeRange;
+    public bool CanParry;
+    public bool TargetBehindObstacle;
+    public bool CanDoFullAction;
 
     public bool OpponentExist;
     public bool FurthestUnitExist;

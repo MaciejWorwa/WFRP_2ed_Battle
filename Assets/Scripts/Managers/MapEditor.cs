@@ -633,11 +633,8 @@ public class MapEditor : MonoBehaviour
         // Dodajemy nowe elementy (jeśli istnieją) do listy AllTileCovers
         foreach (var element in FindObjectsByType<TileCover>(FindObjectsSortMode.None))
         {
-            Debug.Log("dodajemy " + element.name);
-
             if (!AllTileCovers.Contains(element.gameObject))
             {
-                Debug.Log("naprawde dodajemy " + element.name);
                 AllTileCovers.Add(element.gameObject);
             }
         }

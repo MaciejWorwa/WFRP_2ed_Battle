@@ -6,6 +6,7 @@ public class DraggableObject : MonoBehaviour
     public static bool IsDragging = false;
     private Camera _mainCamera;
     private Vector3 _startPosition; // Pozycja przed przesunięciem
+    public static DraggableObject CurrentlyDragging = null;
 
 
     private void Start()
@@ -13,41 +14,79 @@ public class DraggableObject : MonoBehaviour
         _mainCamera = Camera.main;
     }
 
-    private void OnMouseDown()
+    void Update()
     {
-        if(GameManager.IsMapHidingMode || MapEditor.IsElementRemoving || UnitsManager.IsMultipleUnitsSelecting ||  MovementManager.Instance.IsMoving) return;
-        
+        if (Input.GetMouseButtonDown(0))
+        {
+            DraggableObject obj = GetDraggableObjectUnderMouse();
+            if (obj != null)
+            {
+                // Rozpoczynamy przeciąganie wybranego obiektu
+                CurrentlyDragging = obj;
+                CurrentlyDragging.BeginDrag();
+            }
+        }
+
+        // Aktualizacja pozycji dla przeciąganego obiektu
+        if (DraggableObject.CurrentlyDragging != null && Input.GetMouseButton(0))
+        {
+            DraggableObject.CurrentlyDragging.UpdateDrag();
+        }
+
+        // Zakończenie przeciągania
+        if (Input.GetMouseButtonUp(0) && DraggableObject.CurrentlyDragging != null)
+        {
+            DraggableObject.CurrentlyDragging.EndDrag();
+            DraggableObject.CurrentlyDragging = null;
+        }
+    }
+
+    private DraggableObject GetDraggableObjectUnderMouse()
+    {
+        Vector3 mousePos = Input.mousePosition;
+        Ray ray = Camera.main.ScreenPointToRay(mousePos);
+        RaycastHit2D[] hits = Physics2D.GetRayIntersectionAll(ray);
+
+        // Przeglądaj wszystkie trafienia i wybierz najbardziej odpowiedni obiekt
+        foreach (var hit in hits)
+        {
+            DraggableObject draggable = hit.collider.GetComponent<DraggableObject>();
+            if (draggable != null)
+            {
+                return draggable;
+            }
+        }
+        return null;
+    }
+
+    public void BeginDrag()
+    {
+        if(GameManager.IsMapHidingMode || MapEditor.IsElementRemoving || UnitsManager.IsMultipleUnitsSelecting || MovementManager.Instance.IsMoving)
+            return;
+
         IsDragging = true;
-
-        //Zapisuje początkową pozycję
         _startPosition = transform.position;
-
-        // Oblicza offset między pozycją obiektu a kursorem
         _offset = transform.position - GetMouseWorldPosition();
     }
 
-    private void OnMouseDrag()
+    public void UpdateDrag()
     {
-        if (IsDragging)
-        {
-            // Aktualizuje pozycję obiektu na podstawie kursora
-            Vector3 newPosition = GetMouseWorldPosition() + _offset;
-            newPosition.z = 0; // Ustaw Z na 0
-            transform.position = newPosition;
-        }
+        if (!IsDragging) return;
+
+        Vector3 newPosition = GetMouseWorldPosition() + _offset;
+        newPosition.z = 0;
+        transform.position = newPosition;
     }
 
-    private void OnMouseUp()
+    public void EndDrag()
     {
-        if(GameManager.IsMapHidingMode || MapEditor.IsElementRemoving || UnitsManager.IsMultipleUnitsSelecting ||  MovementManager.Instance.IsMoving) return;
+        if(GameManager.IsMapHidingMode || MapEditor.IsElementRemoving || UnitsManager.IsMultipleUnitsSelecting || MovementManager.Instance.IsMoving)
+            return;
 
-        //Sprawdza, czy obiekt został przesunięty
         if(transform.position != _startPosition)
         {
-            // Próbuje przypiąć obiekt do najbliższego pola siatki
-            SnapToGrid(); 
+            SnapToGrid();
         }
-
         IsDragging = false;
     }
 

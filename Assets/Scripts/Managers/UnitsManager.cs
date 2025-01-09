@@ -447,10 +447,10 @@ public class UnitsManager : MonoBehaviour
         //Usuwa jednostkę z listy wszystkich jednostek
         AllUnits.Remove(unit.GetComponent<Unit>());
 
-        Destroy(unit);
-
         //Resetuje Tile, żeby nie było uznawane jako zajęte
         GridManager.Instance.ResetTileOccupancy(unit.transform.position);
+
+        Destroy(unit);
 
         //Resetuje kolor przycisku usuwania jednostek
         _removeUnitButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;

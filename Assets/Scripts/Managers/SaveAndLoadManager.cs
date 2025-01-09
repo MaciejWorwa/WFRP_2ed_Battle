@@ -422,10 +422,7 @@ public class SaveAndLoadManager : MonoBehaviour
         foreach (var unit in unitsToRemove)
         {  
             if(unit != null)
-            {
-                //Resetuje pola zajęte przez jednostki, które zostaną usunięte
-                GridManager.Instance.ResetTileOccupancy(unit.transform.position);
-                
+            {           
                 UnitsManager.Instance.DestroyUnit(unit.gameObject);
             }
         }

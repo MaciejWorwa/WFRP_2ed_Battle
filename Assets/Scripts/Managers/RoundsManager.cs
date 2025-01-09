@@ -238,6 +238,8 @@ public class RoundsManager : MonoBehaviour
             }
 
             yield return new WaitUntil(() => SaveAndLoadManager.Instance.IsLoading == false);
+
+            GridManager.Instance.CheckTileOccupancy();
             NextRound();
         }
     }
