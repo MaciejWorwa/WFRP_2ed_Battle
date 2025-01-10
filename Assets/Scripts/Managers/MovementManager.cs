@@ -277,6 +277,11 @@ public class MovementManager : MonoBehaviour
     }
 
     #region Charge and Run modes
+    public void Run()
+    {
+        UpdateMovementRange(3);
+    }
+
     public void UpdateMovementRange(int modifier, Unit unit = null)
     {
         if (Unit.SelectedUnit != null)

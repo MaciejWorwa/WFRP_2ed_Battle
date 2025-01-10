@@ -122,7 +122,10 @@ public class DraggableObject : MonoBehaviour
             {
                 InitiativeQueueManager.Instance.AddUnitToInitiativeQueue(unit);
                 InitiativeQueueManager.Instance.UpdateInitiativeQueue();
-                InitiativeQueueManager.Instance.SelectUnitByQueue();
+                if(InitiativeQueueManager.Instance.InitiativeQueue.Count > 0)
+                {
+                    InitiativeQueueManager.Instance.SelectUnitByQueue();
+                }
             }
         }
 
@@ -198,7 +201,11 @@ public class DraggableObject : MonoBehaviour
                             // Jeśli znaleziono obiekt TileCover, usuń jednostkę z kolejki inicjatywy
                             InitiativeQueueManager.Instance.RemoveUnitFromInitiativeQueue(unit);
                             InitiativeQueueManager.Instance.UpdateInitiativeQueue();
-                            InitiativeQueueManager.Instance.SelectUnitByQueue();
+                            if(InitiativeQueueManager.Instance.InitiativeQueue.Count > 0)
+                            {
+                                InitiativeQueueManager.Instance.SelectUnitByQueue();
+                            }
+
                             break;
                         }
                     }

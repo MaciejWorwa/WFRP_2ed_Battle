@@ -199,12 +199,14 @@
       "ReloadLeft": 0
     },
     {
-      "Id": 22,
+      "Id": 21,
       "Name": "Nóż/gwiazdka do rzucania",
       "Type": ["ranged"],
       "TwoHanded": false,
       "AttackRange": 3,
-      "S": -3
+      "S": -3,
+      "ReloadTime": 1,
+      "ReloadLeft": 0
     },
     {
       "Id": 22,

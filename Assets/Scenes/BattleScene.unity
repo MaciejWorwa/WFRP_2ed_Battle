@@ -30641,7 +30641,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1526582158}
   m_HandleRect: {fileID: 1526582157}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -85993,8 +85993,8 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 2717590}
         m_TargetAssemblyTypeName: MovementManager, Assembly-CSharp
-        m_MethodName: UpdateMovementRange
-        m_Mode: 3
+        m_MethodName: Run
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -96924,7 +96924,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 481666394}
   m_HandleRect: {fileID: 481666393}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
