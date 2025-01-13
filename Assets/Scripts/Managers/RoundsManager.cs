@@ -231,6 +231,15 @@ public class RoundsManager : MonoBehaviour
         {
             if(ReinforcementLearningManager.Instance.BothTeamsExist() == false || RoundNumber > 50)
             {
+                // Iteruj po wszystkich jednostkach, które jeszcze żyją i są częścią drużyny Enemy
+                foreach (Unit unit in UnitsManager.Instance.AllUnits)
+                {
+                    if(unit != null && unit.CompareTag("EnemyUnit") && unit.GetComponent<Stats>().TempHealth > 0)
+                    {
+                        ReinforcementLearningManager.Instance.AddTeamWinRewardForUnit(unit);
+                    }
+                }
+
                 ReinforcementLearningManager.Instance.UpdateTeamWins();
 
                 SaveAndLoadManager.Instance.SetLoadingType(true);

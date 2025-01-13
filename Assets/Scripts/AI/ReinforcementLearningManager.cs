@@ -55,7 +55,9 @@ public enum AttackType
     FinishTurn,      
     MoveAway,
     RunAway,
-    Retreat
+    Retreat,
+    ChangeWeaponToRanged,
+    ChangeWeaponToMelee
 }
 
 // Definiujemy parę (target, attack)
@@ -97,12 +99,16 @@ public class ReinforcementLearningManager : MonoBehaviour
     private float currentEpochReward = 0f;
     private int actionsThisEpoch = 0;
 
+    private const int HISTORY_LIMIT = 10;
+    private Dictionary<Unit, Queue<(int state, int action, string race)>> unitActionHistory = new Dictionary<Unit, Queue<(int, int, string)>>();
+    private const float TEAM_WIN_REWARD = 100f;
+
     [SerializeField] private int _playerWins;
     [SerializeField] private int _enemyWins;
     [SerializeField] private TMP_Text _teamWinsDisplay;
 
     // Liczba dostępnych akcji
-    private const int ACTION_COUNT = 63;
+    private const int ACTION_COUNT = 65;
 
     // Liczba kombinacji stanów (2^(AIState.COUNT))
     private int totalStateCombinations;
@@ -248,7 +254,7 @@ public class ReinforcementLearningManager : MonoBehaviour
         {
             return new ActionChoice
             {
-                ActionId = 62,
+                ActionId = 64,
                 ChosenTarget = null,
                 ChosenStates = new bool[(int)AIState.COUNT]
             };
@@ -313,7 +319,9 @@ public class ReinforcementLearningManager : MonoBehaviour
                             && aType != AttackType.FinishTurn
                             && aType != AttackType.MoveAway
                             && aType != AttackType.RunAway
-                            && aType != AttackType.Retreat);
+                            && aType != AttackType.Retreat
+                            && aType != AttackType.ChangeWeaponToMelee
+                            && aType != AttackType.ChangeWeaponToRanged);
 
             // ---- WARUNKI BLOKADY DLA ATAKÓW ----
             if (isAttack)
@@ -363,6 +371,32 @@ public class ReinforcementLearningManager : MonoBehaviour
                 if (tType == TargetType.MostAlliesNearby && !context.TargetWithMostAlliesExist) continue;
             }
 
+            if(aType == AttackType.ChangeWeaponToRanged || aType == AttackType.ChangeWeaponToMelee)
+            {
+                string chosenWeaponType = aType == AttackType.ChangeWeaponToRanged ? "ranged" : "melee";
+                bool chosenTypeExist = false;
+
+                if(hasRangedWeapon && aType == AttackType.ChangeWeaponToRanged) continue;
+                if(!hasRangedWeapon && aType == AttackType.ChangeWeaponToMelee) continue;
+
+                // Sprawdzenie, czy jednostka posiada więcej niż jedną broń
+                if (unit.GetComponent<Inventory>().AllWeapons.Count > 1)
+                {
+                    //  Zmienia bronie dopóki nie znajdzie takiej, która posuje do wybranego typu
+                    foreach (Weapon w in  unit.GetComponent<Inventory>().AllWeapons)
+                    {
+                        if (w.Type.Contains(chosenWeaponType))
+                        {
+                            chosenTypeExist = true;
+                            break;
+                        }
+                    }
+                    
+                    if (chosenTypeExist == false) continue;
+                }
+                else continue;
+            }
+
             if (aType == AttackType.Retreat && isInMelee == false) continue;
 
             // ---- AKCJE SPECJALNE ----
@@ -379,7 +413,7 @@ public class ReinforcementLearningManager : MonoBehaviour
         {
             return new ActionChoice
             {
-                ActionId = 62,
+                ActionId = 64,
                 ChosenTarget = fallbackTarget,
                 ChosenStates = fallbackStates
             };
@@ -648,6 +682,16 @@ public class ReinforcementLearningManager : MonoBehaviour
         // Zakoduj "stary stan" do Q-learningu
         int oldStateIndex = EncodeState(oldStates);
 
+        // Zapisz historię akcji dla jednostki
+        if (!unitActionHistory.ContainsKey(unit)) {
+            unitActionHistory[unit] = new Queue<(int, int, string)>();
+        }
+        var historyQueue = unitActionHistory[unit];
+        historyQueue.Enqueue((oldStateIndex, chosenActionId, ctx.RaceName));
+        if (historyQueue.Count > HISTORY_LIMIT) {
+            historyQueue.Dequeue(); // usuń najstarszą akcję, jeśli przekroczono limit
+        }
+
         ActionUsageCount[ctx.RaceName][oldStateIndex, chosenActionId]++;
 
         // (D) Wykonaj akcję (jedną!), nalicz reward
@@ -694,7 +738,7 @@ public class ReinforcementLearningManager : MonoBehaviour
         // Sprawdzamy definicję:
         if (actionID < 0 || actionID >= AllActions.Length)
         {
-            // out of range => FinishTurn (ID=62)
+            // out of range => FinishTurn (ID=64)
             RoundsManager.Instance.FinishTurn();
             return reward;
         }
@@ -771,6 +815,16 @@ public class ReinforcementLearningManager : MonoBehaviour
                 MoveTowards(unit, retreatTile, 1, true);
             }
             reward += CalculateRewardBasedOnUnitHealth(unit.GetComponent<Stats>(), oldHP);
+            return reward;
+        }
+        if(aType == AttackType.ChangeWeaponToRanged)
+        {
+            ChangeWeapon(unit, "ranged");
+            return reward;
+        }
+        if(aType == AttackType.ChangeWeaponToMelee)
+        {
+            ChangeWeapon(unit, "melee");
             return reward;
         }
 
@@ -917,7 +971,13 @@ public class ReinforcementLearningManager : MonoBehaviour
         // 61: Bezpieczny odwrót od najbliższego przeciwnika
         new ActionDefinition(TargetType.Closest, AttackType.Retreat),
 
-        // 62: Zakończenie tury
+        // 62: Zmiana broni na melee
+        new ActionDefinition(TargetType.None, AttackType.ChangeWeaponToMelee),
+
+        // 63: Zmiana broni na ranged
+        new ActionDefinition(TargetType.None, AttackType.ChangeWeaponToRanged),
+
+        // 64: Zakończenie tury
         new ActionDefinition(TargetType.None, AttackType.FinishTurn),
     };
 
@@ -980,6 +1040,39 @@ public class ReinforcementLearningManager : MonoBehaviour
         return damageReward + hitReward; // Nagroda równa różnicy w HP przeciwnika
     }
 
+    private void ChangeWeapon(Unit unit, string chosenWeaponType)
+    {
+        Weapon weapon = InventoryManager.Instance.ChooseWeaponToAttack(unit.gameObject);
+
+        if (weapon.Type.Contains(chosenWeaponType)) return;
+
+        // Sprawdzenie, czy jednostka posiada więcej niż jedną broń
+        if (InventoryManager.Instance.InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons.Count > 1)
+        {
+            int selectedIndex = 1;
+
+            //  Zmienia bronie dopóki nie znajdzie takiej, która posuje do wybranego typu
+            for (int i = 0; i < InventoryManager.Instance.InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons.Count; i++)
+            {
+                if (weapon.Type.Contains(chosenWeaponType)) break;
+
+                InventoryManager.Instance.InventoryScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(selectedIndex);
+                InventoryManager.Instance.InventoryScrollViewContent.GetComponent<CustomDropdown>().SelectedButton = InventoryManager.Instance.InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons[selectedIndex - 1];
+
+                InventoryManager.Instance.GrabWeapon();
+                weapon = InventoryManager.Instance.ChooseWeaponToAttack(unit.gameObject);
+
+                selectedIndex++;
+            }
+
+            // Zużywa akcję na dobycie broni dopiero po dobyciu odpowiedniej z nich w wyniku powyższej pętli
+            if(!unit.GetComponent<Stats>().QuickDraw)
+            {
+                RoundsManager.Instance.DoHalfAction(unit.GetComponent<Unit>());
+            }
+        }
+    }
+
     private int CalculateRewardBasedOnUnitHealth(Stats stats, int oldAttackerHP)
     {
         int reward = 0;
@@ -1001,6 +1094,23 @@ public class ReinforcementLearningManager : MonoBehaviour
         }
 
         return reward;
+    }
+
+    public void AddTeamWinRewardForUnit(Unit unit)
+    {
+        if (!unitActionHistory.ContainsKey(unit)) return;
+
+        var historyQueue = unitActionHistory[unit];
+
+        foreach (var record in historyQueue)
+        {
+            float[,] qTable = GetQTable(record.race);
+            int stateIndex = record.state;
+            int actionId = record.action;
+
+            // Dodajemy pełen reward do Q dla tej akcji; można zastosować mniejszy procent
+            qTable[stateIndex, actionId] += TEAM_WIN_REWARD * 0.01f;
+        }
     }
 
     public TargetsInfo GatherTargetsInfo(Unit currentUnit)
@@ -1313,6 +1423,7 @@ public class ReinforcementLearningManager : MonoBehaviour
     {
         _teamWinsDisplay.text = $"Player wins: {_playerWins} Enemy wins: {_enemyWins}";
     }
+
     public void DebugAllFullQTables()
     {
         // Iterujemy po kluczach (nazwach ras) w QTables
