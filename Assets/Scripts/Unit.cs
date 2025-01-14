@@ -109,9 +109,6 @@ public class Unit : MonoBehaviour
             //Zamyka aktywne panele
             GameManager.Instance.HideActivePanels(); 
 
-            //Wyłącza panel edycji jednostki, jeśli był włączony
-            UnitsManager.Instance.EditUnitModeOff();
-
             LastSelectedUnit = SelectedUnit;
             SelectedUnit = null;
         }

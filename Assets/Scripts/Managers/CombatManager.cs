@@ -1404,7 +1404,7 @@ public class CombatManager : MonoBehaviour
             if (targetWeapon.Defensive) parryModifier += 10;
             if (attackerWeapon.Slow) parryModifier += 10;
             if (attackerWeapon.Fast) parryModifier -= 10;
-            if (Unit.SelectedUnit.GetComponent<Stats>().PowerfulBlow) parryModifier -= 30;
+            if (Unit.SelectedUnit != null && Unit.SelectedUnit.GetComponent<Stats>().PowerfulBlow) parryModifier -= 30;
         }
 
         //Uwzględnia karę do uników za ciężką zbroję

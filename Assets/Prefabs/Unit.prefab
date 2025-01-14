@@ -775,11 +775,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Id: 2
-  Index: 0
   IsBig: 0
+  Overall: 0
+  Exp: 0
   Name: 
   Race: 
-  PrimaryWeaponId: 0
+  PrimaryWeaponIds: 
   WW: 0
   US: 0
   K: 0
@@ -805,11 +806,14 @@ MonoBehaviour:
   Armor_legs: 0
   Initiative: 0
   Ambidextrous: 0
+  ArmouredCasting: 0
+  DaemonicAura: 0
   Disarm: 0
   Ethereal: 0
   FastHands: 0
   Fearless: 0
   Frightening: 0
+  GrudgeBornFury: 0
   LightningParry: 0
   MagicSense: 0
   MasterGunner: 0
@@ -826,8 +830,19 @@ MonoBehaviour:
   SureShot: 0
   Terryfying: 0
   QuickDraw: 0
+  WillOfIron: 0
   Channeling: 0
   Dodge: 0
+  HighestDamageDealt: 0
+  TotalDamageDealt: 0
+  HighestDamageTaken: 0
+  TotalDamageTaken: 0
+  OpponentsKilled: 0
+  StrongestDefeatedOpponent: 
+  StrongestDefeatedOpponentOverall: 0
+  RoundsPlayed: 0
+  FortunateEvents: 0
+  UnfortunateEvents: 0
 --- !u!114 &6267734093322851998
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -877,6 +892,9 @@ MonoBehaviour:
   EquippedWeapons:
   - {fileID: 0}
   - {fileID: 0}
+  CopperCoins: 0
+  SilverCoins: 0
+  GoldCoins: 0
 --- !u!114 &-2147539621934683725
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -972,8 +990,8 @@ SpriteMask:
   m_FrontSortingLayer: 0
   m_BackSortingLayer: 0
   m_FrontSortingOrder: 0
-  m_BackSortingOrder: 0
-  m_IsCustomRangeActive: 0
+  m_BackSortingOrder: -1
+  m_IsCustomRangeActive: 1
   m_SpriteSortPoint: 0
   m_MaskSource: 0
 --- !u!1 &3783466440267322661
