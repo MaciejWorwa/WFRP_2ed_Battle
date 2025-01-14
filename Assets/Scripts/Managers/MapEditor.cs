@@ -448,11 +448,11 @@ public class MapEditor : MonoBehaviour
 
         if(SceneManager.GetActiveScene().buildIndex != 0)
         {
-            MapEditor.Instance.MakeTileBlockersTransparent(true);
+            MakeTileBlockersTransparent(true);
         }
         else
         {
-            MapEditor.Instance.MakeTileBlockersTransparent(false);
+            MakeTileBlockersTransparent(false);
         }
 
         GridManager.Instance.CheckTileOccupancy();

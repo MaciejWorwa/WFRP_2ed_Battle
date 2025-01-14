@@ -22,7 +22,7 @@ namespace UnitStates
         WeaponIsLoaded,
         
         // Dodaj tu kolejne stany
-        COUNT // Tyle mamy stanów (7 => 2^7 = 128 kombinacji w wersji bool)
+        COUNT // Tyle mamy stanów (9 => 2^9 = 512 kombinacji w wersji bool)
     }
 }
 

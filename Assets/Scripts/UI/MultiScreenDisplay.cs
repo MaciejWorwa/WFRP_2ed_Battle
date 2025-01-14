@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MultiScreenDisplay : MonoBehaviour
 {
@@ -25,6 +26,9 @@ public class MultiScreenDisplay : MonoBehaviour
     }
     public Camera GamemasterCamera; // Główna kamera przypisana do pierwszego ekranu
     public Camera PlayersCamera; // Druga kamera przypisana do drugiego ekranu
+
+    public Canvas MainCameraCanvas;   // Canvas dla pierwszego ekranu
+    public Canvas PlayersCameraCanvas;  // Canvas dla drugiego ekranu
 
     private int _originalCullingMask; // Zmienna do przechowywania oryginalnej maski warstw
 
@@ -58,6 +62,28 @@ public class MultiScreenDisplay : MonoBehaviour
             GamemasterCamera.cullingMask = ~0; // Sprawia, że renderowane są wszystkie warstwy, czyli TileCovers będą nieprzeźroczyste
             PlayersCamera.gameObject.SetActive(false);
             Debug.Log("Możesz podłączyć drugi monitor, aby wyświetlić na nim osobny widok dla graczy.");
+        }
+    }
+
+    public void ToggleTileCoverTransparency(Toggle toggle)
+    {
+        Camera camera;
+        if (Display.displays.Length > 1)
+        {
+            camera = PlayersCamera;
+        }
+        else
+        {
+            camera = GamemasterCamera;
+        }
+
+        if (toggle.isOn)
+        {
+            camera.cullingMask = _originalCullingMask;
+        }
+        else
+        {
+            camera.cullingMask = ~0;
         }
     }
 }

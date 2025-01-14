@@ -276,7 +276,26 @@ public class InventoryManager : MonoBehaviour
                 equippedWeapons[Array.IndexOf(equippedWeapons, selectedWeapon)] = null;
             }
         }
-        else return;
+        else
+        {
+            // Jeżeli broń jest już trzymana, odkładamy ją
+            int weaponHand = Array.IndexOf(equippedWeapons, selectedWeapon);
+
+            // Jeśli broń jest dwuręczna, usuń ją z obu rąk
+            if (selectedWeapon.TwoHanded)
+            {
+                equippedWeapons[0] = null;
+                equippedWeapons[1] = null;
+            }
+            else
+            {
+                equippedWeapons[weaponHand] = null;
+            }
+
+            Debug.Log($"{unit.GetComponent<Stats>().Name} odłożył {selectedWeapon.Name}.");
+            CheckForEquippedWeapons();
+            return;
+        }
 
         //Jeżeli postać trzymała wcześniej broń dwuręczną to "zdejmujemy" ją również z drugiej ręki
         if(equippedWeapons[0] != null && equippedWeapons[0].TwoHanded == true)

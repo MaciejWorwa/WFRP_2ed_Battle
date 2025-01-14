@@ -437,6 +437,7 @@ public class CombatManager : MonoBehaviour
                 }
                 else if(rollResult <= 5 && !(attackerWeapon.Quality != "Magiczna" && attackerStats.DaemonicAura != true && targetStats.Ethereal))
                 {
+                    Debug.Log($"{attackerStats.Name} wyrzucił <color=green>SZCZĘŚCIE</color> na trafienie!");
                     _isSuccessful = true;
    
                     //Aktualizuje osiągnięcia
