@@ -72,6 +72,7 @@ public class CombatManager : MonoBehaviour
     private bool _isWaitingForRoll;
     public bool TargetIsDefended;
     public bool IsManualPlayerAttack;
+
     private List<string> _greenskinsList = new List<string> {"Goblin", "Hobgoblin", "Ork zwyczajny", "Czarny ork", "Dziki ork"}; //Lista string wszystkich zielonoskórych
     private List<string> _poisoningUnitsList = new List<string> {"Ghul", "Hobgoblin", "Olbrzymi pająk", "Wywern"}; //Lista string wszystkich jednostek, których atak jest trujący
 
@@ -303,7 +304,7 @@ public class CombatManager : MonoBehaviour
             {
                 canDoAction = RoundsManager.Instance.DoFullAction(attacker);
             }
-            else if ((AttackTypes["StandardAttack"] == true && opportunityAttack == false) || AttackTypes["Feint"] == true || AttackTypes["Stun"] == true || AttackTypes["Disarm"] == true) //Zwykły atak, ogłuszanie, rozbrajanie lub finta
+            else if (((AttackTypes["StandardAttack"] == true && opportunityAttack == false) || AttackTypes["Feint"] == true || AttackTypes["Stun"] == true || AttackTypes["Disarm"] == true)) //Zwykły atak, ogłuszanie, rozbrajanie lub finta
             {
                 canDoAction = RoundsManager.Instance.DoHalfAction(attacker);
             }
@@ -443,7 +444,7 @@ public class CombatManager : MonoBehaviour
                     //Aktualizuje osiągnięcia
                     attackerStats.FortunateEvents ++;
                 }
-            }         
+            }
 
             //Zresetowanie bonusu do trafienia
             _attackModifier = 0;
@@ -453,7 +454,7 @@ public class CombatManager : MonoBehaviour
             {
                 attacker.AimingBonus = 0;
                 UpdateAimButtonColor();
-            }
+            }       
 
             //Atakowany próbuje parować lub unikać.
             if (_isSuccessful && rollResult > 5 && attackerWeapon.Type.Contains("melee") && (attacker.Feinted != true || AttackTypes["StandardAttack"] != true))
@@ -493,6 +494,12 @@ public class CombatManager : MonoBehaviour
 
                         ExecuteAttack(attacker, target, attackerWeapon);
 
+                        //Uwzględnienie zdolności Grad Ciosów, czyli wykonanie drugiego ataku
+                        if(AttackTypes["StandardAttack"] == true && (attackerStats.Race == "Smok" || attackerStats.Race == "Hydra"))
+                        {
+                            SpeedOfAttack(attackerStats, targetStats, attackerWeapon, targetWeapon, attacker, target); // Grad Ciosów
+                        }
+
                         //Zmienia jednostkę wg kolejności inicjatywy
                         if(RoundsManager.Instance.UnitsWithActionsLeft[attacker] == 0 && AvailableAttacks <= 0)
                         {
@@ -516,7 +523,14 @@ public class CombatManager : MonoBehaviour
 
             ExecuteAttack(attacker, target, attackerWeapon);
 
+            //Uwzględnienie zdolności Grad Ciosów, czyli wykonanie drugiego ataku
+            if(AttackTypes["StandardAttack"] == true && (attackerStats.Race == "Smok" || attackerStats.Race == "Hydra"))
+            {
+                SpeedOfAttack(attackerStats, targetStats, attackerWeapon, targetWeapon, attacker, target); // Grad Ciosów
+            }
+
             StartCoroutine(AnimationManager.Instance.PlayAnimation("attack", attacker.gameObject, target.gameObject));
+
         }
         else if (attacker.GetComponent<Unit>().IsCharging)
         {
@@ -805,6 +819,96 @@ public class CombatManager : MonoBehaviour
 
         // Aktualizacja podświetlenia pól w zasięgu ruchu atakującego
         GridManager.Instance.HighlightTilesInMovementRange(attackerStats);
+    }
+    #endregion
+
+    #region Special unit abilities
+    private void SpeedOfAttack(Stats attackerStats, Stats targetStats, Weapon attackerWeapon, Weapon targetWeapon, Unit attacker, Unit target)
+    {
+        //Rzut na trafienie
+        int rollResult = UnityEngine.Random.Range(1, 101);
+
+        if(!IsManualPlayerAttack)
+        {
+            //Sprawdza, czy atak jest atakiem dystansowym, czy atakiem w zwarciu i ustala jego skuteczność
+            _isSuccessful = CheckAttackEffectiveness(rollResult, attackerStats, attackerWeapon, target);
+
+            //Niepowodzenie przy pechu lub powodzenie przy szczęściu
+            if (rollResult >= 96)
+            {
+                Debug.Log($"{attackerStats.Name} wyrzucił <color=red>PECHA</color> na trafienie!");
+                _isSuccessful = false;
+
+                //Aktualizuje osiągnięcia
+                attackerStats.UnfortunateEvents ++;
+            }
+            else if(rollResult <= 5 && !(attackerWeapon.Quality != "Magiczna" && attackerStats.DaemonicAura != true && targetStats.Ethereal))
+            {
+                Debug.Log($"{attackerStats.Name} wyrzucił <color=green>SZCZĘŚCIE</color> na trafienie!");
+                _isSuccessful = true;
+
+                //Aktualizuje osiągnięcia
+                attackerStats.FortunateEvents ++;
+            }
+        }
+
+        //Atakowany próbuje parować lub unikać.
+        if (_isSuccessful && rollResult > 5 && attackerWeapon.Type.Contains("melee") && (attacker.Feinted != true || AttackTypes["StandardAttack"] != true))
+        {
+            //Sprawdza, czy parowanie wymaga akcji
+            var equippedWeapons = targetStats.GetComponent<Inventory>().EquippedWeapons;
+            bool isFirstWeaponShield = equippedWeapons[0] != null && equippedWeapons[0].Type.Contains("shield");
+            bool hasTwoOneHandedWeaponsOrShield = (equippedWeapons[0] != null && equippedWeapons[1] != null && equippedWeapons[0].Name != equippedWeapons[1].Name) || isFirstWeaponShield;
+
+            bool canParry = target.CanParry && ((RoundsManager.Instance.UnitsWithActionsLeft.ContainsKey(target) && RoundsManager.Instance.UnitsWithActionsLeft[target] >= 1) || targetStats.LightningParry || hasTwoOneHandedWeaponsOrShield);
+
+            //Sprawdzenie, czy jest aktywny tryb automatycznej obrony
+            if (!GameManager.IsAutoDefenseMode && (canParry || target.CanDodge))
+            {
+                _parryAndDodgePanel.SetActive(true);
+
+                _dodgeButton.gameObject.SetActive(target.CanDodge);
+                _parryButton.gameObject.SetActive(canParry);
+
+                StartCoroutine(WaitForDefenseReaction());
+
+                // Korutyna obsługująca reakcję obronną
+                IEnumerator WaitForDefenseReaction()
+                {
+                    // Czekaj na kliknięcie przycisku
+                    Debug.Log("Wybierz reakcję atakowanej postaci.");
+                    yield return new WaitUntil(() => _parryAndDodgePanel.activeSelf == false);
+
+                    StartCoroutine(CheckForParryAndDodge(attackerWeapon, targetWeapon, targetStats, target, false));
+                    
+                    if(!GameManager.IsAutoDiceRollingMode)
+                    {
+                        yield return new WaitUntil(() => _applyParryOrDodgeRollResultPanel.activeSelf == false);
+                    }
+
+                    _isSuccessful = !TargetIsDefended;
+
+                    ExecuteAttack(attacker, target, attackerWeapon);
+
+                    //Zmienia jednostkę wg kolejności inicjatywy
+                    if(RoundsManager.Instance.UnitsWithActionsLeft[attacker] == 0 && AvailableAttacks <= 0)
+                    {
+                        InitiativeQueueManager.Instance.SelectUnitByQueue();
+                    }
+                }
+                _parryOrDodge = "";
+
+                return;
+            }
+
+            if(canParry || target.CanDodge)
+            {
+                StartCoroutine(CheckForParryAndDodge(attackerWeapon, targetWeapon, targetStats, target, false));
+                _isSuccessful = !TargetIsDefended;
+            }
+        }
+
+        ExecuteAttack(attacker, target, attackerWeapon);
     }
     #endregion
 
