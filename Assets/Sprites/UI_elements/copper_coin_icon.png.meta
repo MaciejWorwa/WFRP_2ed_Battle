@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: a9b3ada6759de04449e8bcaee1f4fe9c
+guid: 3a1f3650c88c1284f986b0737e2d0734
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8977278290552014515
-    second: copper_coin_icon_0
+      213: -7249885823758563880
+    second: copper_coin_icon 1_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: copper_coin_icon_0
+      name: copper_coin_icon 1_0
       rect:
         serializedVersion: 2
         x: 8
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 3b6cd26aa03b59c70800000000000000
-      internalID: 8977278290552014515
+      spriteID: 8d50bbc314b336b90800000000000000
+      internalID: -7249885823758563880
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      copper_coin_icon_0: 8977278290552014515
+      copper_coin_icon 1_0: -7249885823758563880
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -495,7 +495,7 @@ public class CombatManager : MonoBehaviour
                         ExecuteAttack(attacker, target, attackerWeapon);
 
                         //Uwzględnienie zdolności Grad Ciosów, czyli wykonanie drugiego ataku
-                        if(AttackTypes["StandardAttack"] == true && (attackerStats.Race == "Smok" || attackerStats.Race == "Hydra"))
+                        if(AttackTypes["StandardAttack"] == true && (attackerStats.Race == "Smok" || attackerStats.Race == "Hydra") && targetStats.TempHealth >= 0)
                         {
                             SpeedOfAttack(attackerStats, targetStats, attackerWeapon, targetWeapon, attacker, target); // Grad Ciosów
                         }
@@ -524,7 +524,7 @@ public class CombatManager : MonoBehaviour
             ExecuteAttack(attacker, target, attackerWeapon);
 
             //Uwzględnienie zdolności Grad Ciosów, czyli wykonanie drugiego ataku
-            if(AttackTypes["StandardAttack"] == true && (attackerStats.Race == "Smok" || attackerStats.Race == "Hydra"))
+            if(AttackTypes["StandardAttack"] == true && (attackerStats.Race == "Smok" || attackerStats.Race == "Hydra") && targetStats.TempHealth >= 0)
             {
                 SpeedOfAttack(attackerStats, targetStats, attackerWeapon, targetWeapon, attacker, target); // Grad Ciosów
             }
