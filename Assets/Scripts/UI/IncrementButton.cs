@@ -8,6 +8,8 @@ public class IncrementButton : MonoBehaviour, IPointerDownHandler, IPointerUpHan
     private Button _button;
     [SerializeField] private int _incrementValue;
     private bool _isHeld = false;
+    private Coroutine _repeatActionCoroutine;
+
 
     void Start()
     {
@@ -16,10 +18,15 @@ public class IncrementButton : MonoBehaviour, IPointerDownHandler, IPointerUpHan
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (_button.interactable) // Sprawdzanie, czy przycisk jest aktywny
+        if (_button.interactable && !_isHeld) // Sprawdzanie, czy przycisk jest aktywny
         {
             _isHeld = true;
-            StartCoroutine(RepeatAction());
+
+            if (_repeatActionCoroutine != null)
+            {
+                StopCoroutine(_repeatActionCoroutine);
+            }
+            _repeatActionCoroutine = StartCoroutine(RepeatAction());
         }
     }
 
@@ -35,7 +42,7 @@ public class IncrementButton : MonoBehaviour, IPointerDownHandler, IPointerUpHan
             //Modyfikuje liczbę punktów żywotności jednostki
             UnitsManager.Instance.ChangeTemporaryHealthPoints(_incrementValue);
             
-            yield return new WaitForSeconds(0.2f); // Czeka przed kolejnym wywołaniem
+            yield return new WaitForSeconds(0.3f); // Czeka przed kolejnym wywołaniem
         }
     }
 }

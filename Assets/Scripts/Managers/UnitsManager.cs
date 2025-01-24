@@ -1290,6 +1290,8 @@ public class UnitsManager : MonoBehaviour
         //Jednostki z SW równym 0, np. Zombie są istotami bez własnej woli, których nie dotyczą testy tej cechy
         if (unitStats.SW == 0) return;
 
+        bool isScaredBefore = unit.IsScared;
+
         int rollResult = UnityEngine.Random.Range(1, 101);
 
         if (rollResult <= unitStats.SW)
@@ -1303,7 +1305,11 @@ public class UnitsManager : MonoBehaviour
         {
             RoundsManager.Instance.UnitsWithActionsLeft[unit] = 0;
             unit.IsScared = true;
-            unitStats.PO ++;
+
+            if(!isScaredBefore) //Zapobiega przyznaniu punktów obłędu kilkukrotnie w tej samej walce
+            {
+                unitStats.PO ++;
+            }
 
             Debug.Log($"<color=red> {unitStats.Name} nie zdał testu grozy. Wynik rzutu: {rollResult} </color>");
         }
