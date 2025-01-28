@@ -1115,11 +1115,11 @@ public class CombatManager : MonoBehaviour
                 Collider2D collider = Physics2D.OverlapPoint(pos);
                 if (collider == null) continue;
 
-                if (collider.CompareTag(allyTag))
+                if (collider.CompareTag(allyTag) && InventoryManager.Instance.ChooseWeaponToAttack(collider.gameObject).Type.Contains("melee"))
                 {
                     allies++;
                 }
-                else if (collider.CompareTag(opponentTag) && !countedOpponents.Contains(collider))
+                else if (collider.CompareTag(opponentTag) && !countedOpponents.Contains(collider) && InventoryManager.Instance.ChooseWeaponToAttack(collider.gameObject).Type.Contains("melee"))
                 {
                     opponents++;
                     countedOpponents.Add(collider); // Dodajemy do zestawu zliczonych przeciwników

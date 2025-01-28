@@ -204,7 +204,6 @@ public class Stats : MonoBehaviour
                 weaponPower += weapon.S + (K / 10) * 8;
             }
 
-            weaponPower = weapon.S;
             if(weapon.Impact == true) weaponPower += (maxWWorUS * A) / 2;  
         }
 
