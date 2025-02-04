@@ -16,7 +16,7 @@ public class DraggableObject : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && !GameManager.Instance.IsPointerOverUI())
         {
             DraggableObject obj = GetDraggableObjectUnderMouse();
             if (obj != null)
@@ -28,16 +28,16 @@ public class DraggableObject : MonoBehaviour
         }
 
         // Aktualizacja pozycji dla przeciąganego obiektu
-        if (DraggableObject.CurrentlyDragging != null && Input.GetMouseButton(0))
+        if (CurrentlyDragging != null && Input.GetMouseButton(0))
         {
-            DraggableObject.CurrentlyDragging.UpdateDrag();
+            CurrentlyDragging.UpdateDrag();
         }
 
         // Zakończenie przeciągania
-        if (Input.GetMouseButtonUp(0) && DraggableObject.CurrentlyDragging != null)
+        if (Input.GetMouseButtonUp(0) && CurrentlyDragging != null)
         {
-            DraggableObject.CurrentlyDragging.EndDrag();
-            DraggableObject.CurrentlyDragging = null;
+            CurrentlyDragging.EndDrag();
+            CurrentlyDragging = null;
         }
     }
 

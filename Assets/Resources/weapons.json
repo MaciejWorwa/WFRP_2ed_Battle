@@ -309,7 +309,7 @@
     {
       "Id": 32,
       "Name": "Szpada",
-      "Type": ["malee"],
+      "Type": ["melee"],
       "TwoHanded": false,
       "AttackRange": 1.5,
       "S": -2,
