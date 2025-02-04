@@ -52,6 +52,7 @@ public class CombatManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button _feintButton;
     [SerializeField] private UnityEngine.UI.Button _stunButton;
     [SerializeField] private UnityEngine.UI.Button _disarmButton;
+    [SerializeField] private UnityEngine.UI.Button _grapplingButton;
     public Dictionary<string, bool> AttackTypes = new Dictionary<string, bool>();
 
     private bool _isSuccessful;  //Skuteczność ataku
@@ -108,6 +109,7 @@ public class CombatManager : MonoBehaviour
         AttackTypes.Add("Feint", false);  // Finta
         AttackTypes.Add("Stun", false);  // Ogłuszanie
         AttackTypes.Add("Disarm", false);  // Rozbrajanie
+        AttackTypes.Add("Grappling", false);  // Chwyt
     }
 
     // Metoda ustawiająca dany typ ataku
@@ -195,8 +197,8 @@ public class CombatManager : MonoBehaviour
                 Debug.Log("Rozbrajanie mogą wykonywać tylko jednostki posiadające tą zdolność.");
             }
 
-            //Ograniczenie finty, ogłuszania i rozbrajania do ataków w zwarciu
-            if ((AttackTypes["Feint"] || AttackTypes["Stun"] || AttackTypes["Disarm"] || AttackTypes["Charge"]) == true && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type.Contains("ranged"))
+            //Ograniczenie finty, ogłuszania, zapasów i rozbrajania do ataków w zwarciu
+            if ((AttackTypes["Feint"] || AttackTypes["Stun"] || AttackTypes["Grappling"] || AttackTypes["Disarm"] || AttackTypes["Charge"]) == true && unit.GetComponent<Inventory>().EquippedWeapons[0] != null && unit.GetComponent<Inventory>().EquippedWeapons[0].Type.Contains("ranged"))
             {
                 AttackTypes[attackTypeName] = false;
                 AttackTypes["StandardAttack"] = true;
@@ -227,6 +229,7 @@ public class CombatManager : MonoBehaviour
         _feintButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Feint"] ? new UnityEngine.Color(0.15f, 1f, 0.45f) : UnityEngine.Color.white;
         _stunButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Stun"] ? new UnityEngine.Color(0.15f, 1f, 0.45f) : UnityEngine.Color.white;
         _disarmButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Disarm"] ? new UnityEngine.Color(0.15f, 1f, 0.45f) : UnityEngine.Color.white;
+        _grapplingButton.GetComponent<UnityEngine.UI.Image>().color = AttackTypes["Grappling"] ? new UnityEngine.Color(0.15f, 1f, 0.45f) : UnityEngine.Color.white;
     }
 
     #endregion
@@ -246,6 +249,14 @@ public class CombatManager : MonoBehaviour
             Debug.Log("Wybrana jednostka nie może wykonać kolejnego ataku w tej rundzie.");
             return;
         }
+
+        //Jeśli jednostka atakująca jest w stanie zapasów z inną jednostkę to Grappling jest jedynym możliwym atakiem
+        if(attacker.GrappledUnitId != 0)
+        {
+            ChangeAttackType("Grappling");
+            Debug.Log("zmienaimy typ ataku");
+        }
+        Debug.Log(attacker.GrappledUnitId);
 
         Stats attackerStats = attacker.Stats;
         Stats targetStats = target.Stats;
@@ -300,11 +311,11 @@ public class CombatManager : MonoBehaviour
             {
                 canDoAction = RoundsManager.Instance.DoFullAction(attacker);
             }
-            else if (AttackTypes["AllOutAttack"] == true || AttackTypes["GuardedAttack"] == true || (AttackTypes["SwiftAttack"] == true && AvailableAttacks == attackerStats.A)) //Specjalne ataki (szaleńczy, ostrożny i wielokrotny)
+            else if (AttackTypes["AllOutAttack"] || AttackTypes["GuardedAttack"] || (AttackTypes["SwiftAttack"] && AvailableAttacks == attackerStats.A)) //Specjalne ataki (szaleńczy, ostrożny i wielokrotny)
             {
                 canDoAction = RoundsManager.Instance.DoFullAction(attacker);
             }
-            else if (((AttackTypes["StandardAttack"] == true && opportunityAttack == false) || AttackTypes["Feint"] == true || AttackTypes["Stun"] == true || AttackTypes["Disarm"] == true)) //Zwykły atak, ogłuszanie, rozbrajanie lub finta
+            else if ((AttackTypes["StandardAttack"] && opportunityAttack == false) || AttackTypes["Feint"] || AttackTypes["Stun"]|| AttackTypes["Disarm"] || AttackTypes["Grappling"]) //Zwykły atak, ogłuszanie, rozbrajanie, zapasy lub finta
             {
                 canDoAction = RoundsManager.Instance.DoHalfAction(attacker);
             }
@@ -354,6 +365,14 @@ public class CombatManager : MonoBehaviour
 
             //Aktualizuje modyfikator ataku o celowanie
             _attackModifier += attacker.AimingBonus;
+
+            //Jeśli walczące jednostki są już w trakcie zapasów to dalsza mechanika ataku się różni
+            if(AttackTypes["Grappling"] && attacker.GrappledUnitId == target.UnitId)
+            {
+                StartCoroutine(Grappling(attackerStats, targetStats, _isSuccessful));
+                return;
+            }
+            Debug.Log(AttackTypes["Grappling"] + " " + attacker.GrappledUnitId + " " + target.UnitId);    
 
             //Rzut na trafienie
             int rollResult = UnityEngine.Random.Range(1, 101);
@@ -454,7 +473,13 @@ public class CombatManager : MonoBehaviour
             {
                 attacker.AimingBonus = 0;
                 UpdateAimButtonColor();
-            }       
+            }
+
+            if(AttackTypes["Grappling"])
+            {
+                StartCoroutine(Grappling(attackerStats, targetStats, _isSuccessful));
+                return;
+            }    
 
             //Atakowany próbuje parować lub unikać.
             if (_isSuccessful && rollResult > 5 && attackerWeapon.Type.Contains("melee") && (attacker.Feinted != true || AttackTypes["StandardAttack"] != true))
@@ -589,7 +614,7 @@ public class CombatManager : MonoBehaviour
             int armor = CalculateArmor(targetStats, attackerWeapon);
 
             //W przypadku, gdy atak następuje w trybie ręcznego rzucania kośćmi to nie sprawdzamy rzutu na obrażenia. W przeciwnym razie sprawdzamy
-            if (attacker.CompareTag("PlayerUnit") && GameManager.IsAutoDiceRollingMode == false)
+            if (IsManualPlayerAttack)
             {
                 Debug.Log($"{attackerStats.Name} trafia w {targetStats.Name}. Zadaj obrażenia ręcznie wpisując wynik rzutu i kliknij \"Zatwierdź\".");
 
@@ -1052,7 +1077,7 @@ public class CombatManager : MonoBehaviour
 
         // Stany celu
         if (targetUnit.StunDuration > 0) attackModifier += 20;
-        if (targetUnit.Trapped) attackModifier += 20;
+        if (targetUnit.Trapped || targetUnit.Grappled || targetUnit.GrappledUnitId != 0) attackModifier += 20;
 
         // Modyfikator za dystans
         if (attackerWeapon.Type.Contains("ranged"))
@@ -1605,6 +1630,8 @@ public class CombatManager : MonoBehaviour
         _isWaitingForRoll = true;
         _manualRollResult = 0;
 
+        Debug.Log("wysweietlamy panel");
+
         // Wyświetl panel do wpisania wyniku
         if (_applyParryOrDodgeRollResultPanel != null)
         {
@@ -1828,6 +1855,212 @@ public class CombatManager : MonoBehaviour
             return true;
         }
         else return false;
+    }
+    #endregion
+
+    
+    #region Grappling
+    private IEnumerator Grappling(Stats attackerStats, Stats targetStats, bool isSuccessfull)
+    { 
+        if(Unit.SelectedUnit == null) yield break;
+
+        // Stats attackerStats = Unit.SelectedUnit.GetComponent<Stats>();
+        Unit attackerUnit = Unit.SelectedUnit.GetComponent<Unit>();
+        Unit targetUnit = targetStats.GetComponent<Unit>();
+
+        // Zmiana broni na pięści
+        attackerUnit.GetComponent<Weapon>().ResetWeapon();
+        Weapon attackerWeapon = attackerUnit.GetComponent<Weapon>();
+
+        //Rzut obronny na Zr
+        int targetRollResult;
+
+        if(isSuccessfull == false)
+        {
+            Debug.Log($"Atak chybił. Próba pochwycenia nie powiodła się.");
+            yield break;
+        }
+        
+        // Jeżeli atakujący już wcześniej pochwycił cel, to próbuje zadać mu obrażenia
+        if(attackerUnit.GrappledUnitId == targetUnit.UnitId)
+        {
+            int attackerRollResult;
+            
+            if (!GameManager.IsAutoDiceRollingMode && targetStats.CompareTag("PlayerUnit"))
+            {
+                // Wywołaj korutynę i poczekaj na wynik
+                yield return StartCoroutine(WaitForRollValue());
+                targetRollResult = _manualRollResult;
+            }
+            else
+            {
+                targetRollResult = UnityEngine.Random.Range(1, 101);
+            }
+
+            if (!GameManager.IsAutoDiceRollingMode && attackerStats.CompareTag("PlayerUnit"))
+            {
+                // Wywołaj korutynę i poczekaj na wynik
+                yield return StartCoroutine(WaitForRollValue());
+                attackerRollResult = _manualRollResult;
+            }
+            else
+            {
+                attackerRollResult = UnityEngine.Random.Range(1, 101);
+            }
+
+            int attackerSuccessLevel = attackerStats.K - attackerRollResult;
+            int targetSuccessLevel = targetStats.K - targetRollResult;
+
+            Debug.Log($"{attackerStats.Name} próbuje zadać obrażenia {targetStats.Name}. Następuje przeciwstawny rzut na Krzepę. Pochwytujący rzuca: {attackerRollResult} Wartość cechy: {attackerStats.K}. Pochwycony rzuca: {targetRollResult} Wartość cechy: {targetStats.K}. . Wynik: {attackerSuccessLevel} do {targetSuccessLevel}");
+
+            int damage = 0;
+            int armor = CalculateArmor(targetStats, attackerWeapon);
+            if (attackerSuccessLevel > targetSuccessLevel)
+            {     
+                
+
+                if (!GameManager.IsAutoDiceRollingMode && attackerStats.CompareTag("PlayerUnit"))
+                {
+                    Debug.Log($"{attackerStats.Name} trafia w {targetStats.Name}. Zadaj obrażenia ręcznie wpisując wynik rzutu i kliknij \"Zatwierdź\".");  
+                    _applyDamagePanel.SetActive(true);
+
+                    StartCoroutine(WaitForDamageValue());
+
+                    IEnumerator WaitForDamageValue()
+                    {
+                        // Czekaj na kliknięcie przycisku
+                        yield return new WaitUntil(() => _applyDamagePanel.activeSelf == false);
+                        if (int.TryParse(_damageInputField.text, out int inputDamage))
+                        {
+                            damage = CalculateDamage(inputDamage, attackerStats, attackerWeapon);
+                            _damageInputField.text = null;
+                        }
+
+                        Debug.Log($"{attackerStats.Name} zadał {damage} obrażeń.");
+
+                        //Aktualizuje aktywną postać na kolejce inicjatywy, jeśli atakujący nie ma już dostępnych akcji. Ta funkcja jest tu wywołana, dlatego że chcemy zastosować opóźnienie i poczekać ze zmianą jednostki do momentu wpisania wartości obrażeń
+                        if(RoundsManager.Instance.UnitsWithActionsLeft[attackerUnit] == 0 && AvailableAttacks <= 0)
+                        {
+                            //Zmienia jednostkę wg kolejności inicjatywy
+                            InitiativeQueueManager.Instance.SelectUnitByQueue();
+                        }
+                    }
+                }
+                else
+                {
+                    int damageRollResult = DamageRoll(attackerStats, attackerWeapon);
+                    damage = CalculateDamage(damageRollResult, attackerStats, attackerWeapon);
+
+                    Debug.Log($"{attackerStats.Name} zadał {damage} obrażeń.");
+                }
+
+                //Aktualizuje osiągnięcia
+                attackerStats.TotalDamageDealt += damage;
+                if(damage > attackerStats.HighestDamageDealt)
+                {
+                    attackerStats.HighestDamageDealt = damage;
+                }
+
+                //Zadaje obrażenia
+                ApplyDamage(damage, attackerStats, targetStats, armor, targetUnit);
+
+                //Sprawdza, czy atak spowodował śmierć
+                if (targetStats.TempHealth < 0 && GameManager.IsAutoKillMode)
+                {
+                    HandleDeath(targetStats, targetUnit.gameObject, attackerStats);
+                }
+            }
+            else
+            {
+                Debug.Log($"Atak {attackerStats.Name} chybił.");
+            }
+         
+            yield break;
+        }
+
+        if (!GameManager.IsAutoDiceRollingMode && targetStats.CompareTag("PlayerUnit"))
+        {
+            // Wywołaj korutynę i poczekaj na wynik
+            yield return StartCoroutine(WaitForRollValue());
+            targetRollResult = _manualRollResult;
+        }
+        else
+        {
+            targetRollResult = UnityEngine.Random.Range(1, 101);
+        }
+
+        if(targetRollResult <= targetStats.Zr)
+        {
+            Debug.Log($"{targetStats.Name} wykonuje rzut na Zr i rzuca: {targetRollResult} Wartość cechy: {targetStats.Zr}. Próba pochwycenia nie powiodła się.");
+        }
+        else
+        {
+            attackerUnit.GrappledUnitId = targetUnit.UnitId;
+            targetUnit.Grappled = true;
+            RoundsManager.Instance.UnitsWithActionsLeft[targetUnit] = 0;
+            Debug.Log($"{targetStats.Name} wykonuje rzut na Zr i rzuca: {targetRollResult} Wartość cechy: {targetStats.Zr}. {targetStats.Name} został pochwycony przez {attackerStats.Name}.");
+        }
+    }
+
+    public IEnumerator EscapeFromTheGrappling(Unit unit)
+    {
+        Stats targetStats = unit.GetComponent<Stats>();
+        Unit attackerUnit = null;
+        Stats attackerStats = null;
+
+        foreach (Unit u in UnitsManager.Instance.AllUnits)
+        {
+            if(u.GrappledUnitId == unit.UnitId)
+            {
+                attackerUnit = u;
+                attackerStats = u.GetComponent<Stats>();
+                Debug.Log(attackerStats.Name);
+            }
+        }
+        if(attackerUnit == null) yield break;
+
+        //Przeciwstawny rzut na Krzepę
+        int targetRollResult;
+        int attackerRollResult;
+
+        if (!GameManager.IsAutoDiceRollingMode && targetStats.CompareTag("PlayerUnit"))
+        {
+            // Wywołaj korutynę i poczekaj na wynik
+            yield return StartCoroutine(WaitForRollValue());
+            targetRollResult = _manualRollResult;
+        }
+        else
+        {
+            targetRollResult = UnityEngine.Random.Range(1, 101);
+        }
+
+        if (!GameManager.IsAutoDiceRollingMode && attackerStats.CompareTag("PlayerUnit"))
+        {
+            // Wywołaj korutynę i poczekaj na wynik
+            yield return StartCoroutine(WaitForRollValue());
+            attackerRollResult = _manualRollResult;
+        }
+        else
+        {
+            attackerRollResult = UnityEngine.Random.Range(1, 101);
+        }
+
+        int attackerSuccessLevel = attackerStats.K - attackerRollResult;
+        int targetSuccessLevel = targetStats.K - targetRollResult;
+
+        Debug.Log($"{targetStats.Name} próbuje się uwolnić z pochwycenia. Następuje przeciwstawny rzut na Krzepę. Pochwycony rzuca: {targetRollResult} Wartość cechy: {targetStats.K}. Pochwytujący rzuca: {attackerRollResult} Wartość cechy: {attackerStats.K}. Wynik: {targetSuccessLevel} do {attackerSuccessLevel}");
+
+        if (targetSuccessLevel > attackerSuccessLevel)
+        {
+            unit.Grappled = false;
+            attackerUnit.GrappledUnitId = 0;
+
+            Debug.Log($"{targetStats.Name} uwolnił/a się.");
+        }
+        else
+        {
+            Debug.Log($"Próba uwolnienia {targetStats.Name} nie powiodła się.");
+        }  
     }
     #endregion
 

@@ -531,6 +531,8 @@ public class UnitData
     public bool IsFearTestPassed; // Zdał test strachu
     public int SpellDuration; // Czas trwania zaklęcia mającego wpływ na tą jednostkę
     public int StunDuration; // Czas ogłuszenia (podany w rundach). Wartość 0 oznacza, że postać nie jest ogłuszona
+    public bool Grappled; // Pochwycony
+    public int GrappledUnitId; // Cel unieruchomienia
     public bool Trapped; // Unieruchomiony
     public int TrappedUnitId; // Cel unieruchomienia
     public int AimingBonus;

@@ -39,6 +39,19 @@ public class MovementManager : MonoBehaviour
         // Nie pozwala wykonać akcji ruchu, dopóki poprzedni ruch nie zostanie zakończony. Sprawdza też, czy gra nie jest wstrzymana (np. poprzez otwarcie dodatkowych paneli)
         if( IsMoving == true || GameManager.IsGamePaused) return;
 
+        // Jeśli jednostka pochwytująca inną wykonuje ruch, to pochwycenie zostane przerwane
+        if(unit.GetComponent<Unit>().GrappledUnitId != 0)
+        {
+            foreach (var u in UnitsManager.Instance.AllUnits)
+            {
+                if (u.UnitId == unit.GetComponent<Unit>().GrappledUnitId && u.Grappled == true)
+                {
+                    u.Grappled = false;
+                    Debug.Log($"{unit.GetComponent<Stats>().Name} rozluźnia chwyt i pozwala {u.GetComponent<Stats>().Name} uwolnić się.");
+                }
+            } 
+        }
+
         // Sprawdza zasięg ruchu postaci
         int movementRange = unit.GetComponent<Stats>().TempSz;
 

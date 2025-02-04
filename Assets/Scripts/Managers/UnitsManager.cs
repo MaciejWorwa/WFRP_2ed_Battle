@@ -526,6 +526,11 @@ public class UnitsManager : MonoBehaviour
             unit.StunDuration = stunDuration;
             Debug.Log($"Jednostka została wprowadzona w stan ogłuszenia na {stunDuration} rund/y.");
         }
+        else if(state == "grappled")
+        {
+            unit.Grappled = true;
+            Debug.Log($"Jednostka została wprowadzona w stan pochwycenia.");
+        }
 
         _unitStateDurationInputField.text = "";
 
@@ -543,6 +548,7 @@ public class UnitsManager : MonoBehaviour
         unit.StunDuration = 0; 
         unit.HelplessDuration = 0;
         unit.TrappedUnitId = 0;
+        unit.GrappledUnitId = 0;
         unit.IsScared = false;
         unit.IsFearTestPassed = true;
 
@@ -555,6 +561,19 @@ public class UnitsManager : MonoBehaviour
                 if(unit.UnitId == u.TrappedUnitId)
                 {
                     u.TrappedUnitId = 0;
+                }
+            }
+        } 
+
+        if(unit.Grappled == true)
+        {
+            unit.Grappled = false;
+
+            foreach (var u in AllUnits)
+            {
+                if(unit.UnitId == u.GrappledUnitId)
+                {
+                    u.GrappledUnitId = 0;
                 }
             }
         } 
@@ -883,7 +902,7 @@ public class UnitsManager : MonoBehaviour
 
             Unit unitComponent = unit.GetComponent<Unit>();
 
-            if(unitComponent.StunDuration == 0 && unitComponent.HelplessDuration == 0 && unitComponent.Trapped == false && unitComponent.IsScared == false && unitComponent.TrappedUnitId == 0)
+            if(unitComponent.StunDuration == 0 && unitComponent.HelplessDuration == 0 && !unitComponent.Trapped && !unitComponent.IsScared && unitComponent.TrappedUnitId == 0 && unitComponent.GrappledUnitId == 0 && !unitComponent.Grappled)
             {
                 _actionsPanel.SetActive(true);
             }
@@ -909,6 +928,11 @@ public class UnitsManager : MonoBehaviour
                     state = "unieruchomienia";
                     duration = 0;
                 }
+                else if (unitComponent.Grappled)
+                {
+                    state = "pochwycenia";
+                    duration = 0;
+                }
                 else if (unitComponent.IsScared)
                 {
                     state = "strachu";
@@ -917,6 +941,10 @@ public class UnitsManager : MonoBehaviour
                 else if (unitComponent.TrappedUnitId != 0)
                 {
                     state = "unieruchamiania innej jednostki swoją bronią.";
+                }
+                else if (unitComponent.GrappledUnitId != 0)
+                {
+                    state = "pochwycenia innej jednostki. Możesz wykonać atak, klikając na nią prawym przyciskiem myszy";
                 }
 
                 string currentStateString = $"Wybrana jednostka nie może wykonywać akcji, ponieważ jest w stanie {state}.";

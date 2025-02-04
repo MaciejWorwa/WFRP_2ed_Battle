@@ -103,6 +103,11 @@ public class RoundsManager : MonoBehaviour
                 UnitsWithActionsLeft[key] = 0;
                 CombatManager.Instance.EscapeFromTheSnare(key);
             }
+            if(key.Grappled)
+            {
+                UnitsWithActionsLeft[key] = 0;
+                CombatManager.Instance.EscapeFromTheGrappling(key);
+            }
             if(key.IsScared)
             {
                 UnitsWithActionsLeft[key] = 0;
