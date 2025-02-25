@@ -11,6 +11,8 @@ using UnityEditor;
 using System.Drawing;
 using TMPro;
 using System;
+using Unity.VisualScripting;
+using static UnityEngine.GraphicsBuffer;
 
 public class CombatManager : MonoBehaviour
 {
@@ -812,6 +814,8 @@ public class CombatManager : MonoBehaviour
             {
                 targetUnit.HideUnitHealthPoints();
             }
+
+            targetUnit.LastAttackerStats = attackerStats;
 
             StartCoroutine(AnimationManager.Instance.PlayAnimation("damage", null, targetUnit.gameObject, damage - (targetWt + armor)));
         }

@@ -13,9 +13,13 @@ public class Unit : MonoBehaviour
 
     public static GameObject SelectedUnit;
     public static GameObject LastSelectedUnit;
+    public Stats LastAttackerStats; // Ostatni przeciwnik, który zadał obrażenia tej jednostce (jest to niezbędne do aktualizowania osiągnięcia "Najsilniejszy pokonany przeciwnik" poza trybem automatycznej śmierci)
+
     public string TokenFilePath;
+
     public Color DefaultColor;
     public Color HighlightColor;
+
     public bool IsSelected = false;
     public bool IsTurnFinished; // Określa, czy postać zakończyła swoją turę (bo mogła to zrobić, np. zostawiając jedną akcję)
     public bool IsRunning; // Biegnie
@@ -39,6 +43,7 @@ public class Unit : MonoBehaviour
     public bool Feinted = false; // Określa, czy postać wykonała w poprzedniej akcji udaną fintę
     public bool CanParry = true;
     public bool CanDodge = false;
+
     public Stats Stats;
     public TMP_Text NameDisplay;
     public TMP_Text HealthDisplay;

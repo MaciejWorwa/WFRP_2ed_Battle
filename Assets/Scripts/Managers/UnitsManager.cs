@@ -9,6 +9,7 @@ using System;
 using System.IO;
 using static UnityEngine.GraphicsBuffer;
 using System.Linq;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
 
 public class UnitsManager : MonoBehaviour
 {
@@ -416,24 +417,27 @@ public class UnitsManager : MonoBehaviour
             Debug.Log("Wybierz jednostkę, którą chcesz usunąć. Możesz również zaznaczyć obszar, wtedy zostaną usunięte wszystkie znajdujące się w nim jednostki.");
         }
     }
-    public void DestroyUnit(GameObject unit = null)
+    public void DestroyUnit(GameObject unitObject = null)
     {
-        if(unit == null)
+        if (unitObject == null)
         {
-            unit = Unit.SelectedUnit;
+            unitObject = Unit.SelectedUnit;
         }
-        else if (unit == Unit.SelectedUnit)
+        else if (unitObject == Unit.SelectedUnit)
         {
-            unit.GetComponent<Unit>().SelectUnit();
+            unitObject.GetComponent<Unit>().SelectUnit();
         }
 
+        Unit unit = unitObject.GetComponent<Unit>();
+        Stats stats = unit.Stats;
+
         //Usunięcie jednostki z kolejki inicjatywy
-        InitiativeQueueManager.Instance.RemoveUnitFromInitiativeQueue(unit.GetComponent<Unit>());
+        InitiativeQueueManager.Instance.RemoveUnitFromInitiativeQueue(unit);
         //Aktualizuje kolejkę inicjatywy
         InitiativeQueueManager.Instance.UpdateInitiativeQueue();
 
         //Uwolnienie jednostki uwięzionej przez jednostkę, która umiera
-        if(unit.GetComponent<Unit>().TrappedUnitId != 0)
+        if (unit.TrappedUnitId != 0)
         {
             foreach (var u in AllUnits)
             {
@@ -445,12 +449,23 @@ public class UnitsManager : MonoBehaviour
         }
 
         //Usuwa jednostkę z listy wszystkich jednostek
-        AllUnits.Remove(unit.GetComponent<Unit>());
+        AllUnits.Remove(unit);
 
         //Resetuje Tile, żeby nie było uznawane jako zajęte
         GridManager.Instance.ResetTileOccupancy(unit.transform.position);
 
-        Destroy(unit);
+        // Aktualizuje osiągnięcia
+        if (unit.LastAttackerStats != null)
+        {
+            unit.LastAttackerStats.OpponentsKilled++;
+            if (unit.LastAttackerStats.StrongestDefeatedOpponentOverall < stats.Overall)
+            {
+                unit.LastAttackerStats.StrongestDefeatedOpponentOverall = stats.Overall;
+                unit.LastAttackerStats.StrongestDefeatedOpponent = stats.Name;
+            }
+        }
+
+        Destroy(unitObject);
 
         //Resetuje kolor przycisku usuwania jednostek
         _removeUnitButton.GetComponent<UnityEngine.UI.Image>().color = Color.white;
