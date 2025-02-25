@@ -850,17 +850,8 @@ public class UnitsManager : MonoBehaviour
         if(!SaveAndLoadManager.Instance.IsLoading)
         {
             //Aktualizuje pasek przewagi w bitwie
-            int newOverall = unit.GetComponent<Stats>().CalculateOverall();
-            int difference = newOverall - unit.GetComponent<Stats>().Overall;
-
-            if(difference >= 0)
-            { 
-                InitiativeQueueManager.Instance.CalculateAdvantage(difference, 0, unit.tag);
-            }
-            else
-            {
-                InitiativeQueueManager.Instance.CalculateAdvantage(difference, 0, unit.tag);
-            }
+            unit.GetComponent<Stats>().Overall = unit.GetComponent<Stats>().CalculateOverall();
+            InitiativeQueueManager.Instance.CalculateAdvantage();
         }
     }
     #endregion

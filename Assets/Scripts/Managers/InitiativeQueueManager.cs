@@ -57,7 +57,7 @@ public class InitiativeQueueManager : MonoBehaviour
         //Aktualizuje pasek przewagi w bitwie
         unit.GetComponent<Stats>().Overall = unit.GetComponent<Stats>().CalculateOverall();
 
-        CalculateAdvantage(unit.GetComponent<Stats>().Overall, 0, unit.tag);
+        CalculateAdvantage();
     }
 
     public void RemoveUnitFromInitiativeQueue(Unit unit)
@@ -67,7 +67,7 @@ public class InitiativeQueueManager : MonoBehaviour
 
         //Aktualizuje pasek przewagi w bitwie
         unit.GetComponent<Stats>().Overall = unit.GetComponent<Stats>().CalculateOverall();
-        CalculateAdvantage(0, unit.GetComponent<Stats>().Overall, unit.tag);
+        CalculateAdvantage();
     }
 
     public void UpdateInitiativeQueue()
@@ -182,25 +182,35 @@ public class InitiativeQueueManager : MonoBehaviour
     }
     #endregion
     
-    public void CalculateAdvantage(int addedOverall, int substractedOverall, string unitTag)
+    public void CalculateAdvantage()
     {
-        // Aktualizacja maksymalnej wartości przewagi
-        if(AdvantageBar.maxValue == 1) // Początkowa wartość Slidera (nie da sie ustawić na 0)
-        { 
-            AdvantageBar.maxValue = addedOverall;
-        }
-        else
+        int playerTotal = 0;
+        int enemyTotal = 0;
+
+        // Przechodzimy przez całą kolejkę inicjatywy i sumujemy "Overall" dla obu stron
+        foreach (var unit in InitiativeQueue.Keys)
         {
-            AdvantageBar.maxValue += addedOverall - substractedOverall;
+            Stats unitStats = unit.GetComponent<Stats>();
+
+            if (unit.CompareTag("PlayerUnit"))
+                playerTotal += unitStats.Overall;
+            else if (unit.CompareTag("EnemyUnit"))
+                enemyTotal += unitStats.Overall;
         }
 
-        // Aktualizacja wartości przewagi gracza (tylko jeśli jednostka należy do gracza)
-        if (unitTag == "PlayerUnit")
+        int totalPower = playerTotal + enemyTotal;
+        if (totalPower == 0)
         {
-            AdvantageBar.value += addedOverall - substractedOverall;
+            AdvantageBar.maxValue = 1; // Zapobiega dzieleniu przez 0
+            AdvantageBar.value = 0;
+            AdvantageBar.gameObject.SetActive(false);
+            return;
         }
 
-        // Aktywacja paska, jeśli ma sens go wyświetlać
+        AdvantageBar.maxValue = totalPower;
+        AdvantageBar.value = playerTotal;
+
+        // Aktywujemy pasek, jeśli ma sens go wyświetlać
         if (AdvantageBar.maxValue > 1 && !AdvantageBar.gameObject.activeSelf && !GameManager.IsStatsHidingMode)
         {
             AdvantageBar.gameObject.SetActive(true);

@@ -620,7 +620,7 @@ public class SaveAndLoadManager : MonoBehaviour
 
             //Aktualizuje pasek przewagi w bitwie
             unitGameObject.GetComponent<Stats>().Overall = unitGameObject.GetComponent<Stats>().CalculateOverall();
-            InitiativeQueueManager.Instance.CalculateAdvantage(unitGameObject.GetComponent<Stats>().Overall, 0, unitGameObject.tag);
+            InitiativeQueueManager.Instance.CalculateAdvantage();
         }
 
         if(saveFolderPath != Path.Combine(Application.persistentDataPath, "temp"))
