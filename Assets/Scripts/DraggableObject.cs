@@ -184,10 +184,7 @@ public class DraggableObject : MonoBehaviour
                 
                 // Aktualizowanie zajętości pól
                 GridManager.Instance.CheckTileOccupancy();
-                if(Unit.SelectedUnit != null)
-                {
-                    GridManager.Instance.HighlightTilesInMovementRange(Unit.SelectedUnit.GetComponent<Stats>());  
-                }
+                GridManager.Instance.HighlightTilesInMovementRange();  
 
                 //Jeżeli przesuwamy jednostkę na zakryte pole, usuwamy ją z kolejki inicjatywy
                 if (unit != null)

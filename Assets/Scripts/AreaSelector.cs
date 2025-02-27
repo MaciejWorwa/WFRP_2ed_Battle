@@ -69,10 +69,7 @@ public class AreaSelector : MonoBehaviour
             EndSelection();
 
             //Odświeża pola w zasięgu ruchu, aby uwzględnić nowo odsłonięte pola
-            if(Unit.SelectedUnit != null)
-            {
-                GridManager.Instance.HighlightTilesInMovementRange(Unit.SelectedUnit.GetComponent<Stats>());
-            }
+            GridManager.Instance.HighlightTilesInMovementRange();
         }
     }
 

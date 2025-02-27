@@ -13,6 +13,7 @@ using TMPro;
 using System;
 using Unity.VisualScripting;
 using static UnityEngine.GraphicsBuffer;
+using UnityEditor.Experimental.GraphView;
 
 public class CombatManager : MonoBehaviour
 {
@@ -67,7 +68,7 @@ public class CombatManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button _cancelButton;
     private string _parryOrDodge;
     [SerializeField] private GameObject _applyDamagePanel;
-    [SerializeField] private GameObject _applyParryOrDodgeRollResultPanel;
+    [SerializeField] private GameObject _rollResultPanel;
     [SerializeField] private TMP_InputField _parryOrDodgeInputField;
     [SerializeField] private TMP_InputField _damageInputField;
     // Zmienne do przechowywania wyniku
@@ -252,13 +253,22 @@ public class CombatManager : MonoBehaviour
             return;
         }
 
+        if(opportunityAttack)
+        {
+            ChangeAttackType("StandardAttack");
+        }
+
         //Jeśli jednostka atakująca jest w stanie zapasów z inną jednostkę to Grappling jest jedynym możliwym atakiem
         if(attacker.GrappledUnitId != 0)
         {
+            if (attacker.GrappledUnitId != target.UnitId)
+            {
+                Debug.Log("Wybrana jednostka może atakować jedynie przeciwnika, z którym jest w trakcie zapasów.");
+                return;
+            }
+
             ChangeAttackType("Grappling");
-            Debug.Log("zmienaimy typ ataku");
         }
-        Debug.Log(attacker.GrappledUnitId);
 
         Stats attackerStats = attacker.Stats;
         Stats targetStats = target.Stats;
@@ -371,10 +381,9 @@ public class CombatManager : MonoBehaviour
             //Jeśli walczące jednostki są już w trakcie zapasów to dalsza mechanika ataku się różni
             if(AttackTypes["Grappling"] && attacker.GrappledUnitId == target.UnitId)
             {
-                StartCoroutine(Grappling(attackerStats, targetStats, _isSuccessful));
+                StartCoroutine(Grappling(attackerStats, targetStats, true));
                 return;
             }
-            Debug.Log(AttackTypes["Grappling"] + " " + attacker.GrappledUnitId + " " + target.UnitId);    
 
             //Rzut na trafienie
             int rollResult = UnityEngine.Random.Range(1, 101);
@@ -481,10 +490,10 @@ public class CombatManager : MonoBehaviour
             {
                 StartCoroutine(Grappling(attackerStats, targetStats, _isSuccessful));
                 return;
-            }    
+            }
 
             //Atakowany próbuje parować lub unikać.
-            if (_isSuccessful && rollResult > 5 && attackerWeapon.Type.Contains("melee") && (attacker.Feinted != true || AttackTypes["StandardAttack"] != true))
+            if (_isSuccessful && rollResult > 5 && attackerWeapon.Type.Contains("melee") && target.GrappledUnitId == 0 && !target.Grappled && (attacker.Feinted != true || AttackTypes["StandardAttack"] != true))
             {
                 //Sprawdza, czy parowanie wymaga akcji
                 var equippedWeapons = targetStats.GetComponent<Inventory>().EquippedWeapons;
@@ -514,7 +523,7 @@ public class CombatManager : MonoBehaviour
                         
                         if(!GameManager.IsAutoDiceRollingMode)
                         {
-                            yield return new WaitUntil(() => _applyParryOrDodgeRollResultPanel.activeSelf == false);
+                            yield return new WaitUntil(() => _rollResultPanel.activeSelf == false);
                         }
 
                         _isSuccessful = !TargetIsDefended;
@@ -602,6 +611,7 @@ public class CombatManager : MonoBehaviour
                     RoundsManager.Instance.UnitsWithActionsLeft[target] = 0;
                   
                     Debug.Log($"{attackerStats.Name} unieruchomił {targetStats.Name} przy pomocy {attackerWeapon.Name}");
+                    UnitsManager.Instance.UpdateUnitPanel(attacker.gameObject);
 
                     if (!attackerWeapon.Type.Contains("throwing")) //Związanie atakującego z celem (np. pochwycenie przez bicz). Wtedy atakujący również nie może wykonywać innych akcji
                     {
@@ -803,11 +813,11 @@ public class CombatManager : MonoBehaviour
                 targetUnit.DisplayUnitHealthPoints();
                 if (targetStats.TempHealth < 0)
                 {
-                    Debug.Log($"Punkty żywotności {targetStats.Name}: <color=red>{targetStats.TempHealth}/{targetStats.MaxHealth}</color>");
+                    Debug.Log($"Punkty żywotności {targetStats.Name}: <color=red>{targetStats.TempHealth}</color><color=#4dd2ff>/{targetStats.MaxHealth}</color>");
                 }
                 else
                 {
-                    Debug.Log($"Punkty żywotności {targetStats.Name}: {targetStats.TempHealth}/{targetStats.MaxHealth}");
+                    Debug.Log($"Punkty żywotności {targetStats.Name}: <color=#4dd2ff>{targetStats.TempHealth}/{targetStats.MaxHealth}</color>");
                 }
             }
             else
@@ -816,6 +826,12 @@ public class CombatManager : MonoBehaviour
             }
 
             targetUnit.LastAttackerStats = attackerStats;
+
+            //Aktualizuje żywotność w panelu jednostki, jeśli dostała obrażenia np. w wyniku ataku okazyjnego
+            if (Unit.SelectedUnit == targetUnit.gameObject)
+            {
+                UnitsManager.Instance.UpdateUnitPanel(targetUnit.gameObject);
+            }
 
             StartCoroutine(AnimationManager.Instance.PlayAnimation("damage", null, targetUnit.gameObject, damage - (targetWt + armor)));
         }
@@ -847,7 +863,7 @@ public class CombatManager : MonoBehaviour
         UnitsManager.Instance.DestroyUnit(target);
 
         // Aktualizacja podświetlenia pól w zasięgu ruchu atakującego
-        GridManager.Instance.HighlightTilesInMovementRange(attackerStats);
+        GridManager.Instance.HighlightTilesInMovementRange();
     }
     #endregion
 
@@ -912,7 +928,7 @@ public class CombatManager : MonoBehaviour
                     
                     if(!GameManager.IsAutoDiceRollingMode)
                     {
-                        yield return new WaitUntil(() => _applyParryOrDodgeRollResultPanel.activeSelf == false);
+                        yield return new WaitUntil(() => _rollResultPanel.activeSelf == false);
                     }
 
                     _isSuccessful = !TargetIsDefended;
@@ -1572,7 +1588,7 @@ public class CombatManager : MonoBehaviour
                 if (!GameManager.IsAutoDiceRollingMode && targetStats.CompareTag("PlayerUnit"))
                 {
                     // Wywołaj korutynę i poczekaj na wynik
-                    yield return StartCoroutine(WaitForRollValue());
+                    yield return StartCoroutine(WaitForRollValue(targetStats));
                     manualRollResult = _manualRollResult;
                 }
                 TargetIsDefended = Parry(targetStats, parryModifier, manualRollResult);
@@ -1583,7 +1599,7 @@ public class CombatManager : MonoBehaviour
                 if (!GameManager.IsAutoDiceRollingMode && targetStats.CompareTag("PlayerUnit"))
                 {
                     // Wywołaj korutynę i poczekaj na wynik
-                    yield return StartCoroutine(WaitForRollValue());
+                    yield return StartCoroutine(WaitForRollValue(targetStats));
                     manualRollResult = _manualRollResult;
                 }
                 TargetIsDefended = Dodge(targetStats, dodgeModifier, manualRollResult);
@@ -1629,17 +1645,16 @@ public class CombatManager : MonoBehaviour
     }
 
     // Korutyna czekająca na wpisanie wyniku przez użytkownika
-    private IEnumerator WaitForRollValue()
+    private IEnumerator WaitForRollValue(Stats stats)
     {
         _isWaitingForRoll = true;
         _manualRollResult = 0;
 
-        Debug.Log("wysweietlamy panel");
-
         // Wyświetl panel do wpisania wyniku
-        if (_applyParryOrDodgeRollResultPanel != null)
+        if (_rollResultPanel != null)
         {
-            _applyParryOrDodgeRollResultPanel.SetActive(true);
+            _rollResultPanel.SetActive(true);
+            _rollResultPanel.GetComponentInChildren<TMP_Text>().text = "Wpisz wynik rzutu " + stats.Name;
         }
 
         // Wyzeruj pole tekstowe
@@ -1655,9 +1670,9 @@ public class CombatManager : MonoBehaviour
         }
 
         // Ukryj panel po wpisaniu
-        if (_applyParryOrDodgeRollResultPanel != null)
+        if (_rollResultPanel != null)
         {
-            _applyParryOrDodgeRollResultPanel.SetActive(false);
+            _rollResultPanel.SetActive(false);
         }
     }
 
@@ -1861,8 +1876,7 @@ public class CombatManager : MonoBehaviour
         else return false;
     }
     #endregion
-
-    
+ 
     #region Grappling
     private IEnumerator Grappling(Stats attackerStats, Stats targetStats, bool isSuccessfull)
     { 
@@ -1893,7 +1907,7 @@ public class CombatManager : MonoBehaviour
             if (!GameManager.IsAutoDiceRollingMode && targetStats.CompareTag("PlayerUnit"))
             {
                 // Wywołaj korutynę i poczekaj na wynik
-                yield return StartCoroutine(WaitForRollValue());
+                yield return StartCoroutine(WaitForRollValue(targetStats));
                 targetRollResult = _manualRollResult;
             }
             else
@@ -1904,7 +1918,7 @@ public class CombatManager : MonoBehaviour
             if (!GameManager.IsAutoDiceRollingMode && attackerStats.CompareTag("PlayerUnit"))
             {
                 // Wywołaj korutynę i poczekaj na wynik
-                yield return StartCoroutine(WaitForRollValue());
+                yield return StartCoroutine(WaitForRollValue(attackerStats));
                 attackerRollResult = _manualRollResult;
             }
             else
@@ -1915,13 +1929,12 @@ public class CombatManager : MonoBehaviour
             int attackerSuccessLevel = attackerStats.K - attackerRollResult;
             int targetSuccessLevel = targetStats.K - targetRollResult;
 
-            Debug.Log($"{attackerStats.Name} próbuje zadać obrażenia {targetStats.Name}. Następuje przeciwstawny rzut na Krzepę. Pochwytujący rzuca: {attackerRollResult} Wartość cechy: {attackerStats.K}. Pochwycony rzuca: {targetRollResult} Wartość cechy: {targetStats.K}. . Wynik: {attackerSuccessLevel} do {targetSuccessLevel}");
+            Debug.Log($"{attackerStats.Name} próbuje zadać obrażenia {targetStats.Name}. Następuje przeciwstawny rzut na Krzepę. Pochwytujący rzuca: {attackerRollResult} Wartość cechy: {attackerStats.K}. Pochwycony rzuca: {targetRollResult} Wartość cechy: {targetStats.K}. Wynik: {attackerSuccessLevel} do {targetSuccessLevel}");
 
-            int damage = 0;
-            int armor = CalculateArmor(targetStats, attackerWeapon);
             if (attackerSuccessLevel > targetSuccessLevel)
-            {     
-                
+            {
+                int damage = 0;
+                int armor = CalculateArmor(targetStats, attackerWeapon);
 
                 if (!GameManager.IsAutoDiceRollingMode && attackerStats.CompareTag("PlayerUnit"))
                 {
@@ -1985,7 +1998,7 @@ public class CombatManager : MonoBehaviour
         if (!GameManager.IsAutoDiceRollingMode && targetStats.CompareTag("PlayerUnit"))
         {
             // Wywołaj korutynę i poczekaj na wynik
-            yield return StartCoroutine(WaitForRollValue());
+            yield return StartCoroutine(WaitForRollValue(targetStats));
             targetRollResult = _manualRollResult;
         }
         else
@@ -2002,6 +2015,8 @@ public class CombatManager : MonoBehaviour
             attackerUnit.GrappledUnitId = targetUnit.UnitId;
             targetUnit.Grappled = true;
             RoundsManager.Instance.UnitsWithActionsLeft[targetUnit] = 0;
+            UnitsManager.Instance.UpdateUnitPanel(attackerUnit.gameObject);
+
             Debug.Log($"{targetStats.Name} wykonuje rzut na Zr i rzuca: {targetRollResult} Wartość cechy: {targetStats.Zr}. {targetStats.Name} został pochwycony przez {attackerStats.Name}.");
         }
     }
@@ -2018,7 +2033,6 @@ public class CombatManager : MonoBehaviour
             {
                 attackerUnit = u;
                 attackerStats = u.GetComponent<Stats>();
-                Debug.Log(attackerStats.Name);
             }
         }
         if(attackerUnit == null) yield break;
@@ -2030,7 +2044,7 @@ public class CombatManager : MonoBehaviour
         if (!GameManager.IsAutoDiceRollingMode && targetStats.CompareTag("PlayerUnit"))
         {
             // Wywołaj korutynę i poczekaj na wynik
-            yield return StartCoroutine(WaitForRollValue());
+            yield return StartCoroutine(WaitForRollValue(targetStats));
             targetRollResult = _manualRollResult;
         }
         else
@@ -2041,7 +2055,7 @@ public class CombatManager : MonoBehaviour
         if (!GameManager.IsAutoDiceRollingMode && attackerStats.CompareTag("PlayerUnit"))
         {
             // Wywołaj korutynę i poczekaj na wynik
-            yield return StartCoroutine(WaitForRollValue());
+            yield return StartCoroutine(WaitForRollValue(attackerStats));
             attackerRollResult = _manualRollResult;
         }
         else
@@ -2059,6 +2073,7 @@ public class CombatManager : MonoBehaviour
             unit.Grappled = false;
             attackerUnit.GrappledUnitId = 0;
 
+            UnitsManager.Instance.UpdateUnitPanel(targetStats.gameObject);
             Debug.Log($"{targetStats.Name} uwolnił/a się.");
         }
         else
@@ -2097,7 +2112,7 @@ public class CombatManager : MonoBehaviour
             }
             else if (odpRoll <= 5)
             {
-                Debug.Log($"{targetStats.Name} wyrzucił <color=red>SZCZĘŚCIE!</color>");                
+                Debug.Log($"{targetStats.Name} wyrzucił <color=green>SZCZĘŚCIE!</color>");                
                 //Aktualizuje osiągnięcia
                 targetStats.FortunateEvents ++;
             }
@@ -2127,11 +2142,21 @@ public class CombatManager : MonoBehaviour
 
     #region Trap
     //Próba uwolnienia się z unieruchomienia
-    public void EscapeFromTheSnare(Unit unit)
+    public IEnumerator EscapeFromTheSnare(Unit unit)
     {
         Stats unitStats = unit.GetComponent<Stats>();
 
-        int rollResult = UnityEngine.Random.Range(1, 101);
+        int rollResult;
+        if (!GameManager.IsAutoDiceRollingMode && unitStats.CompareTag("PlayerUnit"))
+        {
+            // Wywołaj korutynę i poczekaj na wynik
+            yield return StartCoroutine(WaitForRollValue(unitStats));
+            rollResult = _manualRollResult;
+        }
+        else
+        {
+            rollResult = UnityEngine.Random.Range(1, 101);
+        }
 
         string attributeName = unitStats.K > unitStats.Zr ? "Krzepę" : "Zręczność";
         int attributeValue = unitStats.K > unitStats.Zr ? unitStats.K : unitStats.Zr;
@@ -2146,11 +2171,10 @@ public class CombatManager : MonoBehaviour
         }
         else if (rollResult <= 5)
         {
-            Debug.Log($"{unitStats.Name} wyrzucił <color=red>SZCZĘŚCIE!</color>");                
+            Debug.Log($"{unitStats.Name} wyrzucił <color=green>SZCZĘŚCIE!</color>");                
             //Aktualizuje osiągnięcia
             unitStats.FortunateEvents ++;
         }
-
 
         if (rollResult < attributeValue && rollResult < 96 || rollResult <= 5)
         {
@@ -2164,6 +2188,7 @@ public class CombatManager : MonoBehaviour
                 }
             }
 
+            UnitsManager.Instance.UpdateUnitPanel(unit.gameObject);
             Debug.Log($"{unitStats.Name} uwolnił/a się.");
         }
         else

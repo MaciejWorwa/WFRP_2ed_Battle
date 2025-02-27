@@ -363,10 +363,7 @@ public class GameManager : MonoBehaviour
         }
 
         //Wyłącza, lub włącza podświetlenie pól w zasięgu ruchu
-        if(Unit.SelectedUnit != null)
-        {
-            GridManager.Instance.HighlightTilesInMovementRange(Unit.SelectedUnit.GetComponent<Stats>());
-        }
+        GridManager.Instance.HighlightTilesInMovementRange();
     }
     public void SetAutoRollingDiceMode()
     {

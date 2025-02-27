@@ -596,6 +596,7 @@ public class UnitsManager : MonoBehaviour
         RoundsManager.Instance.UnitsWithActionsLeft[unit] = 2;
 
         UpdateUnitPanel(Unit.SelectedUnit);
+        GridManager.Instance.HighlightTilesInMovementRange();
     }
     #endregion
 
@@ -931,12 +932,12 @@ public class UnitsManager : MonoBehaviour
                 }
                 else if (unitComponent.Trapped)
                 {
-                    state = "unieruchomienia";
+                    state = "unieruchomienia. Możesz próbować się uwolnić, klikając na aktywną jednostkę prawym przyciskiem myszy";
                     duration = 0;
                 }
                 else if (unitComponent.Grappled)
                 {
-                    state = "pochwycenia";
+                    state = "pochwycenia. Możesz próbować się uwolnić, klikając na aktywną jednostkę prawym przyciskiem myszy";
                     duration = 0;
                 }
                 else if (unitComponent.IsScared)
@@ -946,7 +947,7 @@ public class UnitsManager : MonoBehaviour
                 }
                 else if (unitComponent.TrappedUnitId != 0)
                 {
-                    state = "unieruchamiania innej jednostki swoją bronią.";
+                    state = "unieruchamiania innej jednostki swoją bronią";
                 }
                 else if (unitComponent.GrappledUnitId != 0)
                 {
@@ -1132,7 +1133,6 @@ public class UnitsManager : MonoBehaviour
         }
     }
     #endregion
-
 
     #region Attributes tests
     public void TestAttribute(string attributeName)

@@ -162,11 +162,15 @@ public class GridManager : MonoBehaviour
         MapEditor.Instance.RemoveElementsOutsideTheGrid();
     }
 
-    public void HighlightTilesInMovementRange(Stats unitStats)
+    public void HighlightTilesInMovementRange()
     {
+        if (Unit.SelectedUnit == null) return;
+
+        Stats unitStats = Unit.SelectedUnit.GetComponent<Stats>();
+
         ResetColorOfTilesInMovementRange();
 
-        if((GameManager.IsAutoCombatMode && !(unitStats.CompareTag("PlayerUnit") && GameManager.IsStatsHidingMode)) || ReinforcementLearningManager.Instance.IsLearning || Unit.SelectedUnit == null || RoundsManager.Instance.UnitsWithActionsLeft[Unit.SelectedUnit.GetComponent<Unit>()] == 0) return;
+        if ((GameManager.IsAutoCombatMode && !(unitStats.CompareTag("PlayerUnit") && GameManager.IsStatsHidingMode)) || ReinforcementLearningManager.Instance.IsLearning || RoundsManager.Instance.UnitsWithActionsLeft[Unit.SelectedUnit.GetComponent<Unit>()] == 0) return;
 
         // Sprawdzenie zasięgu ruchu
         int movementRange = unitStats.TempSz;

@@ -39,15 +39,27 @@ public class MovementManager : MonoBehaviour
         // Nie pozwala wykonać akcji ruchu, dopóki poprzedni ruch nie zostanie zakończony. Sprawdza też, czy gra nie jest wstrzymana (np. poprzez otwarcie dodatkowych paneli)
         if( IsMoving == true || GameManager.IsGamePaused) return;
 
-        // Jeśli jednostka pochwytująca inną wykonuje ruch, to pochwycenie zostane przerwane
-        if(unit.GetComponent<Unit>().GrappledUnitId != 0)
+        // Jeśli jednostka pochwytująca/unieruchamiająca inną wykonuje ruch, to pochwycenie/unieruchomienie zostane przerwane
+        if(unit.GetComponent<Unit>().GrappledUnitId != 0 || unit.GetComponent<Unit>().TrappedUnitId != 0)
         {
             foreach (var u in UnitsManager.Instance.AllUnits)
             {
                 if (u.UnitId == unit.GetComponent<Unit>().GrappledUnitId && u.Grappled == true)
                 {
                     u.Grappled = false;
+                    unit.GetComponent<Unit>().GrappledUnitId = 0;
+                    UnitsManager.Instance.UpdateUnitPanel(unit);
                     Debug.Log($"{unit.GetComponent<Stats>().Name} rozluźnia chwyt i pozwala {u.GetComponent<Stats>().Name} uwolnić się.");
+                    break;
+                }
+
+                if (u.UnitId == unit.GetComponent<Unit>().TrappedUnitId && u.Trapped == true)
+                {
+                    u.Trapped= false;
+                    unit.GetComponent<Unit>().TrappedUnitId = 0;
+                    UnitsManager.Instance.UpdateUnitPanel(unit);
+                    Debug.Log($"{unit.GetComponent<Stats>().Name} wykonuje ruch. przez co pozwala {u.GetComponent<Stats>().Name} uwolnić się z unieruchomienia.");
+                    break;
                 }
             } 
         }
@@ -156,7 +168,7 @@ public class MovementManager : MonoBehaviour
             
             if(Unit.SelectedUnit != null)
             {
-                GridManager.Instance.HighlightTilesInMovementRange(Unit.SelectedUnit.GetComponent<Stats>());
+                GridManager.Instance.HighlightTilesInMovementRange();
             }
         }
 
@@ -359,7 +371,7 @@ public class MovementManager : MonoBehaviour
         stats.TempSz = (stats.Sz - movement_armor_penalty) * modifier;
 
         // Aktualizuje podświetlenie pól w zasięgu ruchu
-        GridManager.Instance.HighlightTilesInMovementRange(stats);
+        GridManager.Instance.HighlightTilesInMovementRange();
 
         ChangeButtonColor(modifier);
     }

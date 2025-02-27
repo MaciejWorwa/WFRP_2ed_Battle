@@ -90,6 +90,20 @@ public class Unit : MonoBehaviour
 
             CombatManager.Instance.Attack(SelectedUnit.GetComponent<Unit>(), this, false);
         }
+        else if(Input.GetMouseButtonDown(1) && SelectedUnit == this.gameObject && !MagicManager.IsTargetSelecting)
+        {
+            //Jeżeli wybrana postać jest unieruchomiona to wykonuje próbę uwolnienia się.
+            if (Trapped)
+            {
+                StartCoroutine(CombatManager.Instance.EscapeFromTheSnare(this));
+            }
+
+            //Jeżeli wybrana postać jest pochwycona to wykonuje próbę uwolnienia się.
+            if (Grappled)
+            {
+                StartCoroutine(CombatManager.Instance.EscapeFromTheGrappling(this));
+            }
+        }
         else if (Input.GetMouseButtonDown(1) && SelectedUnit != null && MagicManager.IsTargetSelecting)
         {
             MagicManager.Instance.CastSpell(this.gameObject);
@@ -138,7 +152,7 @@ public class Unit : MonoBehaviour
         }
         IsSelected = !IsSelected;
         ChangeUnitColor(this.gameObject);
-        GridManager.Instance.HighlightTilesInMovementRange(Stats);
+        GridManager.Instance.HighlightTilesInMovementRange();
 
         //Wczytuje osiągnięcia jednostki
         UnitsManager.Instance.LoadAchievements(SelectedUnit);

@@ -4,6 +4,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System.Linq;
+using UnityEditor;
 
 public class InitiativeQueueManager : MonoBehaviour
 {
@@ -96,7 +97,7 @@ public class InitiativeQueueManager : MonoBehaviour
             GameObject playersOptionObj = CreateInitiativeOption(pair, PlayersCamera_InitiativeScrollViewContent, true);
 
             // Sprawdza, czy jest aktywna tura dla tej jednostki
-            if (RoundsManager.Instance.UnitsWithActionsLeft[pair.Key] > 0 && ActiveUnit == null && pair.Key.IsTurnFinished != true)
+            if ((RoundsManager.Instance.UnitsWithActionsLeft[pair.Key] > 0 || pair.Key.Grappled || pair.Key.Trapped || pair.Key.TrappedUnitId != 0 || pair.Key.GrappledUnitId != 0) && ActiveUnit == null && pair.Key.IsTurnFinished != true)
             {
                 ActiveUnit = pair.Key;
                 SetOptionColor(optionObj, _activeColor);
@@ -173,10 +174,20 @@ public class InitiativeQueueManager : MonoBehaviour
                 RoundsManager.Instance.NextRound();
             }
 
-            //Jeżeli wybrana postać jest unieruchomiona to wykonuje próbę uwolnienia się (bo to jedyne, co może w tej rundzie zrobić)
-            if(ActiveUnit != null && ActiveUnit.Trapped == true)
+            
+            if(ActiveUnit != null && (GameManager.IsAutoDiceRollingMode || ActiveUnit.CompareTag("EnemyUnit")))
             {
-                CombatManager.Instance.EscapeFromTheSnare(ActiveUnit);
+                //Jeżeli wybrana postać jest unieruchomiona to wykonuje próbę uwolnienia się (bo to jedyne, co może w tej rundzie zrobić)
+                if (ActiveUnit.Trapped)
+                {
+                    StartCoroutine(CombatManager.Instance.EscapeFromTheSnare(ActiveUnit));
+                }
+
+                //Jeżeli wybrana postać jest pochwycona to wykonuje próbę uwolnienia się (bo to jedyne, co może w tej rundzie zrobić)
+                if (ActiveUnit.Grappled)
+                {
+                    StartCoroutine(CombatManager.Instance.EscapeFromTheGrappling(ActiveUnit));
+                }
             }     
         }
     }

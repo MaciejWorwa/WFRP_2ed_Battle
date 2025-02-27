@@ -101,14 +101,14 @@ public class RoundsManager : MonoBehaviour
             if(key.Trapped)
             {
                 UnitsWithActionsLeft[key] = 0;
-                CombatManager.Instance.EscapeFromTheSnare(key);
+                //CombatManager.Instance.EscapeFromTheSnare(key); ---- to zostało przeniesione do InitiativeQueueManager, gdy konkretna jednostka jest wybierana, zamiast robić to na początku rundy
             }
             if(key.Grappled)
             {
                 UnitsWithActionsLeft[key] = 0;
-                CombatManager.Instance.EscapeFromTheGrappling(key);
+                //CombatManager.Instance.EscapeFromTheGrappling(key); ---- to zostało przeniesione do InitiativeQueueManager, gdy konkretna jednostka jest wybierana, zamiast robić to na początku rundy
             }
-            if(key.IsScared)
+            if (key.IsScared)
             {
                 UnitsWithActionsLeft[key] = 0;
             }
@@ -121,7 +121,7 @@ public class RoundsManager : MonoBehaviour
                 {
                     if(unit.UnitId == key.TrappedUnitId && unit.Trapped == true)
                     {
-                        UnitsWithActionsLeft[key] = 0;
+                        //UnitsWithActionsLeft[key] = 0;
                         trappedUnitExist = true;
                     }
                 }
@@ -129,6 +129,25 @@ public class RoundsManager : MonoBehaviour
                 if (!trappedUnitExist)
                 {
                     key.TrappedUnitId = 0;
+                }
+            }
+
+            if (key.GrappledUnitId != 0)
+            {
+                bool grappledUnitExist = false;
+
+                foreach (var unit in UnitsManager.Instance.AllUnits)
+                {
+                    if (unit.UnitId == key.GrappledUnitId && unit.Grappled == true)
+                    {
+                        //UnitsWithActionsLeft[key] = 0;
+                        grappledUnitExist = true;
+                    }
+                }
+
+                if (!grappledUnitExist)
+                {
+                    key.GrappledUnitId = 0;
                 }
             }
 
