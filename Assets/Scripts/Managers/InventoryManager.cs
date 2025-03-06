@@ -656,57 +656,63 @@ public class InventoryManager : MonoBehaviour
     #region Inventory dropdown list managing
     public void UpdateInventoryDropdown(List<Weapon> weapons, bool reloadEditWeaponPanel)
     {
-        //Ustala wyświetlaną nazwę właściciela ekwipunku
-        if(Unit.SelectedUnit != null)
+        // Sortowanie listy broni alfabetycznie wg nazwy
+        weapons.Sort((w1, w2) => w1.Name.CompareTo(w2.Name));
+
+        // Ustala wyświetlaną nazwę właściciela ekwipunku
+        if (Unit.SelectedUnit != null)
         {
             _inventoryPanel.transform.Find("inventory_name").GetComponent<TMP_Text>().text = "Ekwipunek " + Unit.SelectedUnit.GetComponent<Stats>().Name;
 
             _copperCoinsInput.text = Unit.SelectedUnit.GetComponent<Inventory>().CopperCoins.ToString();
-            _silverCoinsInput.text = (Unit.SelectedUnit.GetComponent<Inventory>().SilverCoins).ToString();
-            _goldCoinsInput.text = (Unit.SelectedUnit.GetComponent<Inventory>().GoldCoins).ToString();
+            _silverCoinsInput.text = Unit.SelectedUnit.GetComponent<Inventory>().SilverCoins.ToString();
+            _goldCoinsInput.text = Unit.SelectedUnit.GetComponent<Inventory>().GoldCoins.ToString();
         }
 
         ResetInventoryDropdown();
 
         // Ustala wyświetlany ekwipunek postaci
+        var customDropdown = InventoryScrollViewContent.GetComponent<CustomDropdown>();
         foreach (var weapon in weapons)
         {
             // Dodaje broń do ScrollViewContent w postaci buttona
             GameObject buttonObj = Instantiate(_buttonPrefab, InventoryScrollViewContent);
             TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
-            // Ustala text buttona
+            // Ustala tekst przycisku na nazwę broni
             buttonText.text = weapon.Name;
 
             UnityEngine.UI.Button button = buttonObj.GetComponent<UnityEngine.UI.Button>();
 
             // Dodaje opcję do CustomDropdowna ze wszystkimi brońmi
-            InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons.Add(button);
-            //Sortuje listę alfabetycznie
-            InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons.Sort((x, y) => x.GetComponentInChildren<TextMeshProUGUI>().text.CompareTo(y.GetComponentInChildren<TextMeshProUGUI>().text));
+            customDropdown.Buttons.Add(button);
 
+        }
+
+        // Ponowna inicjalizacja przycisków po dodaniu/usunięciu przycisków z listy Buttons
+        customDropdown.InitializeButtons();
+
+        // Ustawienie kolejności w hierarchii ScrollView, aby elementy były wyświetlane w posortowanej kolejności
+        for (int i = 0; i < customDropdown.Buttons.Count; i++)
+        {
+            customDropdown.Buttons[i].transform.SetSiblingIndex(i);
 
             // Zdarzenie po kliknięciu na konkretny item z listy
-            button.onClick.AddListener(() =>
+            customDropdown.Buttons[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() =>
             {
-                int buttonIndex = InventoryScrollViewContent.GetComponent<CustomDropdown>().Buttons.IndexOf(button);
-
-                InventoryScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(buttonIndex + 1); // Wybiera element i aktualizuje jego wygląd
+                LoadWeaponAttributes();
             });
         }
 
-        //Aktualizuje panel edycji broni, w przypadku gdyby był otwarty
-        if(reloadEditWeaponPanel == true)
+        // Aktualizuje panel edycji broni, jeśli jest otwarty
+        if (reloadEditWeaponPanel)
         {
-            //Domyślnie zaznacza pierwszą pozycję na liście
-            if(weapons.Count > 0)
+            // Domyślnie zaznacza pierwszą pozycję na liście
+            if (weapons.Count > 0)
             {
-                InventoryScrollViewContent.GetComponent<CustomDropdown>().SetSelectedIndex(1);
+                customDropdown.SetSelectedIndex(1);
             }
             LoadWeaponAttributes();
         }
-
-        //Ponowna inicjalizacja przycisków po dodaniu/usunięciu przycisków z listy Buttons
-        InventoryScrollViewContent.GetComponent<CustomDropdown>().InitializeButtons();
 
         CheckForEquippedWeapons();
     }
